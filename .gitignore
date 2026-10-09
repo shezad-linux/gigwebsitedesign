@@ -11,6 +11,12 @@
 /.next/
 /out/
 
+# gradle / server
+server/.gradle/
+server/build/
+.gradle/
+build/
+
 # production
 /build
 
