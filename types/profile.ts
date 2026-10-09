@@ -9,13 +9,13 @@ export interface UserResume {
   uploadedAt: string;
   extractedSkills: string[];
   extractedSummary?: string;
-  simulatedScore?: number;
 }
 
 export interface UserProfile {
   id: string;
   fullName: string;
   email: string;
+  phone?: string;
   country: string; // e.g. "India", "United States", "United Kingdom", "Germany", etc.
   countryCode: string; // e.g. "IN", "US", "GB", "DE"
   workAuthorization?: string; // e.g. "Resident / Citizen", "Contractor (W-8BEN / Self-employed)"

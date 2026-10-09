@@ -59,25 +59,49 @@ export async function extractTextFromBuffer(
 
   if (isPdf) {
     try {
-      // Dynamic import to prevent client bundling issues
+      // Dynamic import to support both pdf-parse v2 (class-based) and v1 (function)
       // @ts-ignore
-      const pdfParse = (await import("pdf-parse")).default || (await import("pdf-parse"));
-      const pdfData = await pdfParse(buffer);
-      const cleaned = (pdfData.text || "")
-        .replace(/\r\n/g, "\n")
-        .replace(/\t/g, " ")
-        .trim();
+      const pdfModule: any = await import("pdf-parse");
+      let cleaned = "";
+      let pageCount = 1;
+
+      if (pdfModule.PDFParse) {
+        const parser = new pdfModule.PDFParse({ data: buffer });
+        const pdfData = await parser.getText();
+        cleaned = (pdfData.text || "")
+          .replace(/\r\n/g, "\n")
+          .replace(/\t/g, " ")
+          .trim();
+        pageCount = pdfData.pages?.length || 1;
+        await parser.destroy();
+      } else if (typeof pdfModule === "function") {
+        const pdfData = await pdfModule(buffer);
+        cleaned = (pdfData.text || "")
+          .replace(/\r\n/g, "\n")
+          .replace(/\t/g, " ")
+          .trim();
+        pageCount = pdfData.numpages || 1;
+      } else if (typeof pdfModule.default === "function") {
+        const pdfData = await pdfModule.default(buffer);
+        cleaned = (pdfData.text || "")
+          .replace(/\r\n/g, "\n")
+          .replace(/\t/g, " ")
+          .trim();
+        pageCount = pdfData.numpages || 1;
+      } else {
+        throw new Error("No compatible PDFParse function found in pdf-parse module.");
+      }
 
       const words = cleaned.split(/\s+/).filter(Boolean);
 
       return {
         text: cleaned,
-        pageCount: pdfData.numpages || 1,
+        pageCount,
         wordCount: words.length,
         format: "pdf",
       };
     } catch (err: any) {
-      console.warn("pdf-parse failed or scanned PDF encountered:", err);
+      console.warn("pdf-parse extraction failed, attempting fallback:", err);
       // Fallback regex text extractor for basic text-stream PDFs
       const rawString = buffer.toString("utf-8");
       const match = rawString.match(/\(([^)]+)\)\s*Tj/g);

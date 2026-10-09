@@ -4,7 +4,7 @@ import { DEMO_PROFILE } from "@/data/demo-profile";
 import { MOCK_GIGS } from "@/data/gigs";
 
 const STORAGE_KEYS = {
-  PROFILE: "gigmatcher_user_profile_v1",
+  PROFILE: "gigmatcher_user_profile_v2",
   GIGS: "gigmatcher_gigs_catalog_v1",
   APPLICATIONS: "gigmatcher_applications_v1",
 };

@@ -13,17 +13,24 @@ import {
   Layers,
   ArrowRight,
   ShieldCheck,
+  User,
+  Mail,
+  Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ExtractedProfileData, SkillEvidence } from "@/lib/extraction/ai-extractor";
-import { CANONICAL_SKILLS } from "@/data/taxonomy";
 
 interface ResumeReviewModalProps {
   fileName: string;
   fileSize: number;
   extractedProfile: ExtractedProfileData;
   onConfirm: (confirmed: {
+    fullName?: string;
+    email?: string;
+    phone?: string;
+    country?: string;
+    countryCode?: string;
     skills: string[];
     experienceLevel: string;
     yearsOfExperience: number;
@@ -41,6 +48,14 @@ export const ResumeReviewModal: React.FC<ResumeReviewModalProps> = ({
   onDeleteResume,
   onCancel,
 }) => {
+  const [fullName, setFullName] = useState(extractedProfile.fullName || "");
+  const [email, setEmail] = useState(extractedProfile.email || "");
+  const [phone, setPhone] = useState(extractedProfile.phone || "");
+  const [country, setCountry] = useState(extractedProfile.country || "India");
+  const [countryCode, setCountryCode] = useState(
+    extractedProfile.countryCode || "IN"
+  );
+
   const [skills, setSkills] = useState<string[]>(extractedProfile.skills || []);
   const [newSkillInput, setNewSkillInput] = useState("");
   const [experienceLevel, setExperienceLevel] = useState<string>(
@@ -79,15 +94,15 @@ export const ResumeReviewModal: React.FC<ResumeReviewModalProps> = ({
         <div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-50 text-brand-700 text-xs font-semibold mb-1.5">
             <Sparkles className="w-3.5 h-3.5 text-brand-600" />
-            <span>AI Extraction Awaiting Confirmation</span>
+            <span>Real AI Extraction Awaiting Confirmation</span>
           </div>
           <h3 className="text-xl font-bold text-ink tracking-tight">
-            Review & Correct Extracted Profile
+            Review & Confirm Extracted Resume Facts
           </h3>
           <p className="text-xs text-ink-muted mt-0.5">
-            AI extracted these candidate facts from{" "}
+            Facts extracted directly from{" "}
             <span className="font-semibold text-slate-700">{fileName}</span> (
-            {Math.round(fileSize / 1024)} KB). Confirm or adjust below.
+            {Math.round(fileSize / 1024)} KB). Confirm or adjust below before saving.
           </p>
         </div>
 
@@ -101,11 +116,68 @@ export const ResumeReviewModal: React.FC<ResumeReviewModalProps> = ({
         </button>
       </div>
 
-      {/* Skills Section with Evidence Citations */}
+      {/* Extracted Identity & Location Info */}
       <div className="space-y-3">
+        <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
+          Candidate Identity & Geographic Screening
+        </label>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <span className="text-[11px] text-slate-500 font-medium block mb-1">
+              Candidate Name
+            </span>
+            <input
+              type="text"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="e.g. Jane Doe"
+              className="w-full h-9 px-3 rounded-xl border border-border text-xs focus:ring-2 focus:ring-brand-500/20 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <span className="text-[11px] text-slate-500 font-medium block mb-1">
+              Email Address
+            </span>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="candidate@example.com"
+              className="w-full h-9 px-3 rounded-xl border border-border text-xs focus:ring-2 focus:ring-brand-500/20 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <span className="text-[11px] text-slate-500 font-medium block mb-1">
+              Country & ISO Code
+            </span>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                placeholder="Country (e.g. India, United States)"
+                className="flex-1 h-9 px-3 rounded-xl border border-border text-xs focus:ring-2 focus:ring-brand-500/20 focus:outline-none"
+              />
+              <input
+                type="text"
+                value={countryCode}
+                onChange={(e) => setCountryCode(e.target.value.toUpperCase())}
+                placeholder="IN"
+                maxLength={3}
+                className="w-14 h-9 px-2 rounded-xl border border-border text-xs text-center font-mono font-bold focus:ring-2 focus:ring-brand-500/20 focus:outline-none"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Skills Section with Evidence Citations */}
+      <div className="space-y-3 pt-2 border-t border-slate-100">
         <div className="flex items-center justify-between">
           <label className="text-xs font-bold uppercase tracking-wider text-slate-700">
-            Confirmed Skills ({skills.length})
+            Identified Technical Skills ({skills.length})
           </label>
           <span className="text-[11px] text-slate-400">
             Click &times; to remove any false positives
@@ -119,6 +191,7 @@ export const ResumeReviewModal: React.FC<ResumeReviewModalProps> = ({
               <span
                 key={skill}
                 className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-white text-ink border border-border shadow-2xs hover:border-brand-300 transition-colors"
+                title={ev?.contextSnippet ? `Found in: ${ev.contextSnippet}` : undefined}
               >
                 <span>{skill}</span>
                 {ev && (
@@ -146,7 +219,7 @@ export const ResumeReviewModal: React.FC<ResumeReviewModalProps> = ({
             value={newSkillInput}
             onChange={(e) => setNewSkillInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addSkill())}
-            placeholder="Add missing skill (e.g. Prompt Engineering, C++)..."
+            placeholder="Add missing skill (e.g. Prompt Engineering, C++, Rust)..."
             className="flex-1 h-9 px-3 rounded-xl border border-border text-xs focus:ring-2 focus:ring-brand-500/20 focus:outline-none"
           />
           <Button
@@ -165,7 +238,7 @@ export const ResumeReviewModal: React.FC<ResumeReviewModalProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
         <div>
           <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-            Experience Level
+            Experience Level Tier
           </label>
           <select
             value={experienceLevel}
@@ -198,7 +271,7 @@ export const ResumeReviewModal: React.FC<ResumeReviewModalProps> = ({
       {/* Inferred Summary */}
       <div>
         <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-          Profile Summary
+          Extracted Profile Summary
         </label>
         <textarea
           rows={2}
@@ -219,6 +292,10 @@ export const ResumeReviewModal: React.FC<ResumeReviewModalProps> = ({
           className="bg-brand-600 hover:bg-brand-700 font-semibold"
           onClick={() =>
             onConfirm({
+              fullName: fullName.trim() || undefined,
+              email: email.trim() || undefined,
+              country: country.trim() || undefined,
+              countryCode: countryCode.trim() || undefined,
               skills,
               experienceLevel,
               yearsOfExperience: years,

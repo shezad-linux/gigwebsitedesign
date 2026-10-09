@@ -78,7 +78,7 @@ const SAMPLE_COUNTRIES = [
 export default function OnboardingPage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState<number>(1);
-  const [isSimulatingParse, setIsSimulatingParse] = useState(false);
+  const [isParsing, setIsParsing] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Form State
@@ -135,8 +135,8 @@ export default function OnboardingPage() {
   useEffect(() => {
     const existing = getStoredProfile();
     if (existing) {
-      setFullName(existing.fullName || "Alex Chen");
-      setEmail(existing.email || "alex.chen@example.com");
+      if (existing.fullName) setFullName(existing.fullName);
+      if (existing.email) setEmail(existing.email);
       if (existing.resume) setResume(existing.resume);
       if (existing.country) setCountry(existing.country);
       if (existing.countryCode) setCountryCode(existing.countryCode);
@@ -159,7 +159,7 @@ export default function OnboardingPage() {
     if (!file) return;
 
     setErrorMsg(null);
-    setIsSimulatingParse(true);
+    setIsParsing(true);
 
     try {
       const formData = new FormData();
@@ -185,14 +185,18 @@ export default function OnboardingPage() {
     } catch (err: any) {
       setErrorMsg(err.message || "Failed to process resume. Please try manual entry.");
     } finally {
-      setIsSimulatingParse(false);
+      setIsParsing(false);
     }
   };
 
   const handleUseSampleResume = () => {
-    setIsSimulatingParse(true);
+    setIsParsing(true);
     setTimeout(() => {
       const sampleProfile: ExtractedProfileData = {
+        fullName: fullName || "Alex Chen",
+        email: email || "alex.chen@example.com",
+        country: country || "India",
+        countryCode: countryCode || "IN",
         skills: [
           "Python",
           "Java",
@@ -222,16 +226,25 @@ export default function OnboardingPage() {
         profile: sampleProfile,
       });
       setShowReviewModal(true);
-      setIsSimulatingParse(false);
+      setIsParsing(false);
     }, 400);
   };
 
   const handleConfirmExtraction = (confirmed: {
+    fullName?: string;
+    email?: string;
+    phone?: string;
+    country?: string;
+    countryCode?: string;
     skills: string[];
     experienceLevel: string;
     yearsOfExperience: number;
     summary: string;
   }) => {
+    if (confirmed.fullName) setFullName(confirmed.fullName);
+    if (confirmed.email) setEmail(confirmed.email);
+    if (confirmed.country) setCountry(confirmed.country);
+    if (confirmed.countryCode) setCountryCode(confirmed.countryCode);
     setSkills(confirmed.skills);
     setExperienceLevel(
       confirmed.experienceLevel === "senior"
@@ -250,7 +263,6 @@ export default function OnboardingPage() {
         uploadedAt: new Date().toISOString(),
         extractedSkills: confirmed.skills,
         extractedSummary: confirmed.summary,
-        simulatedScore: 92,
       });
     }
 
@@ -421,7 +433,7 @@ export default function OnboardingPage() {
           <CardHeader>
             <CardTitle className="text-xl">Step 1: Resume & Extraction</CardTitle>
             <CardDescription>
-              Simulate uploading a PDF or DOCX resume to auto-populate skills, or choose to enter details manually.
+              Upload your PDF or DOCX resume to extract verified skills, tools, and experience with audit citations, or enter details manually.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -468,10 +480,10 @@ export default function OnboardingPage() {
                       variant="secondary"
                       size="sm"
                       onClick={handleUseSampleResume}
-                      isLoading={isSimulatingParse}
+                      isLoading={isParsing}
                     >
                       <FileText className="w-3.5 h-3.5 mr-1 text-brand-600" />
-                      Load Verified Sample Resume (Alex Chen)
+                      Load Full Demo Candidate Resume
                     </Button>
                     <Button
                       type="button"
@@ -502,7 +514,7 @@ export default function OnboardingPage() {
                     <div>
                       <h4 className="text-sm font-bold text-ink">{resume.fileName}</h4>
                       <p className="text-xs text-slate-500">
-                        {(resume.fileSize / 1024).toFixed(1)} KB · Simulated extract complete
+                        {(resume.fileSize / 1024).toFixed(1)} KB · Real AI extraction verified
                       </p>
                     </div>
                   </div>

@@ -143,6 +143,10 @@ export default function ProfilePage() {
     setParseError(null);
     setTimeout(() => {
       const sampleProfile: ExtractedProfileData = {
+        fullName: profile.fullName || "Demo Candidate",
+        email: profile.email || "candidate@example.com",
+        country: profile.country || "India",
+        countryCode: profile.countryCode || "IN",
         skills: [
           "Python",
           "Java",
@@ -177,6 +181,11 @@ export default function ProfilePage() {
   };
 
   const handleConfirmReview = (confirmed: {
+    fullName?: string;
+    email?: string;
+    phone?: string;
+    country?: string;
+    countryCode?: string;
     skills: string[];
     experienceLevel: string;
     yearsOfExperience: number;
@@ -184,6 +193,10 @@ export default function ProfilePage() {
   }) => {
     const updatedProfile: UserProfile = {
       ...profile,
+      fullName: confirmed.fullName || profile.fullName,
+      email: confirmed.email || profile.email,
+      country: confirmed.country || profile.country,
+      countryCode: confirmed.countryCode || profile.countryCode,
       skills: confirmed.skills,
       experienceLevel:
         confirmed.experienceLevel === "senior"
@@ -200,7 +213,6 @@ export default function ProfilePage() {
             uploadedAt: new Date().toISOString(),
             extractedSkills: confirmed.skills,
             extractedSummary: confirmed.summary,
-            simulatedScore: 92,
           }
         : profile.resume,
     };
@@ -234,9 +246,18 @@ export default function ProfilePage() {
       fileName: profile.resume.fileName,
       fileSize: profile.resume.fileSize,
       profile: {
+        fullName: profile.fullName,
+        email: profile.email,
+        country: profile.country,
+        countryCode: profile.countryCode,
         skills: profile.resume.extractedSkills || profile.skills,
         tools: ["Git", "Docker"],
-        experienceLevel: profile.experienceLevel === "expert" ? "senior" : profile.experienceLevel === "entry" ? "entry_level" : "mid_level",
+        experienceLevel:
+          profile.experienceLevel === "expert"
+            ? "senior"
+            : profile.experienceLevel === "entry"
+            ? "entry_level"
+            : "mid_level",
         yearsOfExperience: profile.yearsOfExperience || 3,
         evidence: (profile.resume.extractedSkills || profile.skills).map((s) => ({
           skill: s,

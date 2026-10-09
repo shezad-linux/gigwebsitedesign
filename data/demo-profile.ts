@@ -1,4 +1,23 @@
-import { UserProfile } from "@/types/profile";
+import { UserProfile, UserResume } from "@/types/profile";
+
+export const DEMO_RESUME: UserResume = {
+  fileName: "Alex_Chen_Software_Engineer_Resume.pdf",
+  fileSize: 184500,
+  uploadedAt: new Date().toISOString(),
+  extractedSkills: [
+    "Python",
+    "Java",
+    "Code Review",
+    "Git",
+    "SQL",
+    "REST APIs",
+    "Debugging",
+    "Unit Testing",
+    "Prompt Engineering",
+  ],
+  extractedSummary:
+    "Software Developer experienced in Java Spring, Python automation, and software testing with focus on algorithmic verification and code evaluation.",
+};
 
 export const DEFAULT_PROFILE: UserProfile = {
   id: "user_prof_01",
@@ -18,8 +37,6 @@ export const DEFAULT_PROFILE: UserProfile = {
     "SQL",
     "Git",
     "Prompt Engineering",
-    "Debugging",
-    "Data Labeling",
   ],
   experienceLevel: "mid",
   yearsOfExperience: 3,
@@ -31,27 +48,10 @@ export const DEFAULT_PROFILE: UserProfile = {
   weeklyHoursAvailable: 20,
   preferredPayoutMethods: ["PayPal", "Wise", "Direct Deposit"],
   bio: "Full-stack engineer and AI code evaluator with 3+ years experience across Java, Python, and microservices. Active reviewer for frontier LLM code generation benchmarks.",
-  resume: {
-    fileName: "Alex_Chen_Software_Engineer_Resume.pdf",
-    fileSize: 184500,
-    uploadedAt: "2025-05-10T14:30:00Z",
-    extractedSkills: [
-      "Python",
-      "Java",
-      "Code Review",
-      "Git",
-      "SQL",
-      "REST APIs",
-      "Debugging",
-      "Unit Testing",
-      "Prompt Engineering",
-    ],
-    extractedSummary: "Software Developer experienced in Java Spring, Python automation, and software testing with focus on algorithmic verification and code evaluation.",
-    simulatedScore: 92,
-  },
+  resume: undefined, // Fresh start: users upload their own resume or load demo on demand
   hasCompletedOnboarding: true,
   createdAt: "2025-05-10T14:00:00Z",
-  updatedAt: "2025-05-10T14:35:00Z",
+  updatedAt: new Date().toISOString(),
 };
 
 // Backwards compatibility alias
