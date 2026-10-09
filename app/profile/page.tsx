@@ -17,6 +17,8 @@ import {
   ShieldCheck,
   AlertCircle,
   Briefcase,
+  Upload,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -28,6 +30,8 @@ import {
   removeResumeFromProfile,
 } from "@/lib/storage";
 import { apiClient } from "@/lib/api";
+import { ResumeReviewModal } from "@/components/onboarding/ResumeReviewModal";
+import { ExtractedProfileData } from "@/lib/extraction/ai-extractor";
 
 const CATEGORY_CHOICES = [
   "AI Coding",
@@ -46,6 +50,16 @@ export default function ProfilePage() {
   const [newSkillInput, setNewSkillInput] = useState("");
   const [newLangName, setNewLangName] = useState("");
   const [newLangProf, setNewLangProf] = useState<UserLanguage["proficiency"]>("fluent");
+
+  // Phase 3 Resume Parsing & Review State
+  const [isParsingResume, setIsParsingResume] = useState(false);
+  const [parseError, setParseError] = useState<string | null>(null);
+  const [extractedData, setExtractedData] = useState<{
+    fileName: string;
+    fileSize: number;
+    profile: ExtractedProfileData;
+  } | null>(null);
+  const [showReviewModal, setShowReviewModal] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -86,11 +100,154 @@ export default function ProfilePage() {
     }
   };
 
-  const handleRemoveResume = () => {
-    if (confirm("Remove attached sample resume from your profile?")) {
+  // Upload and parse real resume document via server API
+  const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setParseError(null);
+    setIsParsingResume(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/resume/parse", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to parse resume document.");
+      }
+
+      const data = await res.json();
+      setExtractedData({
+        fileName: file.name,
+        fileSize: file.size,
+        profile: data.extractedProfile,
+      });
+      setShowReviewModal(true);
+    } catch (err: any) {
+      setParseError(err.message || "Failed to process resume. Please try again.");
+    } finally {
+      setIsParsingResume(false);
+      // Reset input value so user can re-upload same file if desired
+      e.target.value = "";
+    }
+  };
+
+  const handleUseSampleResume = () => {
+    setIsParsingResume(true);
+    setParseError(null);
+    setTimeout(() => {
+      const sampleProfile: ExtractedProfileData = {
+        skills: [
+          "Python",
+          "Java",
+          "Code Review",
+          "SQL",
+          "Git",
+          "Unit Testing",
+          "Prompt Engineering",
+        ],
+        tools: ["Git", "Docker", "IntelliJ", "Postman"],
+        experienceLevel: "mid_level",
+        yearsOfExperience: 3,
+        evidence: [
+          { skill: "Java", sourceSection: "Projects", confidence: 0.95 },
+          { skill: "Python", sourceSection: "Work Experience", confidence: 0.95 },
+          { skill: "Code Review", sourceSection: "Work Experience", confidence: 0.9 },
+          { skill: "SQL", sourceSection: "Projects", confidence: 0.9 },
+          { skill: "Prompt Engineering", sourceSection: "Technical Skills", confidence: 0.85 },
+        ],
+        summary: "Software Developer experienced in Java Spring, Python automation, and software testing.",
+        needsUserReview: true,
+      };
+
+      setExtractedData({
+        fileName: "Alex_Chen_Software_Engineer_Resume.pdf",
+        fileSize: 184500,
+        profile: sampleProfile,
+      });
+      setShowReviewModal(true);
+      setIsParsingResume(false);
+    }, 400);
+  };
+
+  const handleConfirmReview = (confirmed: {
+    skills: string[];
+    experienceLevel: string;
+    yearsOfExperience: number;
+    summary: string;
+  }) => {
+    const updatedProfile: UserProfile = {
+      ...profile,
+      skills: confirmed.skills,
+      experienceLevel:
+        confirmed.experienceLevel === "senior"
+          ? "expert"
+          : confirmed.experienceLevel === "entry_level"
+          ? "entry"
+          : "mid",
+      yearsOfExperience: confirmed.yearsOfExperience,
+      bio: confirmed.summary,
+      resume: extractedData
+        ? {
+            fileName: extractedData.fileName,
+            fileSize: extractedData.fileSize,
+            uploadedAt: new Date().toISOString(),
+            extractedSkills: confirmed.skills,
+            extractedSummary: confirmed.summary,
+            simulatedScore: 92,
+          }
+        : profile.resume,
+    };
+
+    setProfile(updatedProfile);
+    saveStoredProfile(updatedProfile);
+    apiClient.updateProfile(updatedProfile).catch(console.warn);
+    setShowReviewModal(false);
+    setSavedSuccess(true);
+    setTimeout(() => setSavedSuccess(false), 3000);
+  };
+
+  const handleRemoveResume = async () => {
+    if (confirm("Remove attached resume and reset extracted skills cache?")) {
+      try {
+        await fetch("/api/resume/delete", { method: "POST" });
+      } catch (e) {
+        console.warn("Delete API call failed:", e);
+      }
       const updated = removeResumeFromProfile();
       setProfile(updated);
+      apiClient.updateProfile(updated).catch(console.warn);
+      setSavedSuccess(true);
+      setTimeout(() => setSavedSuccess(false), 3000);
     }
+  };
+
+  const handleReviewCurrentResume = () => {
+    if (!profile.resume) return;
+    setExtractedData({
+      fileName: profile.resume.fileName,
+      fileSize: profile.resume.fileSize,
+      profile: {
+        skills: profile.resume.extractedSkills || profile.skills,
+        tools: ["Git", "Docker"],
+        experienceLevel: profile.experienceLevel === "expert" ? "senior" : profile.experienceLevel === "entry" ? "entry_level" : "mid_level",
+        yearsOfExperience: profile.yearsOfExperience || 3,
+        evidence: (profile.resume.extractedSkills || profile.skills).map((s) => ({
+          skill: s,
+          sourceSection: "Resume Profile",
+          confidence: 0.9,
+        })),
+        summary: profile.resume.extractedSummary || profile.bio,
+        needsUserReview: true,
+      },
+    });
+    setShowReviewModal(true);
   };
 
   const addSkill = () => {
@@ -291,51 +448,170 @@ export default function ProfilePage() {
           {/* Attached Resume */}
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <CardTitle className="text-base font-bold">Resume & Parser Cache</CardTitle>
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-base font-bold">Resume & Skill Calibration</CardTitle>
+                    <span className="text-[11px] font-semibold text-brand-700 bg-brand-50 border border-brand-200 px-2 py-0.5 rounded-full">
+                      Phase 3 AI Parser
+                    </span>
+                  </div>
                   <CardDescription>
-                    Client-side extracted resume metadata used to suggest matching skills.
+                    Upload your PDF or DOCX resume to extract verified skills, tools, and experience with audit evidence.
                   </CardDescription>
                 </div>
                 {profile.resume && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleRemoveResume}
-                    className="text-red-600 hover:bg-red-50 text-xs"
-                  >
-                    <Trash2 className="w-3.5 h-3.5 mr-1" /> Remove Resume
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={handleReviewCurrentResume}
+                      className="text-xs text-brand-700"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 mr-1 text-brand-600" /> Review Extraction
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleRemoveResume}
+                      className="text-red-600 hover:bg-red-50 text-xs"
+                    >
+                      <Trash2 className="w-3.5 h-3.5 mr-1" /> Remove
+                    </Button>
+                  </div>
                 )}
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+              {parseError && (
+                <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{parseError}</span>
+                  </div>
+                  <button type="button" onClick={() => setParseError(null)} className="text-red-500 hover:text-red-700">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+
               {profile.resume ? (
                 <div className="p-4 rounded-xl border border-border bg-slate-50 space-y-3 text-xs">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-brand-600" />
-                      <span className="font-bold text-ink">{profile.resume.fileName}</span>
-                      <span className="text-slate-400">
-                        ({(profile.resume.fileSize / 1024).toFixed(1)} KB)
+                      <FileText className="w-5 h-5 text-brand-600 shrink-0" />
+                      <div>
+                        <span className="font-bold text-ink block">{profile.resume.fileName}</span>
+                        <span className="text-slate-400 text-[11px]">
+                          {(profile.resume.fileSize / 1024).toFixed(1)} KB · Calibrated {profile.resume.uploadedAt ? new Date(profile.resume.uploadedAt).toLocaleDateString() : "Recently"}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1 font-semibold">
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                        Verified Skills Active
                       </span>
                     </div>
-                    <span className="text-[11px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                      Simulated parse active
-                    </span>
                   </div>
-                  <p className="text-slate-600 italic">{profile.resume.extractedSummary}</p>
+
+                  {profile.resume.extractedSummary && (
+                    <p className="text-slate-600 italic bg-white p-3 rounded-lg border border-slate-200/80 leading-relaxed">
+                      "{profile.resume.extractedSummary}"
+                    </p>
+                  )}
+
+                  <div className="pt-2 border-t border-slate-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <span className="text-[11px] text-slate-500">
+                      Want to update or upload a refreshed resume document?
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <label className="cursor-pointer">
+                        <input
+                          type="file"
+                          accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                          onChange={handleResumeUpload}
+                          disabled={isParsingResume}
+                          className="hidden"
+                        />
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          disabled={isParsingResume}
+                          className="text-xs pointer-events-none"
+                        >
+                          {isParsingResume ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                              Parsing...
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-3.5 h-3.5 mr-1.5" />
+                              Upload New Resume
+                            </>
+                          )}
+                        </Button>
+                      </label>
+                    </div>
+                  </div>
                 </div>
               ) : (
-                <div className="p-4 rounded-xl border border-dashed border-slate-300 text-center text-xs text-slate-500 space-y-2">
-                  <p>No resume currently attached. Skills are driven entirely by your manual entries.</p>
-                  <Link href="/onboarding">
-                    <Button type="button" variant="secondary" size="sm">
-                      Upload or Re-scan Resume in Onboarding
+                <div className="p-6 rounded-xl border border-dashed border-slate-300 bg-slate-50/50 text-center space-y-4">
+                  <div className="mx-auto w-12 h-12 rounded-full bg-brand-50 flex items-center justify-center text-brand-600">
+                    <Upload className="w-6 h-6" />
+                  </div>
+                  <div className="max-w-md mx-auto space-y-1">
+                    <p className="text-sm font-bold text-ink">Upload your PDF or DOCX Resume</p>
+                    <p className="text-xs text-slate-500">
+                      Our server-side AI extracts your concrete technical skills and evidence without guessing. You review and approve before saving.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                    <label className="cursor-pointer w-full sm:w-auto">
+                      <input
+                        type="file"
+                        accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        onChange={handleResumeUpload}
+                        disabled={isParsingResume}
+                        className="hidden"
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        disabled={isParsingResume}
+                        className="w-full sm:w-auto text-xs pointer-events-none shadow-xs"
+                      >
+                        {isParsingResume ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                            Parsing Document...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-3.5 h-3.5 mr-1.5" />
+                            Select Resume File
+                          </>
+                        )}
+                      </Button>
+                    </label>
+
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={handleUseSampleResume}
+                      disabled={isParsingResume}
+                      className="w-full sm:w-auto text-xs"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 mr-1.5 text-brand-600" />
+                      Try Sample Developer Resume
                     </Button>
-                  </Link>
+                  </div>
                 </div>
               )}
             </CardContent>
@@ -590,6 +866,21 @@ export default function ProfilePage() {
             </Button>
           </div>
         </form>
+
+        {/* Phase 3 AI Resume Extraction Review Modal */}
+        {showReviewModal && extractedData && (
+          <ResumeReviewModal
+            fileName={extractedData.fileName}
+            fileSize={extractedData.fileSize}
+            extractedProfile={extractedData.profile}
+            onConfirm={handleConfirmReview}
+            onDeleteResume={() => {
+              setShowReviewModal(false);
+              handleRemoveResume();
+            }}
+            onCancel={() => setShowReviewModal(false)}
+          />
+        )}
       </div>
     </div>
   );

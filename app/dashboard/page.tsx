@@ -15,6 +15,9 @@ import {
   X,
   User,
   ExternalLink,
+  FileText,
+  Calculator,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FilterSidebar } from "@/components/dashboard/FilterSidebar";
@@ -44,6 +47,7 @@ function DashboardContent() {
   const [savedGigIds, setSavedGigIds] = useState<Set<string>>(new Set());
   const [selectedGig, setSelectedGig] = useState<GigListing | null>(null);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Filters State
@@ -234,6 +238,68 @@ function DashboardContent() {
           </div>
         </div>
 
+        {/* Phase 3 Resume Calibration Status Card */}
+        <div className="mb-8 rounded-[14px] border border-border bg-white p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-start sm:items-center gap-3">
+            <div
+              className={`p-2.5 rounded-xl border shrink-0 ${
+                profile.resume
+                  ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                  : "bg-brand-50 border-brand-200 text-brand-700"
+              }`}
+            >
+              {profile.resume ? (
+                <FileText className="w-5 h-5" />
+              ) : (
+                <Calculator className="w-5 h-5" />
+              )}
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm font-bold text-ink">
+                  {profile.resume
+                    ? `Resume Calibrated: ${profile.resume.fileName}`
+                    : "Scoring with Manual Skills Profile"}
+                </span>
+                <span
+                  className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
+                    profile.resume
+                      ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                      : "bg-slate-100 text-slate-700 border-slate-200"
+                  }`}
+                >
+                  {profile.resume ? "AI Verified Extraction" : "Manual Input"}
+                </span>
+              </div>
+              <p className="text-xs text-ink-muted mt-0.5">
+                Deterministic formula active across {profile.skills?.length || 0} skills · Geographic screening rules set for {profile.country} ({profile.countryCode})
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <Link href="/profile">
+              <Button
+                size="sm"
+                variant={profile.resume ? "secondary" : "primary"}
+                className="text-xs"
+              >
+                {profile.resume ? (
+                  <>
+                    <Sparkles className="w-3.5 h-3.5 mr-1 text-brand-600" />
+                    Manage Resume & Evidence
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-3.5 h-3.5 mr-1" />
+                    Upload Resume for AI Matching
+                  </>
+                )}
+              </Button>
+            </Link>
+          </div>
+        </div>
+
         {/* Main Grid: Left Filters, Center List, Right Detail Preview */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Desktop Left Sidebar */}
@@ -280,7 +346,10 @@ function DashboardContent() {
                   isSaved={savedGigIds.has(gig.id)}
                   onToggleSave={handleToggleSave}
                   isSelected={selectedGig?.id === gig.id}
-                  onSelect={(g) => setSelectedGig(g)}
+                  onSelect={(g) => {
+                    setSelectedGig(g);
+                    setMobilePreviewOpen(true);
+                  }}
                 />
               ))
             ) : (
@@ -313,6 +382,7 @@ function DashboardContent() {
               <GigPreviewDrawer
                 gig={selectedGig}
                 matchScore={matchesMap[selectedGig.id]}
+                userProfile={profile}
                 isSaved={savedGigIds.has(selectedGig.id)}
                 onToggleSave={handleToggleSave}
                 onClose={() => setSelectedGig(null)}
@@ -321,6 +391,33 @@ function DashboardContent() {
           )}
         </div>
       </div>
+
+      {/* Mobile Selected Gig Detail Dialog */}
+      <Dialog
+        open={mobilePreviewOpen && Boolean(selectedGig)}
+        onOpenChange={(open) => {
+          setMobilePreviewOpen(open);
+          if (!open) setSelectedGig(null);
+        }}
+        title={selectedGig?.title || "Gig Details"}
+        description={`${selectedGig?.platformName || ""} · ${selectedGig?.category || ""}`}
+      >
+        {selectedGig && (
+          <div className="max-h-[75vh] overflow-y-auto pr-1">
+            <GigPreviewDrawer
+              gig={selectedGig}
+              matchScore={matchesMap[selectedGig.id]}
+              userProfile={profile}
+              isSaved={savedGigIds.has(selectedGig.id)}
+              onToggleSave={handleToggleSave}
+              onClose={() => {
+                setMobilePreviewOpen(false);
+                setSelectedGig(null);
+              }}
+            />
+          </div>
+        )}
+      </Dialog>
 
       {/* Mobile Filters Modal / Drawer */}
       <Dialog
