@@ -38,6 +38,7 @@ import {
   isGigSaved,
 } from "@/lib/storage";
 import { calculateGigMatch } from "@/lib/matching";
+import { evaluateCountryEligibility } from "@/lib/eligibility";
 
 export default function GigDetailPage() {
   const params = useParams();
@@ -372,47 +373,70 @@ export default function GigDetailPage() {
 
         {/* SECTION 4 & 5: COUNTRY ELIGIBILITY & PAYMENT TERMS */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Country Eligibility Card */}
-          <div className="rounded-[16px] bg-white border border-border p-6 shadow-card space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <Globe2 className="w-4 h-4 text-brand-600" />
-                <h3 className="text-sm font-bold text-ink">Country Eligibility</h3>
-              </div>
-              <EligibilityBadge
-                isEligible={matchScore.isCountryEligible}
-                status={gig.eligibilityVerification}
-                label={matchScore.countryNote}
-              />
-            </div>
-
-            <div className="text-xs space-y-3">
-              <div>
-                <span className="text-slate-500 block font-semibold uppercase text-[10px]">
-                  Accepted Territories:
-                </span>
-                <p className="font-semibold text-ink mt-0.5">
-                  {gig.eligibleCountries.join(", ")}
-                </p>
-              </div>
-
-              {gig.eligibilitySourceNote && (
-                <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 leading-relaxed">
-                  <span className="font-semibold text-ink block mb-0.5">Verification Source:</span>
-                  {gig.eligibilitySourceNote}
+          {/* Country Eligibility Card (Phase 3 Maintained Evidence Engine) */}
+          {(() => {
+            const eligibility = evaluateCountryEligibility(gig.id, profile.countryCode || "IN");
+            return (
+              <div className="rounded-[16px] bg-white border border-border p-6 shadow-card space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <Globe2 className="w-4 h-4 text-brand-600" />
+                    <h3 className="text-sm font-bold text-ink">Country Eligibility</h3>
+                  </div>
+                  <EligibilityBadge
+                    isEligible={eligibility.isEligible}
+                    status={eligibility.status === "confirmed" ? "verified" : eligibility.status === "needs_review" ? "partial" : "unverified"}
+                    label={eligibility.label}
+                  />
                 </div>
-              )}
 
-              <div className="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-100">
-                <span>Last reviewed:</span>
-                <span>
-                  {gig.lastReviewedAt
-                    ? new Date(gig.lastReviewedAt).toLocaleDateString()
-                    : "Recently"}
-                </span>
+                <div className="text-xs space-y-3">
+                  <div>
+                    <span className="text-slate-500 block font-semibold uppercase text-[10px]">
+                      Accepted Territories:
+                    </span>
+                    <p className="font-semibold text-ink mt-0.5">
+                      {gig.eligibleCountries.join(", ")}
+                    </p>
+                  </div>
+
+                  {eligibility.evidenceNotes && (
+                    <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 leading-relaxed space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-ink">Maintained Evidence:</span>
+                        {eligibility.sourceUrl && (
+                          <a
+                            href={eligibility.sourceUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-brand-600 hover:underline flex items-center gap-1 font-medium text-[11px]"
+                          >
+                            Source Proof <ExternalLink className="w-3 h-3" />
+                          </a>
+                        )}
+                      </div>
+                      <p>{eligibility.evidenceNotes}</p>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-100">
+                    <span>
+                      Reviewed:{" "}
+                      {eligibility.reviewedAt
+                        ? new Date(eligibility.reviewedAt).toLocaleDateString()
+                        : "Recently"}
+                    </span>
+                    <span>
+                      Next Review Due:{" "}
+                      {eligibility.nextReviewAt
+                        ? new Date(eligibility.nextReviewAt).toLocaleDateString()
+                        : "30 days"}
+                    </span>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            );
+          })()}
 
           {/* Payment Terms & Evidence */}
           <div className="rounded-[16px] bg-white border border-border p-6 shadow-card space-y-4">

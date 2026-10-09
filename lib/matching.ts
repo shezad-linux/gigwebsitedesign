@@ -1,30 +1,33 @@
 import { GigListing, GigMatchScore } from "@/types/gig";
 import { UserProfile } from "@/types/profile";
-
-/**
- * Normalizes skill string for case-insensitive and punctuation-tolerant comparison
- */
-export function normalizeSkill(skill: string): string {
-  return skill.trim().toLowerCase().replace(/[\-_.]/g, " ");
-}
+import { normalizeSkill } from "@/lib/taxonomy";
+import { evaluateCountryEligibility } from "@/lib/eligibility";
 
 /**
  * Checks whether user skills contain or closely match required skill
+ * using canonical taxonomy resolution and alias lookups.
  */
 export function matchesSkill(userSkill: string, reqSkill: string): boolean {
-  const u = normalizeSkill(userSkill);
-  const r = normalizeSkill(reqSkill);
+  const uCanonical = normalizeSkill(userSkill);
+  const rCanonical = normalizeSkill(reqSkill);
+
+  if (uCanonical && rCanonical && uCanonical.id === rCanonical.id) {
+    return true;
+  }
+
+  const u = userSkill.trim().toLowerCase();
+  const r = reqSkill.trim().toLowerCase();
   if (u === r) return true;
   if (u.includes(r) || r.includes(u)) return true;
-  // Common aliases
-  if ((u === "js" || u === "javascript") && (r === "javascript" || r === "js")) return true;
-  if ((u === "py" || u === "python") && (r === "python" || r === "py")) return true;
-  if ((u.includes("code review") && r.includes("code review")) || (u.includes("test") && r.includes("test"))) return true;
+
   return false;
 }
 
 /**
- * Computes individual match score and detailed explanations between a user profile and a gig listing
+ * Phase 3 Deterministic Matching Engine:
+ * Skill Fit = (Sum(w_i * m_i) / Sum(w_i)) * 100
+ *
+ * Sourced Country Eligibility is evaluated independently via reviewable evidence.
  */
 export function calculateGigMatch(profile: UserProfile, gig: GigListing): GigMatchScore {
   const userSkills = profile.skills || [];
@@ -33,80 +36,55 @@ export function calculateGigMatch(profile: UserProfile, gig: GigListing): GigMat
   const matchedSkills: string[] = [];
   const missingSkills: string[] = [];
 
-  for (const req of requiredSkills) {
-    const isMatched = userSkills.some((u) => matchesSkill(u, req));
+  let totalWeight = 0;
+  let matchedWeight = 0;
+
+  requiredSkills.forEach((reqSkill, idx) => {
+    // Core requirements weighted higher (weight: 2 for first 2 items, 1 for remaining)
+    const weight = idx < 2 ? 2.0 : 1.0;
+    totalWeight += weight;
+
+    const isMatched = userSkills.some((u) => matchesSkill(u, reqSkill));
     if (isMatched) {
-      matchedSkills.push(req);
+      matchedWeight += weight;
+      matchedSkills.push(reqSkill);
     } else {
-      missingSkills.push(req);
+      missingSkills.push(reqSkill);
     }
-  }
+  });
 
-  // 1. Skill Score (Weight: 55 points)
-  const skillRatio = requiredSkills.length > 0 ? matchedSkills.length / requiredSkills.length : 1;
-  const skillScore = Math.round(skillRatio * 55);
+  // Calculate deterministic skill fit score (0 - 100)
+  const rawSkillFit = totalWeight > 0 ? (matchedWeight / totalWeight) * 100 : 100;
+  const skillScore = Math.round(rawSkillFit);
 
-  // 2. Experience Level Fit (Weight: 15 points)
-  let experienceScore = 10;
-  if (gig.experienceLevel) {
+  // Country eligibility evaluated via maintained evidence (not AI guess)
+  const eligibility = evaluateCountryEligibility(gig.id, profile.countryCode || "IN");
+
+  // Experience level alignment (informational breakdown)
+  let experienceScore = 12;
+  if (gig.experienceLevel && profile.experienceLevel) {
     if (gig.experienceLevel === profile.experienceLevel) {
       experienceScore = 15;
-    } else if (
-      (profile.experienceLevel === "expert" && gig.experienceLevel === "mid") ||
-      (profile.experienceLevel === "mid" && gig.experienceLevel === "entry")
-    ) {
-      experienceScore = 13;
-    } else if (profile.experienceLevel === "entry" && gig.experienceLevel === "mid") {
-      experienceScore = 8;
+    } else if (profile.experienceLevel === "expert") {
+      experienceScore = 14;
     } else {
-      experienceScore = 5;
+      experienceScore = 8;
     }
   }
 
-  // 3. Category Fit (Weight: 15 points)
   const desiresCategory = (profile.desiredCategories || []).some(
     (c) => c.toLowerCase() === gig.category.toLowerCase()
   );
-  const categoryScore = desiresCategory ? 15 : 8;
-
-  // 4. Country Eligibility Fit (Weight: 15 points)
-  const isGlobal = gig.eligibleCountries.some((c) => c.toLowerCase() === "global" || c.toLowerCase() === "all");
-  const userCountry = profile.country?.trim().toLowerCase() || "";
-  const userCountryCode = profile.countryCode?.trim().toUpperCase() || "";
-
-  const explicitlyEligible = gig.eligibleCountries.some((c) => {
-    const cl = c.trim().toLowerCase();
-    return cl === userCountry || cl === userCountryCode.toLowerCase() || (userCountry === "india" && cl === "in") || (userCountry === "united states" && (cl === "us" || cl === "usa"));
-  });
-
-  const isCountryEligible = isGlobal || explicitlyEligible;
-  let countryFitScore = 5;
-  let countryNote = "Geographic eligibility requires verification";
-
-  if (explicitlyEligible) {
-    countryFitScore = 15;
-    countryNote = `${profile.country || "Your country"} eligible`;
-  } else if (isGlobal) {
-    countryFitScore = 13;
-    countryNote = "Worldwide / Global eligibility";
-  } else {
-    countryFitScore = 2;
-    countryNote = `Restricted to: ${gig.eligibleCountries.slice(0, 3).join(", ")}`;
-  }
-
-  // Total raw score
-  let totalScore = skillScore + experienceScore + categoryScore + countryFitScore;
-
-  // Boundary check
-  totalScore = Math.min(99, Math.max(15, totalScore));
+  const categoryScore = desiresCategory ? 15 : 10;
+  const countryFitScore = eligibility.isEligible ? 15 : 5;
 
   return {
     gigId: gig.id,
-    matchScore: totalScore,
+    matchScore: skillScore, // Deterministic Skill Fit Formula
     matchedSkills,
     missingSkills,
-    isCountryEligible,
-    countryNote,
+    isCountryEligible: eligibility.isEligible,
+    countryNote: eligibility.label,
     scoreBreakdown: {
       skillScore,
       experienceScore,
@@ -117,9 +95,12 @@ export function calculateGigMatch(profile: UserProfile, gig: GigListing): GigMat
 }
 
 /**
- * Calculate match scores for an array of gigs against a user profile
+ * Calculate match scores for all catalog listings
  */
-export function calculateAllMatches(profile: UserProfile, gigs: GigListing[]): Record<string, GigMatchScore> {
+export function calculateAllMatches(
+  profile: UserProfile,
+  gigs: GigListing[]
+): Record<string, GigMatchScore> {
   const results: Record<string, GigMatchScore> = {};
   for (const gig of gigs) {
     results[gig.id] = calculateGigMatch(profile, gig);

@@ -19,6 +19,7 @@ import {
   X,
   ExternalLink,
   Info,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -26,6 +27,8 @@ import { Badge } from "@/components/ui/badge";
 import { UserProfile, UserLanguage, UserResume } from "@/types/profile";
 import { getStoredProfile, saveStoredProfile } from "@/lib/storage";
 import { apiClient } from "@/lib/api";
+import { ResumeReviewModal } from "@/components/onboarding/ResumeReviewModal";
+import { ExtractedProfileData } from "@/lib/extraction/ai-extractor";
 
 const POPULAR_SKILLS = [
   "Python",
@@ -105,7 +108,13 @@ export default function OnboardingPage() {
   ]);
   const [experienceLevel, setExperienceLevel] = useState<"entry" | "mid" | "expert">("mid");
   const [yearsOfExperience, setYearsOfExperience] = useState(3);
-  const [portfolioUrl, setPortfolioUrl] = useState("https://github.com/aaravsharma-dev");
+  const [portfolioUrl, setPortfolioUrl] = useState("https://github.com/alexchen-dev");
+  const [extractedData, setExtractedData] = useState<{
+    fileName: string;
+    fileSize: number;
+    profile: ExtractedProfileData;
+  } | null>(null);
+  const [showReviewModal, setShowReviewModal] = useState(false);
 
   const [desiredCategories, setDesiredCategories] = useState<string[]>([
     "AI Coding",
@@ -144,86 +153,124 @@ export default function OnboardingPage() {
     }
   }, []);
 
-  // Simulated File Upload Handling
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Real Resume Document Upload & AI Parsing
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setErrorMsg(null);
-    const validTypes = [
-      "application/pdf",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "application/msword",
-    ];
-
-    const isPdf = file.name.endsWith(".pdf");
-    const isDoc = file.name.endsWith(".docx") || file.name.endsWith(".doc");
-
-    if (!validTypes.includes(file.type) && !isPdf && !isDoc) {
-      setErrorMsg("Please upload a supported PDF or Word document (.pdf, .docx, .doc).");
-      return;
-    }
-
-    if (file.size > 10 * 1024 * 1024) {
-      setErrorMsg("File size exceeds 10 MB limit.");
-      return;
-    }
-
     setIsSimulatingParse(true);
-    setTimeout(() => {
-      const extracted = [
-        "Python",
-        "Java",
-        "Code Review",
-        "SQL",
-        "Git",
-        "REST APIs",
-        "Debugging",
-        "Unit Testing",
-      ];
-      setResume({
-        fileName: file.name,
-        fileSize: file.size,
-        uploadedAt: new Date().toISOString(),
-        extractedSkills: extracted,
-        extractedSummary: `Software engineer profile parsed from ${file.name}. High algorithmic proficiency detected.`,
-        simulatedScore: 92,
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/resume/parse", {
+        method: "POST",
+        body: formData,
       });
 
-      // Merge extracted skills
-      const merged = Array.from(new Set([...skills, ...extracted]));
-      setSkills(merged);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to parse resume document.");
+      }
+
+      const data = await res.json();
+      setExtractedData({
+        fileName: file.name,
+        fileSize: file.size,
+        profile: data.extractedProfile,
+      });
+      setShowReviewModal(true);
+    } catch (err: any) {
+      setErrorMsg(err.message || "Failed to process resume. Please try manual entry.");
+    } finally {
       setIsSimulatingParse(false);
-    }, 700);
+    }
   };
 
   const handleUseSampleResume = () => {
     setIsSimulatingParse(true);
     setTimeout(() => {
-      const extracted = [
-        "Python",
-        "Java",
-        "Code Review",
-        "SQL",
-        "Git",
-        "Unit Testing",
-        "Prompt Engineering",
-      ];
-      setResume({
+      const sampleProfile: ExtractedProfileData = {
+        skills: [
+          "Python",
+          "Java",
+          "Code Review",
+          "SQL",
+          "Git",
+          "Unit Testing",
+          "Prompt Engineering",
+        ],
+        tools: ["Git", "Docker", "IntelliJ", "Postman"],
+        experienceLevel: "mid_level",
+        yearsOfExperience: 3,
+        evidence: [
+          { skill: "Java", sourceSection: "Projects", confidence: 0.95 },
+          { skill: "Python", sourceSection: "Work Experience", confidence: 0.95 },
+          { skill: "Code Review", sourceSection: "Work Experience", confidence: 0.9 },
+          { skill: "SQL", sourceSection: "Projects", confidence: 0.9 },
+          { skill: "Prompt Engineering", sourceSection: "Technical Skills", confidence: 0.85 },
+        ],
+        summary: "Software Developer experienced in Java Spring, Python automation, and software testing.",
+        needsUserReview: true,
+      };
+
+      setExtractedData({
         fileName: "Alex_Chen_Software_Engineer_Resume.pdf",
         fileSize: 184500,
+        profile: sampleProfile,
+      });
+      setShowReviewModal(true);
+      setIsSimulatingParse(false);
+    }, 400);
+  };
+
+  const handleConfirmExtraction = (confirmed: {
+    skills: string[];
+    experienceLevel: string;
+    yearsOfExperience: number;
+    summary: string;
+  }) => {
+    setSkills(confirmed.skills);
+    setExperienceLevel(
+      confirmed.experienceLevel === "senior"
+        ? "expert"
+        : confirmed.experienceLevel === "entry_level"
+        ? "entry"
+        : "mid"
+    );
+    setYearsOfExperience(confirmed.yearsOfExperience);
+    setBio(confirmed.summary);
+
+    if (extractedData) {
+      setResume({
+        fileName: extractedData.fileName,
+        fileSize: extractedData.fileSize,
         uploadedAt: new Date().toISOString(),
-        extractedSkills: extracted,
-        extractedSummary: "Full-stack developer experienced with Java Spring and Python code benchmarking.",
+        extractedSkills: confirmed.skills,
+        extractedSummary: confirmed.summary,
         simulatedScore: 92,
       });
-      setSkills(Array.from(new Set([...skills, ...extracted])));
-      setIsSimulatingParse(false);
-    }, 500);
+    }
+
+    setShowReviewModal(false);
+    setCurrentStep(2);
+  };
+
+  const handleDeleteResume = async () => {
+    try {
+      await fetch("/api/resume/delete", { method: "POST" });
+    } catch (e) {
+      console.warn("Delete API call failed:", e);
+    }
+    setResume(undefined);
+    setExtractedData(null);
+    setShowReviewModal(false);
   };
 
   const handleRemoveResume = () => {
-    setResume(undefined);
+    handleDeleteResume();
   };
 
   const toggleSkill = (skill: string) => {
@@ -385,7 +432,16 @@ export default function OnboardingPage() {
               </div>
             )}
 
-            {!resume ? (
+            {showReviewModal && extractedData ? (
+              <ResumeReviewModal
+                fileName={extractedData.fileName}
+                fileSize={extractedData.fileSize}
+                extractedProfile={extractedData.profile}
+                onConfirm={handleConfirmExtraction}
+                onDeleteResume={handleDeleteResume}
+                onCancel={() => setShowReviewModal(false)}
+              />
+            ) : !resume ? (
               <div className="space-y-4">
                 {/* Upload Box */}
                 <div className="border-2 border-dashed border-slate-300 hover:border-brand-500 rounded-2xl p-8 text-center bg-slate-50/50 transition-colors">
@@ -404,7 +460,7 @@ export default function OnboardingPage() {
                       />
                     </label>
                   </h3>
-                  <p className="text-xs text-ink-muted mt-1">Supports PDF, DOCX, or DOC (up to 10 MB)</p>
+                  <p className="text-xs text-ink-muted mt-1">Supports PDF, DOCX, or DOC (up to 5 MB)</p>
 
                   <div className="mt-4 pt-4 border-t border-slate-200/60 flex flex-wrap items-center justify-center gap-3">
                     <Button
@@ -429,9 +485,9 @@ export default function OnboardingPage() {
                 </div>
 
                 <div className="p-3 bg-brand-50/70 border border-brand-200/60 rounded-xl flex items-start gap-2.5 text-xs text-brand-800">
-                  <Info className="w-4 h-4 shrink-0 mt-0.5" />
+                  <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-brand-600" />
                   <div>
-                    <span className="font-semibold">Local-First Sandbox:</span> Files uploaded in Phase 1 are strictly inspected in your local browser sandbox. No resume files are transferred to external cloud or LLM endpoints.
+                    <span className="font-semibold">Private & Secure Processing:</span> Resumes are processed server-side with structured AI skill extraction and evidence citations. You review and confirm all extracted facts before gig matching.
                   </div>
                 </div>
               </div>
