@@ -2,6 +2,7 @@ export type PaymentVerification = "verified" | "partial" | "unverified";
 export type EligibilityVerification = "verified" | "partial" | "unverified";
 export type AvailabilityStatus = "open" | "waitlist" | "selective" | "paused";
 export type ExperienceLevel = "entry" | "mid" | "expert";
+export type PublicationStatus = "draft" | "published" | "paused" | "archived";
 
 export interface GigPayment {
   amount: number;
@@ -9,6 +10,17 @@ export interface GigPayment {
   unit: string; // e.g., "hour", "task", "milestone"
   paymentMethod?: string[]; // e.g. ["PayPal", "Direct Deposit", "Wise", "Payoneer"]
   termsNote?: string;
+}
+
+export interface PlatformInfo {
+  id: string;
+  name: string;
+  websiteUrl: string;
+  careersUrl?: string;
+  logoUrl?: string;
+  description?: string;
+  headquarters?: string;
+  verified: boolean;
 }
 
 export interface GigListing {
@@ -29,6 +41,7 @@ export interface GigListing {
   onboardingSteps: string[];
   lastReviewedAt?: string;
   sponsored: boolean;
+  publicationStatus?: PublicationStatus; // Phase 4 lifecycle: draft, published, paused, archived
   // Extended fields for rich gig detail view
   availabilityStatus?: AvailabilityStatus;
   estimatedEffort?: string;
@@ -77,4 +90,88 @@ export interface TrackedApplication {
   notes: string;
   paySummary?: string;
   officialUrl: string;
+}
+
+/* ==================== Phase 4: Operations & Verification Models ==================== */
+
+export type PaymentEvidenceRateType = "official_advertised" | "worker_reported" | "unverified";
+
+export interface PaymentEvidence {
+  id: string;
+  gigId: string;
+  advertisedRate: number;
+  currency: string;
+  unit: string;
+  rateType: PaymentEvidenceRateType;
+  payoutMethods: string[];
+  sourceUrl?: string;
+  evidenceNotes?: string;
+  verificationStatus: PaymentVerification;
+  reviewedAt: string;
+  nextReviewAt: string;
+}
+
+export type ReviewDecision = "approved" | "changes_requested" | "stale_flagged" | "archived";
+
+export interface ListingReview {
+  id: string;
+  gigId: string;
+  reviewerEmail: string;
+  decision: ReviewDecision;
+  notes: string;
+  previousStatus: PublicationStatus;
+  newStatus: PublicationStatus;
+  reviewedAt: string;
+  nextReviewAt: string;
+}
+
+export type ReportType =
+  | "closed_application"
+  | "changed_country_restriction"
+  | "incorrect_payment"
+  | "broken_link"
+  | "other";
+
+export type ReportStatus = "open" | "triaged" | "resolved" | "dismissed";
+
+export interface ListingReport {
+  id: string;
+  gigId: string;
+  gigTitle?: string;
+  platformName?: string;
+  reporterEmail?: string;
+  reportType: ReportType;
+  description: string;
+  status: ReportStatus;
+  resolutionNotes?: string;
+  resolvedAt?: string;
+  createdAt: string;
+}
+
+export type AuditEntityType =
+  | "gig_listing"
+  | "eligibility_evidence"
+  | "payment_evidence"
+  | "listing_report"
+  | "platform";
+
+export type AuditAction =
+  | "create"
+  | "update"
+  | "publish"
+  | "pause"
+  | "archive"
+  | "restore"
+  | "resolve_report"
+  | "verify_evidence";
+
+export interface AuditEvent {
+  id: string;
+  entityType: AuditEntityType;
+  entityId: string;
+  actorEmail: string;
+  action: AuditAction;
+  changes: Record<string, { before: any; after: any }>;
+  justification?: string;
+  createdAt: string;
 }

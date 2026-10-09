@@ -29,7 +29,7 @@ import {
   Badge,
 } from "@/components/ui/badge";
 import { Dialog } from "@/components/ui/dialog";
-import { GigListing, GigMatchScore } from "@/types/gig";
+import { GigListing, GigMatchScore, ReportType } from "@/types/gig";
 import { UserProfile } from "@/types/profile";
 import {
   getStoredGigs,
@@ -39,6 +39,7 @@ import {
 } from "@/lib/storage";
 import { calculateGigMatch } from "@/lib/matching";
 import { evaluateCountryEligibility } from "@/lib/eligibility";
+import { apiClient } from "@/lib/api";
 
 export default function GigDetailPage() {
   const params = useParams();
@@ -100,14 +101,40 @@ export default function GigDetailPage() {
     }
   };
 
-  const handleReportSubmit = (e: React.FormEvent) => {
+  const handleReportSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setReportSubmitted(true);
-    setTimeout(() => {
-      setReportSubmitted(false);
-      setReportModalOpen(false);
-      setReportNotes("");
-    }, 1800);
+    const typeMap: Record<string, ReportType> = {
+      "Rate changed": "incorrect_payment",
+      "Country geo-blocked": "changed_country_restriction",
+      "Queue closed": "closed_application",
+      "Broken URL": "broken_link",
+      "Other": "other",
+    };
+    const mappedType: ReportType = typeMap[reportIssueType] || "other";
+
+    try {
+      await apiClient.submitListingReport({
+        gigId: gig.id,
+        gigTitle: gig.title,
+        platformName: gig.platformName,
+        reporterEmail: profile.email || "contributor@gigmatcher.io",
+        reportType: mappedType,
+        description: reportNotes.trim() || `Flagged issue: ${reportIssueType} for ${gig.platformName}`,
+      });
+      setReportSubmitted(true);
+      setTimeout(() => {
+        setReportSubmitted(false);
+        setReportModalOpen(false);
+        setReportNotes("");
+      }, 1800);
+    } catch (err) {
+      console.error("Failed to submit report:", err);
+      setReportSubmitted(true);
+      setTimeout(() => {
+        setReportSubmitted(false);
+        setReportModalOpen(false);
+      }, 1500);
+    }
   };
 
   return (

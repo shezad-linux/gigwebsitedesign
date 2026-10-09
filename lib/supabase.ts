@@ -1,5 +1,15 @@
 import { createClient, SupabaseClient, User } from "@supabase/supabase-js";
-import { GigListing, TrackedApplication, ApplicationStatus } from "@/types/gig";
+import {
+  GigListing,
+  TrackedApplication,
+  ApplicationStatus,
+  PaymentEvidence,
+  ListingReport,
+  AuditEvent,
+  PlatformInfo,
+  ReportStatus,
+  PublicationStatus,
+} from "@/types/gig";
 import { UserProfile } from "@/types/profile";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
@@ -206,6 +216,7 @@ export async function fetchSupabaseGigs(): Promise<GigListing[] | null> {
       onboardingSteps: row.onboarding_steps || [],
       overviewHighlights: row.overview_highlights || [],
       lastReviewedAt: row.last_reviewed_at,
+      publicationStatus: (row.publication_status as PublicationStatus) || "published",
     }));
   } catch (err) {
     console.error("Error fetching gigs from Supabase:", err);
@@ -438,6 +449,7 @@ export async function upsertSupabaseGig(gig: GigListing): Promise<boolean> {
       onboarding_steps: gig.onboardingSteps,
       overview_highlights: gig.overviewHighlights,
       last_reviewed_at: gig.lastReviewedAt || new Date().toISOString(),
+      publication_status: gig.publicationStatus || "published",
       updated_at: new Date().toISOString(),
     };
 
@@ -449,6 +461,255 @@ export async function upsertSupabaseGig(gig: GigListing): Promise<boolean> {
     return true;
   } catch (err) {
     console.error("Exception upserting gig in Supabase:", err);
+    return false;
+  }
+}
+
+/* ==================== Phase 4: Platforms, Evidence, Reports & Audit ==================== */
+
+export async function fetchSupabasePlatforms(): Promise<PlatformInfo[] | null> {
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase
+      .from("platforms")
+      .select("*")
+      .order("name", { ascending: true });
+
+    if (error || !data) return null;
+
+    return data.map((p: any): PlatformInfo => ({
+      id: p.id,
+      name: p.name,
+      websiteUrl: p.website_url,
+      careersUrl: p.careers_url,
+      logoUrl: p.logo_url,
+      description: p.description,
+      headquarters: p.headquarters,
+      verified: p.verified ?? true,
+    }));
+  } catch (err) {
+    console.error("Error fetching platforms from Supabase:", err);
+    return null;
+  }
+}
+
+export async function fetchSupabasePaymentEvidence(): Promise<PaymentEvidence[] | null> {
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase
+      .from("payment_evidence")
+      .select("*")
+      .order("reviewed_at", { ascending: false });
+
+    if (error || !data) return null;
+
+    return data.map((e: any): PaymentEvidence => ({
+      id: e.id,
+      gigId: e.gig_id,
+      advertisedRate: Number(e.advertised_rate),
+      currency: e.currency,
+      unit: e.unit,
+      rateType: e.rate_type,
+      payoutMethods: e.payout_methods || [],
+      sourceUrl: e.source_url,
+      evidenceNotes: e.evidence_notes,
+      verificationStatus: e.verification_status,
+      reviewedAt: e.reviewed_at,
+      nextReviewAt: e.next_review_at,
+    }));
+  } catch (err) {
+    console.error("Error fetching payment evidence from Supabase:", err);
+    return null;
+  }
+}
+
+export async function upsertSupabasePaymentEvidence(evidence: PaymentEvidence): Promise<boolean> {
+  if (!supabase) return false;
+  try {
+    const payload = {
+      id: evidence.id,
+      gig_id: evidence.gigId,
+      advertised_rate: evidence.advertisedRate,
+      currency: evidence.currency,
+      unit: evidence.unit,
+      rate_type: evidence.rateType,
+      payout_methods: evidence.payoutMethods,
+      source_url: evidence.sourceUrl,
+      evidence_notes: evidence.evidenceNotes,
+      verification_status: evidence.verificationStatus,
+      reviewed_at: evidence.reviewedAt || new Date().toISOString(),
+      next_review_at: evidence.nextReviewAt,
+    };
+
+    const { error } = await supabase.from("payment_evidence").upsert(payload);
+    if (error) {
+      console.error("Error upserting payment evidence in Supabase:", error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("Exception upserting payment evidence in Supabase:", err);
+    return false;
+  }
+}
+
+export async function fetchSupabaseReports(): Promise<ListingReport[] | null> {
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase
+      .from("listing_reports")
+      .select(`
+        id,
+        gig_id,
+        reporter_email,
+        report_type,
+        description,
+        status,
+        resolution_notes,
+        resolved_at,
+        created_at,
+        gig:gig_listings (
+          title,
+          platform_name
+        )
+      `)
+      .order("created_at", { ascending: false });
+
+    if (error || !data) return null;
+
+    return data.map((r: any): ListingReport => ({
+      id: r.id,
+      gigId: r.gig_id,
+      gigTitle: r.gig?.title,
+      platformName: r.gig?.platform_name,
+      reporterEmail: r.reporter_email,
+      reportType: r.report_type,
+      description: r.description,
+      status: r.status,
+      resolutionNotes: r.resolution_notes,
+      resolvedAt: r.resolved_at,
+      createdAt: r.created_at,
+    }));
+  } catch (err) {
+    console.error("Error fetching listing reports from Supabase:", err);
+    return null;
+  }
+}
+
+export async function insertSupabaseReport(report: {
+  gigId: string;
+  reporterEmail?: string;
+  reportType: ListingReport["reportType"];
+  description: string;
+}): Promise<boolean> {
+  if (!supabase) return false;
+  try {
+    const payload = {
+      gig_id: report.gigId,
+      reporter_email: report.reporterEmail || null,
+      report_type: report.reportType,
+      description: report.description,
+      status: "open",
+    };
+
+    const { error } = await supabase.from("listing_reports").insert(payload);
+    if (error) {
+      console.error("Error inserting report in Supabase:", error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("Exception inserting report in Supabase:", err);
+    return false;
+  }
+}
+
+export async function updateSupabaseReportStatus(
+  reportId: string,
+  status: ReportStatus,
+  resolutionNotes?: string
+): Promise<boolean> {
+  if (!supabase) return false;
+  try {
+    const updates: any = {
+      status,
+      updated_at: new Date().toISOString(),
+    };
+    if (resolutionNotes !== undefined) updates.resolution_notes = resolutionNotes;
+    if (status === "resolved" || status === "dismissed") {
+      updates.resolved_at = new Date().toISOString();
+    }
+
+    const { error } = await supabase
+      .from("listing_reports")
+      .update(updates)
+      .eq("id", reportId);
+
+    if (error) {
+      console.error("Error updating report status in Supabase:", error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("Exception updating report status in Supabase:", err);
+    return false;
+  }
+}
+
+export async function fetchSupabaseAuditEvents(): Promise<AuditEvent[] | null> {
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase
+      .from("audit_events")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(100);
+
+    if (error || !data) return null;
+
+    return data.map((a: any): AuditEvent => ({
+      id: a.id,
+      entityType: a.entity_type,
+      entityId: a.entity_id,
+      actorEmail: a.actor_email,
+      action: a.action,
+      changes: a.changes || {},
+      justification: a.justification,
+      createdAt: a.created_at,
+    }));
+  } catch (err) {
+    console.error("Error fetching audit events from Supabase:", err);
+    return null;
+  }
+}
+
+export async function insertSupabaseAuditEvent(event: {
+  entityType: AuditEvent["entityType"];
+  entityId: string;
+  actorEmail: string;
+  action: AuditEvent["action"];
+  changes: Record<string, { before: any; after: any }>;
+  justification?: string;
+}): Promise<boolean> {
+  if (!supabase) return false;
+  try {
+    const payload = {
+      entity_type: event.entityType,
+      entity_id: event.entityId,
+      actor_email: event.actorEmail,
+      action: event.action,
+      changes: event.changes,
+      justification: event.justification,
+    };
+
+    const { error } = await supabase.from("audit_events").insert(payload);
+    if (error) {
+      console.error("Error inserting audit event in Supabase:", error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("Exception inserting audit event in Supabase:", err);
     return false;
   }
 }

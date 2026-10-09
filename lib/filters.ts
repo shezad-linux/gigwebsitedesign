@@ -29,9 +29,15 @@ export function filterAndSortGigs(
   gigs: GigListing[],
   matches: Record<string, GigMatchScore>,
   filters: FilterState,
-  profile?: UserProfile
+  profile?: UserProfile,
+  includeAllStatuses = false
 ): GigListing[] {
   let filtered = gigs.filter((gig) => {
+    // Phase 4: Public discovery only shows published listings
+    if (!includeAllStatuses && gig.publicationStatus && gig.publicationStatus !== "published") {
+      return false;
+    }
+
     const match = matches[gig.id];
 
     // 1. Text search across title, platformName, skillsRequired, and description

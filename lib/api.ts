@@ -1,4 +1,14 @@
-import { GigListing, GigMatchScore, TrackedApplication, ApplicationStatus } from "@/types/gig";
+import {
+  GigListing,
+  GigMatchScore,
+  TrackedApplication,
+  ApplicationStatus,
+  PaymentEvidence,
+  ListingReport,
+  AuditEvent,
+  PlatformInfo,
+  ReportStatus,
+} from "@/types/gig";
 import { UserProfile } from "@/types/profile";
 import {
   getStoredGigs,
@@ -24,7 +34,25 @@ import {
   toggleSupabaseSavedGig,
   fetchSupabaseSavedGigs,
   getSupabaseUser,
+  fetchSupabasePlatforms,
+  fetchSupabasePaymentEvidence,
+  upsertSupabasePaymentEvidence,
+  fetchSupabaseReports,
+  insertSupabaseReport,
+  updateSupabaseReportStatus as updateSbReportStatus,
+  fetchSupabaseAuditEvents,
+  insertSupabaseAuditEvent,
 } from "@/lib/supabase";
+import {
+  getStoredPaymentEvidence,
+  upsertPaymentEvidence,
+  getStoredListingReports,
+  submitReport as submitStoredReport,
+  updateListingReportStatus as updateStoredReportStatus,
+  getStoredAuditEvents,
+  recordAuditEvent as recordStoredAuditEvent,
+  getStoredPlatforms,
+} from "@/lib/operations";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
 const TOKEN_KEY = "gigmatcher_auth_token";
@@ -480,4 +508,135 @@ export const apiClient = {
       console.warn("Spring Boot adminSaveGig failed:", e);
     }
   },
+
+  /* ==================== Phase 4: Operations & Verification Methods ==================== */
+
+  /**
+   * Get platforms directory
+   */
+  async getPlatforms(): Promise<PlatformInfo[]> {
+    if (isSupabaseConfigured()) {
+      try {
+        const platforms = await fetchSupabasePlatforms();
+        if (platforms && platforms.length > 0) return platforms;
+      } catch (e) {
+        console.warn("Supabase fetchPlatforms failed:", e);
+      }
+    }
+    return getStoredPlatforms();
+  },
+
+  /**
+   * Get all payment evidence
+   */
+  async getPaymentEvidence(): Promise<PaymentEvidence[]> {
+    if (isSupabaseConfigured()) {
+      try {
+        const evidence = await fetchSupabasePaymentEvidence();
+        if (evidence && evidence.length > 0) return evidence;
+      } catch (e) {
+        console.warn("Supabase fetchPaymentEvidence failed:", e);
+      }
+    }
+    return getStoredPaymentEvidence();
+  },
+
+  /**
+   * Save or verify payment evidence
+   */
+  async savePaymentEvidence(evidence: PaymentEvidence): Promise<void> {
+    if (isSupabaseConfigured()) {
+      try {
+        await upsertSupabasePaymentEvidence(evidence);
+      } catch (e) {
+        console.warn("Supabase savePaymentEvidence failed:", e);
+      }
+    }
+    upsertPaymentEvidence(evidence);
+  },
+
+  /**
+   * Get community listing reports
+   */
+  async getListingReports(): Promise<ListingReport[]> {
+    if (isSupabaseConfigured()) {
+      try {
+        const reports = await fetchSupabaseReports();
+        if (reports && reports.length > 0) return reports;
+      } catch (e) {
+        console.warn("Supabase fetchReports failed:", e);
+      }
+    }
+    return getStoredListingReports();
+  },
+
+  /**
+   * Submit an issue report from community or detail page
+   */
+  async submitListingReport(report: {
+    gigId: string;
+    gigTitle?: string;
+    platformName?: string;
+    reporterEmail?: string;
+    reportType: ListingReport["reportType"];
+    description: string;
+  }): Promise<ListingReport> {
+    if (isSupabaseConfigured()) {
+      try {
+        await insertSupabaseReport(report);
+      } catch (e) {
+        console.warn("Supabase insertReport failed:", e);
+      }
+    }
+    return submitStoredReport(report);
+  },
+
+  /**
+   * Resolve or update status of a listing report
+   */
+  async updateListingReportStatus(
+    reportId: string,
+    status: ReportStatus,
+    resolutionNotes?: string,
+    actorEmail = "admin@gigmatcher.io"
+  ): Promise<void> {
+    if (isSupabaseConfigured()) {
+      try {
+        await updateSbReportStatus(reportId, status, resolutionNotes);
+      } catch (e) {
+        console.warn("Supabase updateReportStatus failed:", e);
+      }
+    }
+    updateStoredReportStatus(reportId, status, resolutionNotes, actorEmail);
+  },
+
+  /**
+   * Get audit log history
+   */
+  async getAuditEvents(): Promise<AuditEvent[]> {
+    if (isSupabaseConfigured()) {
+      try {
+        const logs = await fetchSupabaseAuditEvents();
+        if (logs && logs.length > 0) return logs;
+      } catch (e) {
+        console.warn("Supabase fetchAuditEvents failed:", e);
+      }
+    }
+    return getStoredAuditEvents();
+  },
+
+  /**
+   * Record an action in the audit trail
+   */
+  async recordAuditEvent(event: Omit<AuditEvent, "id" | "createdAt">): Promise<AuditEvent> {
+    if (isSupabaseConfigured()) {
+      try {
+        await insertSupabaseAuditEvent(event);
+      } catch (e) {
+        console.warn("Supabase insertAuditEvent failed:", e);
+      }
+    }
+    return recordStoredAuditEvent(event);
+  },
 };
+
