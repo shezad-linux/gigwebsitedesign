@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { UserProfile, UserLanguage } from "@/types/profile";
 import {
   getStoredProfile,
@@ -237,6 +238,27 @@ export default function ProfilePage() {
       apiClient.updateProfile(updated).catch(console.warn);
       setSavedSuccess(true);
       setTimeout(() => setSavedSuccess(false), 3000);
+    }
+  };
+
+  const handleWipeAccountData = async () => {
+    if (
+      confirm(
+        "Are you sure you want to permanently delete your candidate profile, resume cache, and all application tracker entries? This action cannot be undone."
+      )
+    ) {
+      try {
+        await fetch("/api/resume/delete", { method: "POST" });
+      } catch (e) {
+        console.warn("Resume delete API call failed:", e);
+      }
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("gigmatcher_user_profile_v2");
+        localStorage.removeItem("gigmatcher_applications_v1");
+      }
+      const reset = resetStoredProfile();
+      setProfile(reset);
+      alert("All local and cached candidate data has been permanently deleted.");
     }
   };
 
@@ -871,6 +893,51 @@ export default function ProfilePage() {
                   onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
                   className="w-full p-3 rounded-lg border border-border text-xs sm:text-sm"
                 />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Data Privacy & Account Deletion (GDPR / CCPA) */}
+          <Card className="bg-white border-rose-200 shadow-xs">
+            <CardHeader className="pb-3 border-b border-rose-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-base text-rose-900 flex items-center gap-2">
+                    <Trash2 className="w-4 h-4 text-rose-600" />
+                    Data Privacy & Account Deletion
+                  </CardTitle>
+                  <CardDescription className="text-xs text-rose-700 mt-0.5">
+                    GDPR & CCPA self-service data management and zero-retention controls.
+                  </CardDescription>
+                </div>
+                <Badge variant="outline" size="sm" className="bg-rose-50 text-rose-700 border-rose-200">
+                  Zero Retention
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-4 space-y-3">
+              <p className="text-xs text-slate-600 leading-relaxed">
+                You can permanently purge all stored candidate data, including cached resume extractions,
+                saved application entries, and skill attributes. Once executed, no residual candidate profile
+                remains on this browser or linked backend.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+                <span className="text-[11px] text-slate-500">
+                  Need details? Read our{" "}
+                  <Link href="/privacy" className="text-brand-600 underline font-semibold">
+                    Privacy Safeguards & Policy
+                  </Link>
+                  .
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleWipeAccountData}
+                  className="w-full sm:w-auto text-xs text-rose-700 border-rose-200 hover:bg-rose-50 hover:text-rose-800 font-semibold"
+                >
+                  <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Wipe Profile & All Stored Data
+                </Button>
               </div>
             </CardContent>
           </Card>

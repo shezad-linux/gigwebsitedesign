@@ -113,11 +113,17 @@ export const Footer: React.FC = () => {
 
         {/* Bottom bar */}
         <div className="mt-12 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-4">
-          <p>© {new Date().getFullYear()} GigMatcher Platform Prototype. All rights reserved.</p>
-          <div className="flex gap-4">
-            <span className="hover:text-slate-600 cursor-pointer">Privacy Safeguards</span>
-            <span className="hover:text-slate-600 cursor-pointer">Data Policy</span>
-            <span className="hover:text-slate-600 cursor-pointer">Security Audits</span>
+          <p>© {new Date().getFullYear()} GigMatcher. Verified AI Freelance Matcher. All rights reserved.</p>
+          <div className="flex flex-wrap gap-5">
+            <Link href="/privacy" className="hover:text-slate-600 transition-colors">
+              Privacy Policy
+            </Link>
+            <Link href="/terms" className="hover:text-slate-600 transition-colors">
+              Terms & Disclosures
+            </Link>
+            <Link href="/guides" className="hover:text-slate-600 transition-colors">
+              Qualification Guides
+            </Link>
           </div>
         </div>
       </div>

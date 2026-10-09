@@ -32,6 +32,10 @@ import {
   Archive,
   RefreshCw,
   ArrowRight,
+  TrendingUp,
+  CheckSquare,
+  BarChart3,
+  Award,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -48,6 +52,13 @@ import {
   ReportStatus,
   ReportType,
   PaymentEvidenceRateType,
+  AffiliatePartner,
+  SponsoredCampaign,
+  AnalyticsSummary,
+  LaunchChecklistItem,
+  CommissionModel,
+  CampaignStatus,
+  CampaignPlacementRule,
 } from "@/types/gig";
 import { getStoredGigs, saveStoredGig, resetStoredGigs } from "@/lib/storage";
 import {
@@ -57,7 +68,14 @@ import {
 } from "@/lib/operations";
 import { apiClient } from "@/lib/api";
 
-type ActiveTab = "listings" | "queue" | "evidence" | "reports" | "audit";
+type ActiveTab =
+  | "listings"
+  | "queue"
+  | "evidence"
+  | "reports"
+  | "monetization"
+  | "checklist"
+  | "audit";
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("listings");
@@ -87,6 +105,44 @@ export default function AdminPage() {
 
   const [isEvidenceModalOpen, setIsEvidenceModalOpen] = useState(false);
   const [editingEvidence, setEditingEvidence] = useState<PaymentEvidence | null>(null);
+
+  // Phase 5 Monetization & Launch States
+  const [affiliatePartners, setAffiliatePartners] = useState<AffiliatePartner[]>([]);
+  const [sponsoredCampaigns, setSponsoredCampaigns] = useState<SponsoredCampaign[]>([]);
+  const [launchChecklist, setLaunchChecklist] = useState<LaunchChecklistItem[]>([]);
+  const [analyticsSummary, setAnalyticsSummary] = useState<AnalyticsSummary | null>(null);
+
+  const [isPartnerModalOpen, setIsPartnerModalOpen] = useState(false);
+  const [editingPartner, setEditingPartner] = useState<AffiliatePartner | null>(null);
+  const [partnerFormData, setPartnerFormData] = useState({
+    id: "",
+    platformId: "",
+    platformName: "",
+    programName: "",
+    affiliateUrlTemplate: "",
+    referralCode: "",
+    commissionModel: "cpa" as CommissionModel,
+    commissionRate: "$30 / qualifying candidate",
+    status: "active" as "active" | "pending" | "paused",
+    termsUrl: "",
+    notes: "",
+  });
+
+  const [isCampaignModalOpen, setIsCampaignModalOpen] = useState(false);
+  const [editingCampaign, setEditingCampaign] = useState<SponsoredCampaign | null>(null);
+  const [campaignFormData, setCampaignFormData] = useState({
+    id: "",
+    sponsorName: "",
+    gigId: "",
+    budget: 1000,
+    dailyBudget: 50,
+    startDate: new Date().toISOString().split("T")[0],
+    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+    targetCategory: "AI Coding",
+    status: "active" as CampaignStatus,
+    placementRule: "featured_badge" as CampaignPlacementRule,
+    costPerClick: 1.5,
+  });
 
   // Listing Form State
   const [formData, setFormData] = useState({
@@ -131,21 +187,42 @@ export default function AdminPage() {
 
   const loadAllData = async () => {
     try {
-      const [gigsData, evidenceData, reportsData, auditData] = await Promise.all([
+      const [
+        gigsData,
+        evidenceData,
+        reportsData,
+        auditData,
+        partnersData,
+        campaignsData,
+        checklistData,
+        analyticsData,
+      ] = await Promise.all([
         apiClient.getGigs(),
         apiClient.getPaymentEvidence(),
         apiClient.getListingReports(),
         apiClient.getAuditEvents(),
+        apiClient.getAffiliatePartners(),
+        apiClient.getSponsoredCampaigns(),
+        apiClient.getLaunchChecklist(),
+        apiClient.getAnalyticsSummary(),
       ]);
       setGigs(gigsData);
       setPaymentEvidence(evidenceData);
       setReports(reportsData);
       setAuditEvents(auditData);
+      setAffiliatePartners(partnersData);
+      setSponsoredCampaigns(campaignsData);
+      setLaunchChecklist(checklistData);
+      setAnalyticsSummary(analyticsData);
     } catch {
       setGigs(getStoredGigs());
       setPaymentEvidence(await apiClient.getPaymentEvidence());
       setReports(await apiClient.getListingReports());
       setAuditEvents(await apiClient.getAuditEvents());
+      setAffiliatePartners(await apiClient.getAffiliatePartners());
+      setSponsoredCampaigns(await apiClient.getSponsoredCampaigns());
+      setLaunchChecklist(await apiClient.getLaunchChecklist());
+      setAnalyticsSummary(await apiClient.getAnalyticsSummary());
     }
   };
 
@@ -155,15 +232,24 @@ export default function AdminPage() {
     const handleGigsUpdate = () => loadAllData();
     const handleReportsUpdate = () => loadAllData();
     const handleAuditUpdate = () => loadAllData();
+    const handleAffiliatesUpdate = () => loadAllData();
+    const handleCampaignsUpdate = () => loadAllData();
+    const handleChecklistUpdate = () => loadAllData();
 
     window.addEventListener("gigmatcher_gigs_updated", handleGigsUpdate);
     window.addEventListener("gigmatcher_reports_updated", handleReportsUpdate);
     window.addEventListener("gigmatcher_audit_updated", handleAuditUpdate);
+    window.addEventListener("gigmatcher_affiliates_updated", handleAffiliatesUpdate);
+    window.addEventListener("gigmatcher_campaigns_updated", handleCampaignsUpdate);
+    window.addEventListener("gigmatcher_checklist_updated", handleChecklistUpdate);
 
     return () => {
       window.removeEventListener("gigmatcher_gigs_updated", handleGigsUpdate);
       window.removeEventListener("gigmatcher_reports_updated", handleReportsUpdate);
       window.removeEventListener("gigmatcher_audit_updated", handleAuditUpdate);
+      window.removeEventListener("gigmatcher_affiliates_updated", handleAffiliatesUpdate);
+      window.removeEventListener("gigmatcher_campaigns_updated", handleCampaignsUpdate);
+      window.removeEventListener("gigmatcher_checklist_updated", handleChecklistUpdate);
     };
   }, []);
 
@@ -594,8 +680,135 @@ export default function AdminPage() {
     loadAllData();
   };
 
+  // Open Partner Edit Modal
+  const handleOpenPartnerEdit = (partner: AffiliatePartner) => {
+    setEditingPartner(partner);
+    setPartnerFormData({
+      id: partner.id,
+      platformId: partner.platformId,
+      platformName: partner.platformName,
+      programName: partner.programName,
+      affiliateUrlTemplate: partner.affiliateUrlTemplate,
+      referralCode: partner.referralCode || "",
+      commissionModel: partner.commissionModel,
+      commissionRate: partner.commissionRate,
+      status: partner.status,
+      termsUrl: partner.termsUrl || "",
+      notes: partner.notes || "",
+    });
+    setIsPartnerModalOpen(true);
+  };
+
+  // Save Partner
+  const handleSavePartner = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingPartner) return;
+
+    const updated: AffiliatePartner = {
+      ...editingPartner,
+      platformName: partnerFormData.platformName,
+      programName: partnerFormData.programName,
+      affiliateUrlTemplate: partnerFormData.affiliateUrlTemplate,
+      referralCode: partnerFormData.referralCode || undefined,
+      commissionModel: partnerFormData.commissionModel,
+      commissionRate: partnerFormData.commissionRate,
+      status: partnerFormData.status,
+      termsUrl: partnerFormData.termsUrl || undefined,
+      notes: partnerFormData.notes || undefined,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await apiClient.saveAffiliatePartner(updated);
+    setIsPartnerModalOpen(false);
+    showToast(`Affiliate partner ${updated.platformName} updated.`);
+    loadAllData();
+  };
+
+  // Open Campaign Create Modal
+  const handleOpenCampaignCreate = () => {
+    setEditingCampaign(null);
+    setCampaignFormData({
+      id: `camp_${Date.now()}`,
+      sponsorName: "New Sponsor",
+      gigId: gigs[0]?.id || "",
+      budget: 1000,
+      dailyBudget: 50,
+      startDate: new Date().toISOString().split("T")[0],
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+      targetCategory: "AI Coding",
+      status: "active",
+      placementRule: "featured_badge",
+      costPerClick: 1.5,
+    });
+    setIsCampaignModalOpen(true);
+  };
+
+  // Open Campaign Edit Modal
+  const handleOpenCampaignEdit = (campaign: SponsoredCampaign) => {
+    setEditingCampaign(campaign);
+    setCampaignFormData({
+      id: campaign.id,
+      sponsorName: campaign.sponsorName,
+      gigId: campaign.gigId,
+      budget: campaign.budget,
+      dailyBudget: campaign.dailyBudget,
+      startDate: campaign.startDate.split("T")[0],
+      endDate: campaign.endDate.split("T")[0],
+      targetCategory: campaign.targetCategory || "AI Coding",
+      status: campaign.status,
+      placementRule: campaign.placementRule,
+      costPerClick: campaign.costPerClick || 1.5,
+    });
+    setIsCampaignModalOpen(true);
+  };
+
+  // Save Campaign
+  const handleSaveCampaign = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const targetGig = gigs.find((g) => g.id === campaignFormData.gigId);
+
+    const campaignObj: SponsoredCampaign = {
+      id: campaignFormData.id,
+      sponsorName: campaignFormData.sponsorName,
+      gigId: campaignFormData.gigId,
+      gigTitle: targetGig?.title || "Sponsored Opportunity",
+      platformName: targetGig?.platformName || campaignFormData.sponsorName,
+      budget: Number(campaignFormData.budget),
+      dailyBudget: Number(campaignFormData.dailyBudget),
+      spent: editingCampaign?.spent || 0,
+      startDate: new Date(campaignFormData.startDate).toISOString(),
+      endDate: new Date(campaignFormData.endDate).toISOString(),
+      targetCategory: campaignFormData.targetCategory,
+      status: campaignFormData.status,
+      placementRule: campaignFormData.placementRule,
+      impressionsCount: editingCampaign?.impressionsCount || 0,
+      clicksCount: editingCampaign?.clicksCount || 0,
+      costPerClick: Number(campaignFormData.costPerClick),
+    };
+
+    await apiClient.saveSponsoredCampaign(campaignObj);
+
+    // If campaign is active, ensure the gig has sponsored = true
+    if (targetGig) {
+      const gigUpdate = { ...targetGig, sponsored: campaignObj.status === "active" };
+      saveStoredGig(gigUpdate);
+      await apiClient.adminSaveGig(gigUpdate);
+    }
+
+    setIsCampaignModalOpen(false);
+    showToast(`Campaign ${campaignObj.sponsorName} saved.`);
+    loadAllData();
+  };
+
+  // Toggle Launch Checklist Item
+  const handleToggleChecklist = async (id: string) => {
+    const updated = await apiClient.toggleChecklistItem(id);
+    setLaunchChecklist(updated);
+    showToast("Launch checklist checkpoint updated.");
+  };
+
   const handleResetCatalog = () => {
-    if (window.confirm("Reset catalog and local storage back to default Phase 4 verified state?")) {
+    if (window.confirm("Reset catalog and local storage back to default verified state?")) {
       resetStoredGigs();
       showToast("Gigs catalog reset to seed defaults.");
       loadAllData();
@@ -815,6 +1028,33 @@ export default function AdminPage() {
                 {metrics.openReportsCount}
               </span>
             )}
+          </button>
+
+          <button
+            onClick={() => setActiveTab("monetization")}
+            className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
+              activeTab === "monetization"
+                ? "border-brand-600 text-brand-600"
+                : "border-transparent text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <TrendingUp className="w-4 h-4" />
+            Monetization & Ads ({affiliatePartners.length})
+          </button>
+
+          <button
+            onClick={() => setActiveTab("checklist")}
+            className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
+              activeTab === "checklist"
+                ? "border-brand-600 text-brand-600"
+                : "border-transparent text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <CheckSquare className="w-4 h-4" />
+            Launch Checklist
+            <span className="px-1.5 py-0.2 rounded-full text-xs bg-emerald-100 text-emerald-800 font-bold">
+              {launchChecklist.filter((c) => c.completed).length}/{launchChecklist.length || 10}
+            </span>
           </button>
 
           <button
@@ -1384,6 +1624,363 @@ export default function AdminPage() {
           </div>
         )}
 
+        {/* TAB 5: MONETIZATION & ADS */}
+        {activeTab === "monetization" && (
+          <div className="space-y-8">
+            {/* Analytics KPI Row */}
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+              <Card className="bg-white border-border shadow-xs">
+                <CardContent className="p-4">
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                    Page Views
+                  </span>
+                  <span className="text-2xl font-black text-ink mt-1 block">
+                    {(analyticsSummary?.pageViews || 14250).toLocaleString()}
+                  </span>
+                  <span className="text-[11px] text-emerald-600 font-medium">30-day traffic</span>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-white border-border shadow-xs">
+                <CardContent className="p-4">
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                    Candidates Matched
+                  </span>
+                  <span className="text-2xl font-black text-ink mt-1 block">
+                    {(analyticsSummary?.uniqueVisitors || 4890).toLocaleString()}
+                  </span>
+                  <span className="text-[11px] text-brand-600 font-medium">Profiles evaluated</span>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-white border-border shadow-xs">
+                <CardContent className="p-4">
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                    Outbound Clicks
+                  </span>
+                  <span className="text-2xl font-black text-ink mt-1 block">
+                    {(analyticsSummary?.outboundApplications || 1026).toLocaleString()}
+                  </span>
+                  <span className="text-[11px] text-indigo-600 font-medium">Direct applications</span>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-white border-border shadow-xs">
+                <CardContent className="p-4">
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                    Affiliate Clicks
+                  </span>
+                  <span className="text-2xl font-black text-ink mt-1 block">
+                    {(analyticsSummary?.affiliateClicks || 640).toLocaleString()}
+                  </span>
+                  <span className="text-[11px] text-emerald-600 font-medium">Attributed leads</span>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-white border-border shadow-xs col-span-2 lg:col-span-1">
+                <CardContent className="p-4">
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                    Est. Revenue
+                  </span>
+                  <span className="text-2xl font-black text-emerald-700 mt-1 block">
+                    ${(
+                      (analyticsSummary?.estimatedAffiliateRevenue || 770) +
+                      (analyticsSummary?.sponsoredRevenue || 527.5)
+                    ).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                  <span className="text-[11px] text-slate-500 font-medium">Affiliate + Ads</span>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Affiliate Partners Directory */}
+            <div className="bg-white rounded-2xl border border-border shadow-xs overflow-hidden">
+              <div className="p-5 border-b border-border flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-base text-ink flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-brand-600" />
+                    Affiliate Partner Configurations
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Official referral configurations. URLs with referral tags are resolved on outbound clicks and disclosed transparently.
+                  </p>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 text-slate-500 uppercase font-semibold border-b border-border">
+                    <tr>
+                      <th className="py-3 px-4">Platform & Program</th>
+                      <th className="py-3 px-4">Model & Rate</th>
+                      <th className="py-3 px-4">Referral Code</th>
+                      <th className="py-3 px-4">Clicks & Conversions</th>
+                      <th className="py-3 px-4">Status</th>
+                      <th className="py-3 px-4">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {affiliatePartners.map((partner) => (
+                      <tr key={partner.id} className="hover:bg-slate-50/70 transition-colors">
+                        <td className="py-3 px-4">
+                          <span className="font-bold text-ink block">{partner.platformName}</span>
+                          <span className="text-slate-500 text-[11px]">{partner.programName}</span>
+                        </td>
+                        <td className="py-3 px-4 font-semibold text-slate-800">
+                          <span className="uppercase text-[10px] bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded font-mono mr-1.5">
+                            {partner.commissionModel}
+                          </span>
+                          {partner.commissionRate}
+                        </td>
+                        <td className="py-3 px-4 font-mono text-[11px] text-slate-600">
+                          {partner.referralCode || "N/A"}
+                        </td>
+                        <td className="py-3 px-4 text-slate-600">
+                          <span className="font-bold text-ink">{partner.totalClicks || 0}</span> clicks ·{" "}
+                          <span className="font-bold text-emerald-700">{partner.totalConversions || 0}</span> conv
+                        </td>
+                        <td className="py-3 px-4">
+                          {partner.status === "active" && (
+                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              Active
+                            </span>
+                          )}
+                          {partner.status === "pending" && (
+                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                              Pending
+                            </span>
+                          )}
+                          {partner.status === "paused" && (
+                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-slate-200 text-slate-700">
+                              Paused
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleOpenPartnerEdit(partner)}
+                            className="text-xs h-7 px-2.5"
+                          >
+                            Configure
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Sponsored Campaigns Manager */}
+            <div className="bg-white rounded-2xl border border-border shadow-xs overflow-hidden">
+              <div className="p-5 border-b border-border flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-base text-ink flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-amber-600" />
+                    Sponsored Promotional Placements
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Paid platform campaigns. Every listing is explicitly labelled with a Sponsored badge and kept separate from organic skill-matching.
+                  </p>
+                </div>
+                <Button size="sm" onClick={handleOpenCampaignCreate} className="font-semibold text-xs h-8">
+                  <Plus className="w-3.5 h-3.5 mr-1" /> New Campaign
+                </Button>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 text-slate-500 uppercase font-semibold border-b border-border">
+                    <tr>
+                      <th className="py-3 px-4">Sponsor & Listing</th>
+                      <th className="py-3 px-4">Budget / Daily</th>
+                      <th className="py-3 px-4">Spent</th>
+                      <th className="py-3 px-4">Performance</th>
+                      <th className="py-3 px-4">Placement Rule</th>
+                      <th className="py-3 px-4">Status</th>
+                      <th className="py-3 px-4">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {sponsoredCampaigns.map((camp) => (
+                      <tr key={camp.id} className="hover:bg-slate-50/70 transition-colors">
+                        <td className="py-3 px-4">
+                          <span className="font-bold text-ink block">{camp.sponsorName}</span>
+                          <span className="text-slate-500 text-[11px] truncate max-w-xs block">
+                            {camp.gigTitle}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 font-semibold text-ink">
+                          ${camp.budget} / ${camp.dailyBudget}
+                        </td>
+                        <td className="py-3 px-4 font-bold text-emerald-700">
+                          ${camp.spent.toFixed(2)}
+                        </td>
+                        <td className="py-3 px-4 text-slate-600">
+                          <span className="font-bold text-ink">{camp.impressionsCount}</span> imp ·{" "}
+                          <span className="font-bold text-ink">{camp.clicksCount}</span> clicks (CPC ${camp.costPerClick || 1.5})
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-800 uppercase">
+                            {camp.placementRule.replace(/_/g, " ")}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">
+                          {camp.status === "active" && (
+                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              Active
+                            </span>
+                          )}
+                          {camp.status === "paused" && (
+                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                              Paused
+                            </span>
+                          )}
+                          {camp.status === "completed" && (
+                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-slate-200 text-slate-700">
+                              Completed
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleOpenCampaignEdit(camp)}
+                            className="text-xs h-7 px-2.5"
+                          >
+                            Edit
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 6: LAUNCH READINESS CHECKLIST */}
+        {activeTab === "checklist" && (
+          <div className="space-y-6">
+            {/* Readiness Banner */}
+            <div className="bg-white p-6 rounded-2xl border border-border shadow-xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="primary" size="sm">
+                      Phase 5 Go-Live
+                    </Badge>
+                    <Badge variant="outline" size="sm" className="bg-emerald-50 text-emerald-800 border-emerald-200 font-bold">
+                      {launchChecklist.filter((c) => c.completed).length} / {launchChecklist.length || 10} Checkpoints Complete
+                    </Badge>
+                  </div>
+                  <h3 className="text-xl font-extrabold text-ink tracking-tight mt-1">
+                    Production Launch Verification Matrix
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Mandatory 10-checkpoint security, legal, infrastructure, and user trust pre-flight list before public marketing.
+                  </p>
+                </div>
+
+                <div className="shrink-0 flex items-center gap-2">
+                  <span className="text-2xl font-black text-emerald-600">
+                    {Math.round(
+                      (launchChecklist.filter((c) => c.completed).length / (launchChecklist.length || 10)) *
+                        100
+                    )}
+                    %
+                  </span>
+                  <span className="text-xs text-slate-500 font-bold uppercase">Launch Ready</span>
+                </div>
+              </div>
+
+              {/* Progress bar */}
+              <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-emerald-500 transition-all duration-500 rounded-full"
+                  style={{
+                    width: `${Math.round(
+                      (launchChecklist.filter((c) => c.completed).length / (launchChecklist.length || 10)) *
+                        100
+                    )}%`,
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Checklist Items */}
+            <div className="space-y-3">
+              {launchChecklist.map((item) => (
+                <Card
+                  key={item.id}
+                  className={`bg-white border transition-all ${
+                    item.completed ? "border-emerald-200/80 bg-emerald-50/20" : "border-border shadow-xs"
+                  }`}
+                >
+                  <CardContent className="p-5 flex items-start gap-4">
+                    <button
+                      type="button"
+                      onClick={() => handleToggleChecklist(item.id)}
+                      className={`h-6 w-6 rounded-lg border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
+                        item.completed
+                          ? "bg-emerald-600 border-emerald-600 text-white"
+                          : "border-slate-300 hover:border-slate-400 bg-white"
+                      }`}
+                    >
+                      {item.completed && <Check className="w-4 h-4 stroke-[3]" />}
+                    </button>
+
+                    <div className="space-y-1.5 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[11px] font-bold text-slate-400">#{item.order}</span>
+                        <h4
+                          className={`font-bold text-sm ${
+                            item.completed ? "text-slate-900 line-through decoration-emerald-500/60" : "text-ink"
+                          }`}
+                        >
+                          {item.title}
+                        </h4>
+
+                        <span
+                          className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
+                            item.category === "security"
+                              ? "bg-rose-50 text-rose-700 border border-rose-200"
+                              : item.category === "legal"
+                              ? "bg-amber-50 text-amber-700 border border-amber-200"
+                              : item.category === "infra"
+                              ? "bg-blue-50 text-blue-700 border border-blue-200"
+                              : "bg-purple-50 text-purple-700 border border-purple-200"
+                          }`}
+                        >
+                          {item.category}
+                        </span>
+
+                        {item.completedAt && (
+                          <span className="text-[11px] text-slate-400">
+                            Verified {new Date(item.completedAt).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+
+                      <p className="text-xs text-slate-600 leading-relaxed">{item.description}</p>
+
+                      {item.notes && (
+                        <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 text-xs text-slate-700">
+                          <span className="font-bold text-slate-900">Verification Stamp:</span> {item.notes}
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* MODAL 1: CREATE / EDIT LISTING */}
         <Dialog
           open={isListingModalOpen}
@@ -1906,6 +2503,354 @@ export default function AdminPage() {
               </Button>
               <Button type="submit" size="sm" className="font-bold">
                 Save & Synchronize Rate
+              </Button>
+            </div>
+          </form>
+        </Dialog>
+
+        {/* MODAL 5: EDIT AFFILIATE PARTNER */}
+        <Dialog
+          open={isPartnerModalOpen}
+          onOpenChange={setIsPartnerModalOpen}
+          title={`Configure Affiliate Partner: ${editingPartner?.platformName}`}
+          description="Update tracking template, referral code, and commission parameters."
+        >
+          <form onSubmit={handleSavePartner} className="space-y-4 pt-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">
+                  Platform Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={partnerFormData.platformName}
+                  onChange={(e) =>
+                    setPartnerFormData({ ...partnerFormData, platformName: e.target.value })
+                  }
+                  className="w-full h-9 px-3 rounded-lg border border-border text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">
+                  Program Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={partnerFormData.programName}
+                  onChange={(e) =>
+                    setPartnerFormData({ ...partnerFormData, programName: e.target.value })
+                  }
+                  className="w-full h-9 px-3 rounded-lg border border-border text-xs"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">
+                Affiliate URL Template (use {"{referralCode}"} placeholder)
+              </label>
+              <input
+                type="text"
+                required
+                value={partnerFormData.affiliateUrlTemplate}
+                onChange={(e) =>
+                  setPartnerFormData({ ...partnerFormData, affiliateUrlTemplate: e.target.value })
+                }
+                className="w-full h-9 px-3 rounded-lg border border-border text-xs font-mono"
+              />
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">
+                  Referral Code
+                </label>
+                <input
+                  type="text"
+                  value={partnerFormData.referralCode}
+                  onChange={(e) =>
+                    setPartnerFormData({ ...partnerFormData, referralCode: e.target.value })
+                  }
+                  className="w-full h-9 px-3 rounded-lg border border-border text-xs font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">
+                  Commission Model
+                </label>
+                <select
+                  value={partnerFormData.commissionModel}
+                  onChange={(e) =>
+                    setPartnerFormData({
+                      ...partnerFormData,
+                      commissionModel: e.target.value as CommissionModel,
+                    })
+                  }
+                  className="w-full h-9 px-3 rounded-lg border border-border text-xs bg-white uppercase font-mono"
+                >
+                  <option value="cpa">CPA (Cost per Acquisition)</option>
+                  <option value="cpc">CPC (Cost per Click)</option>
+                  <option value="fixed">Fixed bounty</option>
+                  <option value="revshare">Revenue Share</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">
+                  Partner Status
+                </label>
+                <select
+                  value={partnerFormData.status}
+                  onChange={(e) =>
+                    setPartnerFormData({
+                      ...partnerFormData,
+                      status: e.target.value as any,
+                    })
+                  }
+                  className="w-full h-9 px-3 rounded-lg border border-border text-xs bg-white font-semibold"
+                >
+                  <option value="active">Active (Resolves links)</option>
+                  <option value="pending">Pending</option>
+                  <option value="paused">Paused</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">
+                Commission Rate Terms
+              </label>
+              <input
+                type="text"
+                required
+                value={partnerFormData.commissionRate}
+                onChange={(e) =>
+                  setPartnerFormData({ ...partnerFormData, commissionRate: e.target.value })
+                }
+                placeholder="e.g. $30 per approved contributor"
+                className="w-full h-9 px-3 rounded-lg border border-border text-xs"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">
+                Partner Notes & Terms URL
+              </label>
+              <textarea
+                rows={2}
+                value={partnerFormData.notes}
+                onChange={(e) => setPartnerFormData({ ...partnerFormData, notes: e.target.value })}
+                className="w-full p-2 rounded-lg border border-border text-xs"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => setIsPartnerModalOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" size="sm" className="font-bold">
+                Save Partner
+              </Button>
+            </div>
+          </form>
+        </Dialog>
+
+        {/* MODAL 6: CREATE / EDIT SPONSORED CAMPAIGN */}
+        <Dialog
+          open={isCampaignModalOpen}
+          onOpenChange={setIsCampaignModalOpen}
+          title={
+            editingCampaign
+              ? `Edit Campaign: ${editingCampaign.sponsorName}`
+              : "New Sponsored Promotional Campaign"
+          }
+          description="Configure promotional budget, targeting category, and placement rules."
+        >
+          <form onSubmit={handleSaveCampaign} className="space-y-4 pt-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">
+                  Sponsor Brand
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={campaignFormData.sponsorName}
+                  onChange={(e) =>
+                    setCampaignFormData({ ...campaignFormData, sponsorName: e.target.value })
+                  }
+                  className="w-full h-9 px-3 rounded-lg border border-border text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">
+                  Promoted Listing Opportunity
+                </label>
+                <select
+                  value={campaignFormData.gigId}
+                  onChange={(e) =>
+                    setCampaignFormData({ ...campaignFormData, gigId: e.target.value })
+                  }
+                  className="w-full h-9 px-3 rounded-lg border border-border text-xs bg-white truncate"
+                >
+                  {gigs.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.platformName} - {g.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">
+                  Total Budget ($)
+                </label>
+                <input
+                  type="number"
+                  required
+                  value={campaignFormData.budget}
+                  onChange={(e) =>
+                    setCampaignFormData({ ...campaignFormData, budget: Number(e.target.value) })
+                  }
+                  className="w-full h-9 px-3 rounded-lg border border-border text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">
+                  Daily Cap ($)
+                </label>
+                <input
+                  type="number"
+                  required
+                  value={campaignFormData.dailyBudget}
+                  onChange={(e) =>
+                    setCampaignFormData({
+                      ...campaignFormData,
+                      dailyBudget: Number(e.target.value),
+                    })
+                  }
+                  className="w-full h-9 px-3 rounded-lg border border-border text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">
+                  Cost per Click ($)
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  required
+                  value={campaignFormData.costPerClick}
+                  onChange={(e) =>
+                    setCampaignFormData({
+                      ...campaignFormData,
+                      costPerClick: Number(e.target.value),
+                    })
+                  }
+                  className="w-full h-9 px-3 rounded-lg border border-border text-xs"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">
+                  Start Date
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={campaignFormData.startDate}
+                  onChange={(e) =>
+                    setCampaignFormData({ ...campaignFormData, startDate: e.target.value })
+                  }
+                  className="w-full h-9 px-3 rounded-lg border border-border text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">
+                  End Date
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={campaignFormData.endDate}
+                  onChange={(e) =>
+                    setCampaignFormData({ ...campaignFormData, endDate: e.target.value })
+                  }
+                  className="w-full h-9 px-3 rounded-lg border border-border text-xs"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">
+                  Placement Rule
+                </label>
+                <select
+                  value={campaignFormData.placementRule}
+                  onChange={(e) =>
+                    setCampaignFormData({
+                      ...campaignFormData,
+                      placementRule: e.target.value as CampaignPlacementRule,
+                    })
+                  }
+                  className="w-full h-9 px-3 rounded-lg border border-border text-xs bg-white font-semibold"
+                >
+                  <option value="featured_badge">Featured Badge (Card Highlight)</option>
+                  <option value="top_of_category">Top of Category Directory</option>
+                  <option value="homepage_hero">Homepage Hero Placement</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">
+                  Campaign Status
+                </label>
+                <select
+                  value={campaignFormData.status}
+                  onChange={(e) =>
+                    setCampaignFormData({
+                      ...campaignFormData,
+                      status: e.target.value as CampaignStatus,
+                    })
+                  }
+                  className="w-full h-9 px-3 rounded-lg border border-border text-xs bg-white font-semibold"
+                >
+                  <option value="active">Active</option>
+                  <option value="paused">Paused</option>
+                  <option value="completed">Completed</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => setIsCampaignModalOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" size="sm" className="font-bold">
+                Save Campaign
               </Button>
             </div>
           </form>

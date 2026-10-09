@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -99,6 +99,24 @@ export default function GigDetailPage() {
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2000);
     }
+  };
+
+  const outboundData = useMemo(() => {
+    if (!gig) return null;
+    return apiClient.resolveOutbound(gig);
+  }, [gig]);
+
+  const handleApplyClick = () => {
+    if (!gig || !outboundData) return;
+    apiClient.trackOutboundClick({
+      gigId: gig.id,
+      gigTitle: gig.title,
+      platformName: gig.platformName,
+      partnerId: outboundData.partner?.id,
+      destinationUrl: outboundData.url,
+      isAffiliate: outboundData.isAffiliate,
+      userId: profile.id,
+    });
   };
 
   const handleReportSubmit = async (e: React.FormEvent) => {
@@ -559,18 +577,20 @@ export default function GigDetailPage() {
             </div>
           </div>
 
-          {/* Affiliate Disclosure Placeholder */}
-          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 text-xs text-slate-500 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Info className="w-4 h-4 text-slate-400" />
-              <span>
-                {gig.affiliateDisclosure ||
-                  "Direct informational link. GigMatcher receives no bounty or affiliate payment for this direct listing."}
+          {/* Affiliate Disclosure & Outbound Attribution */}
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-xs text-slate-600 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-2.5">
+              <Info className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+              <span className="leading-relaxed">
+                {outboundData?.isAffiliate
+                  ? outboundData.disclosure
+                  : gig.affiliateDisclosure ||
+                    "Direct informational link. GigMatcher receives no bounty or affiliate payment for this direct listing."}
               </span>
             </div>
             <button
               onClick={() => setReportModalOpen(true)}
-              className="text-brand-600 hover:underline font-semibold shrink-0 ml-3"
+              className="text-brand-600 hover:underline font-semibold shrink-0 ml-auto sm:ml-0"
             >
               Report outdated info
             </button>
@@ -596,9 +616,10 @@ export default function GigDetailPage() {
               {saved ? "Saved in Tracker" : "Save for Later"}
             </Button>
             <a
-              href={gig.officialUrl}
+              href={outboundData?.url || gig.officialUrl}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={handleApplyClick}
               className="flex-1 sm:flex-none"
             >
               <Button size="md" className="w-full font-bold">

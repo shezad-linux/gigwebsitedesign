@@ -8,6 +8,11 @@ import {
   AuditEvent,
   PlatformInfo,
   ReportStatus,
+  AffiliatePartner,
+  AffiliateClick,
+  SponsoredCampaign,
+  AnalyticsSummary,
+  LaunchChecklistItem,
 } from "@/types/gig";
 import { UserProfile } from "@/types/profile";
 import {
@@ -53,6 +58,18 @@ import {
   recordAuditEvent as recordStoredAuditEvent,
   getStoredPlatforms,
 } from "@/lib/operations";
+import {
+  getStoredAffiliatePartners,
+  upsertAffiliatePartner,
+  getStoredSponsoredCampaigns,
+  upsertSponsoredCampaign,
+  recordStoredAffiliateClick,
+  getAnalyticsSummary,
+  getStoredLaunchChecklist,
+  toggleStoredChecklistItem,
+  updateStoredChecklistNotes,
+  resolveOutboundUrl,
+} from "@/lib/monetization";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
 const TOKEN_KEY = "gigmatcher_auth_token";
@@ -638,5 +655,87 @@ export const apiClient = {
     }
     return recordStoredAuditEvent(event);
   },
+
+  /* ==================== Phase 5: Monetization, Analytics & Launch ==================== */
+
+  /**
+   * Get affiliate partners
+   */
+  async getAffiliatePartners(): Promise<AffiliatePartner[]> {
+    return getStoredAffiliatePartners();
+  },
+
+  /**
+   * Save or update affiliate partner configuration
+   */
+  async saveAffiliatePartner(partner: AffiliatePartner): Promise<void> {
+    upsertAffiliatePartner(partner);
+  },
+
+  /**
+   * Get sponsored advertising campaigns
+   */
+  async getSponsoredCampaigns(): Promise<SponsoredCampaign[]> {
+    return getStoredSponsoredCampaigns();
+  },
+
+  /**
+   * Save or update sponsored advertising campaign
+   */
+  async saveSponsoredCampaign(campaign: SponsoredCampaign): Promise<void> {
+    upsertSponsoredCampaign(campaign);
+  },
+
+  /**
+   * Track outbound referral or application click
+   */
+  async trackOutboundClick(click: Omit<AffiliateClick, "id" | "timestamp">): Promise<AffiliateClick> {
+    try {
+      await fetch("/api/outbound/click", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(click),
+      });
+    } catch (e) {
+      console.warn("Outbound API call failed, persisting locally:", e);
+    }
+    return recordStoredAffiliateClick(click);
+  },
+
+  /**
+   * Get aggregated product analytics summary
+   */
+  async getAnalyticsSummary(): Promise<AnalyticsSummary> {
+    return getAnalyticsSummary();
+  },
+
+  /**
+   * Get launch checklist items
+   */
+  async getLaunchChecklist(): Promise<LaunchChecklistItem[]> {
+    return getStoredLaunchChecklist();
+  },
+
+  /**
+   * Toggle launch checklist item status
+   */
+  async toggleChecklistItem(id: string): Promise<LaunchChecklistItem[]> {
+    return toggleStoredChecklistItem(id);
+  },
+
+  /**
+   * Update launch checklist item notes
+   */
+  async updateChecklistNotes(id: string, notes: string): Promise<LaunchChecklistItem[]> {
+    return updateStoredChecklistNotes(id, notes);
+  },
+
+  /**
+   * Resolve outbound URL with partner parameters and disclosure
+   */
+  resolveOutbound(gig: GigListing) {
+    return resolveOutboundUrl(gig);
+  },
 };
+
 

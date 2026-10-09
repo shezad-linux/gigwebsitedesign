@@ -175,3 +175,93 @@ export interface AuditEvent {
   justification?: string;
   createdAt: string;
 }
+
+/* ==================== Phase 5: Monetization, Campaigns & Launch ==================== */
+
+export type CommissionModel = "cpa" | "cpc" | "revshare" | "fixed";
+export type PartnerStatus = "active" | "pending" | "paused";
+
+export interface AffiliatePartner {
+  id: string;
+  platformId: string;
+  platformName: string;
+  programName: string;
+  affiliateUrlTemplate: string; // e.g. "https://outlier.ai/?utm_source=gigmatcher&ref={referralCode}"
+  referralCode?: string;
+  commissionModel: CommissionModel;
+  commissionRate: string; // e.g. "$25 / approved qualification"
+  status: PartnerStatus;
+  termsUrl?: string;
+  notes?: string;
+  totalClicks?: number;
+  totalConversions?: number;
+  updatedAt?: string;
+}
+
+export interface AffiliateClick {
+  id: string;
+  gigId: string;
+  gigTitle: string;
+  platformName: string;
+  partnerId?: string;
+  destinationUrl: string;
+  isAffiliate: boolean;
+  userId?: string;
+  referrer?: string;
+  timestamp: string;
+}
+
+export type CampaignPlacementRule = "top_of_category" | "featured_badge" | "homepage_hero";
+export type CampaignStatus = "active" | "paused" | "completed";
+
+export interface SponsoredCampaign {
+  id: string;
+  sponsorName: string;
+  gigId: string;
+  gigTitle: string;
+  platformName: string;
+  budget: number;
+  dailyBudget: number;
+  spent: number;
+  startDate: string;
+  endDate: string;
+  targetCategory?: string;
+  status: CampaignStatus;
+  placementRule: CampaignPlacementRule;
+  impressionsCount: number;
+  clicksCount: number;
+  costPerClick?: number;
+}
+
+export interface CampaignEvent {
+  id: string;
+  campaignId: string;
+  eventType: "impression" | "click";
+  timestamp: string;
+}
+
+export interface AnalyticsSummary {
+  pageViews: number;
+  uniqueVisitors: number;
+  searchesCount: number;
+  profilesCompleted: number;
+  gigViewsCount: number;
+  outboundApplications: number;
+  affiliateClicks: number;
+  estimatedAffiliateRevenue: number;
+  sponsoredRevenue: number;
+}
+
+export type ChecklistCategory = "security" | "legal" | "infra" | "qa";
+
+export interface LaunchChecklistItem {
+  id: string;
+  order: number;
+  title: string;
+  category: ChecklistCategory;
+  description: string;
+  completed: boolean;
+  completedAt?: string;
+  notes?: string;
+}
+
