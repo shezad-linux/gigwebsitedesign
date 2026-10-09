@@ -25,6 +25,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { UserProfile, UserLanguage, UserResume } from "@/types/profile";
 import { getStoredProfile, saveStoredProfile } from "@/lib/storage";
+import { apiClient } from "@/lib/api";
 
 const POPULAR_SKILLS = [
   "Python",
@@ -272,7 +273,7 @@ export default function OnboardingPage() {
     }
   };
 
-  const handleFinishOnboarding = () => {
+  const handleFinishOnboarding = async () => {
     const finalProfile: UserProfile = {
       id: "user_demo_01",
       fullName: fullName.trim() || "Candidate",
@@ -297,6 +298,11 @@ export default function OnboardingPage() {
     };
 
     saveStoredProfile(finalProfile);
+    try {
+      await apiClient.updateProfile(finalProfile);
+    } catch (e) {
+      console.warn("Could not sync profile to backend:", e);
+    }
     router.push("/dashboard?onboarded=true");
   };
 

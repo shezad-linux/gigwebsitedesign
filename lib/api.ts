@@ -11,7 +11,20 @@ import {
   isGigSaved,
   toggleSaveGig,
 } from "@/lib/storage";
-import { calculateAllMatches } from "@/lib/matching";
+import {
+  isSupabaseConfigured,
+  fetchSupabaseGigs,
+  fetchSupabaseProfile,
+  upsertSupabaseProfile,
+  fetchSupabaseApplications,
+  upsertSupabaseApplication,
+  updateSupabaseApplication,
+  deleteSupabaseApplication,
+  upsertSupabaseGig,
+  toggleSupabaseSavedGig,
+  fetchSupabaseSavedGigs,
+  getSupabaseUser,
+} from "@/lib/supabase";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
 const TOKEN_KEY = "gigmatcher_auth_token";
@@ -31,7 +44,7 @@ export function clearAuthToken(): void {
   localStorage.removeItem(TOKEN_KEY);
 }
 
-async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+async function springRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = getAuthToken();
   const headers: HeadersInit = {
     "Content-Type": "application/json",
@@ -56,17 +69,17 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   return result.data as T;
 }
 
-/* ==================== Hybrid API with Fallback ==================== */
+/* ==================== Unified API Client (Supabase > Spring Boot > Local Prototype) ==================== */
 
 export const apiClient = {
   /**
    * Health check to detect if Spring Boot server is online
    */
-  async isServerOnline(): Promise<boolean> {
+  async isSpringServerOnline(): Promise<boolean> {
     try {
       const res = await fetch(`http://localhost:8080/actuator/health`, {
         method: "GET",
-        signal: AbortSignal.timeout(1500),
+        signal: AbortSignal.timeout(1200),
       });
       return res.ok;
     } catch {
@@ -75,21 +88,66 @@ export const apiClient = {
   },
 
   /**
+   * Identifies current active backend provider
+   */
+  async getActiveBackend(): Promise<"supabase" | "springboot" | "local"> {
+    if (isSupabaseConfigured()) {
+      return "supabase";
+    }
+    const springOnline = await this.isSpringServerOnline();
+    if (springOnline) {
+      return "springboot";
+    }
+    return "local";
+  },
+
+  /**
    * Fetch gigs catalog
    */
   async getGigs(params?: { category?: string; search?: string; remoteOnly?: boolean }): Promise<GigListing[]> {
+    // 1. Try Supabase first if configured
+    if (isSupabaseConfigured()) {
+      try {
+        const supabaseGigs = await fetchSupabaseGigs();
+        if (supabaseGigs && supabaseGigs.length > 0) {
+          let filtered = supabaseGigs;
+          if (params?.category && params.category !== "all") {
+            filtered = filtered.filter((g) => g.category.toLowerCase() === params.category?.toLowerCase());
+          }
+          if (params?.search) {
+            const q = params.search.toLowerCase();
+            filtered = filtered.filter(
+              (g) =>
+                g.title.toLowerCase().includes(q) ||
+                g.platformName.toLowerCase().includes(q) ||
+                g.skillsRequired.some((s) => s.toLowerCase().includes(q))
+            );
+          }
+          if (params?.remoteOnly) {
+            filtered = filtered.filter((g) => g.remote);
+          }
+          return filtered;
+        }
+      } catch (e) {
+        console.warn("Supabase fetch failed, trying fallback:", e);
+      }
+    }
+
+    // 2. Try Spring Boot if online
     try {
-      const isOnline = await this.isServerOnline();
+      const isOnline = await this.isSpringServerOnline();
       if (isOnline) {
         const query = new URLSearchParams();
         if (params?.category && params.category !== "all") query.set("category", params.category);
         if (params?.search) query.set("search", params.search);
         if (params?.remoteOnly) query.set("remoteOnly", "true");
-        return await request<GigListing[]>(`/gigs?${query.toString()}`);
+        return await springRequest<GigListing[]>(`/gigs?${query.toString()}`);
       }
     } catch (e) {
-      console.warn("Backend offline, using local catalog", e);
+      console.warn("Spring Boot offline, falling back to local storage:", e);
     }
+
+    // 3. Graceful Local Fallback
     return getStoredGigs();
   },
 
@@ -97,14 +155,27 @@ export const apiClient = {
    * Fetch single gig by slug
    */
   async getGigBySlug(slug: string): Promise<GigListing | null> {
+    if (isSupabaseConfigured()) {
+      try {
+        const all = await fetchSupabaseGigs();
+        if (all) {
+          const found = all.find((g) => g.slug === slug);
+          if (found) return found;
+        }
+      } catch (e) {
+        console.warn("Supabase fetch failed for slug:", e);
+      }
+    }
+
     try {
-      const isOnline = await this.isServerOnline();
+      const isOnline = await this.isSpringServerOnline();
       if (isOnline) {
-        return await request<GigListing>(`/gigs/${slug}`);
+        return await springRequest<GigListing>(`/gigs/${slug}`);
       }
     } catch (e) {
-      console.warn("Backend offline, using local gig data", e);
+      console.warn("Spring Boot offline, reading local:", e);
     }
+
     const all = getStoredGigs();
     return all.find((g) => g.slug === slug) || null;
   },
@@ -113,11 +184,24 @@ export const apiClient = {
    * Fetch current user profile
    */
   async getProfile(): Promise<UserProfile> {
+    // 1. Check Supabase
+    if (isSupabaseConfigured()) {
+      try {
+        const user = await getSupabaseUser();
+        if (user) {
+          const profile = await fetchSupabaseProfile(user.id);
+          if (profile) return profile;
+        }
+      } catch (e) {
+        console.warn("Supabase profile read failed:", e);
+      }
+    }
+
+    // 2. Check Spring Boot
     try {
-      const isOnline = await this.isServerOnline();
+      const isOnline = await this.isSpringServerOnline();
       if (isOnline && getAuthToken()) {
-        const dto = await request<any>(`/me/profile`);
-        // Map DTO to UserProfile
+        const dto = await springRequest<any>(`/me/profile`);
         return {
           id: dto.id,
           fullName: dto.fullName,
@@ -143,8 +227,10 @@ export const apiClient = {
         };
       }
     } catch (e) {
-      console.warn("Backend offline, using stored local profile", e);
+      console.warn("Spring Boot profile read failed:", e);
     }
+
+    // 3. Fallback to Local Prototype Profile
     return getStoredProfile();
   },
 
@@ -152,8 +238,16 @@ export const apiClient = {
    * Update profile
    */
   async updateProfile(profile: UserProfile): Promise<UserProfile> {
+    if (isSupabaseConfigured()) {
+      try {
+        await upsertSupabaseProfile(profile);
+      } catch (e) {
+        console.warn("Supabase profile update failed:", e);
+      }
+    }
+
     try {
-      const isOnline = await this.isServerOnline();
+      const isOnline = await this.isSpringServerOnline();
       if (isOnline && getAuthToken()) {
         const payload = {
           fullName: profile.fullName,
@@ -174,14 +268,15 @@ export const apiClient = {
           preferredPayoutMethodsJson: JSON.stringify(profile.preferredPayoutMethods || []),
           hasCompletedOnboarding: profile.hasCompletedOnboarding,
         };
-        await request<any>(`/me/profile`, {
+        await springRequest<any>(`/me/profile`, {
           method: "PUT",
           body: JSON.stringify(payload),
         });
       }
     } catch (e) {
-      console.warn("Backend offline, saving locally", e);
+      console.warn("Spring Boot profile update failed:", e);
     }
+
     saveStoredProfile(profile);
     return profile;
   },
@@ -190,10 +285,22 @@ export const apiClient = {
    * Tracked applications
    */
   async getApplications(): Promise<TrackedApplication[]> {
+    if (isSupabaseConfigured()) {
+      try {
+        const user = await getSupabaseUser();
+        if (user) {
+          const apps = await fetchSupabaseApplications(user.id);
+          if (apps) return apps;
+        }
+      } catch (e) {
+        console.warn("Supabase applications fetch failed:", e);
+      }
+    }
+
     try {
-      const isOnline = await this.isServerOnline();
+      const isOnline = await this.isSpringServerOnline();
       if (isOnline && getAuthToken()) {
-        const raw = await request<any[]>(`/me/applications`);
+        const raw = await springRequest<any[]>(`/me/applications`);
         return raw.map((entry) => ({
           id: entry.id,
           gigId: entry.gig.id,
@@ -210,8 +317,167 @@ export const apiClient = {
         }));
       }
     } catch (e) {
-      console.warn("Backend offline, using local tracker", e);
+      console.warn("Spring Boot applications fetch failed:", e);
     }
+
     return getTrackedApplications();
+  },
+
+  /**
+   * Save or update an application tracker entry
+   */
+  async trackApplication(gig: GigListing, status: ApplicationStatus = "Shortlisted", notes: string = ""): Promise<void> {
+    if (isSupabaseConfigured()) {
+      try {
+        const user = await getSupabaseUser();
+        if (user) {
+          await upsertSupabaseApplication(user.id, {
+            gigId: gig.id,
+            status,
+            notes,
+          });
+        }
+      } catch (e) {
+        console.warn("Supabase trackApplication failed:", e);
+      }
+    }
+
+    try {
+      const isOnline = await this.isSpringServerOnline();
+      if (isOnline && getAuthToken()) {
+        await springRequest<any>(`/me/applications`, {
+          method: "POST",
+          body: JSON.stringify({
+            gigId: gig.id,
+            status,
+            notes,
+          }),
+        });
+      }
+    } catch (e) {
+      console.warn("Spring Boot trackApplication failed:", e);
+    }
+
+    // Always keep local storage synchronized for instant UI reactivity
+    const appEntry: TrackedApplication = {
+      id: `app-${gig.id}`,
+      gigId: gig.id,
+      gigSlug: gig.slug,
+      platformName: gig.platformName,
+      roleTitle: gig.title,
+      category: gig.category,
+      status,
+      appliedDate: new Date().toISOString().split("T")[0],
+      lastUpdated: new Date().toISOString().split("T")[0],
+      notes,
+      paySummary: gig.payment ? `$${gig.payment.amount} / ${gig.payment.unit}` : undefined,
+      officialUrl: gig.officialUrl,
+    };
+    saveTrackedApplication(appEntry);
+  },
+
+  /**
+   * Update existing application status and notes
+   */
+  async updateApplication(id: string, status: ApplicationStatus, notes?: string, appliedDate?: string): Promise<void> {
+    if (isSupabaseConfigured()) {
+      try {
+        const user = await getSupabaseUser();
+        if (user) {
+          await updateSupabaseApplication(user.id, id, status, notes, appliedDate);
+        }
+      } catch (e) {
+        console.warn("Supabase updateApplication failed:", e);
+      }
+    }
+
+    try {
+      const isOnline = await this.isSpringServerOnline();
+      if (isOnline && getAuthToken()) {
+        await springRequest<any>(`/me/applications/${id}`, {
+          method: "PUT",
+          body: JSON.stringify({
+            status,
+            notes,
+          }),
+        });
+      }
+    } catch (e) {
+      console.warn("Spring Boot updateApplication failed:", e);
+    }
+
+    updateApplicationStatus(id, status, notes);
+  },
+
+  /**
+   * Delete application from tracker
+   */
+  async deleteApplication(id: string): Promise<void> {
+    if (isSupabaseConfigured()) {
+      try {
+        const user = await getSupabaseUser();
+        if (user) {
+          await deleteSupabaseApplication(user.id, id);
+        }
+      } catch (e) {
+        console.warn("Supabase deleteApplication failed:", e);
+      }
+    }
+
+    try {
+      const isOnline = await this.isSpringServerOnline();
+      if (isOnline && getAuthToken()) {
+        await springRequest<any>(`/me/applications/${id}`, {
+          method: "DELETE",
+        });
+      }
+    } catch (e) {
+      console.warn("Spring Boot deleteApplication failed:", e);
+    }
+
+    removeTrackedApplication(id);
+  },
+
+  /**
+   * Toggle saved gig
+   */
+  async toggleSavedGig(gig: GigListing): Promise<boolean> {
+    if (isSupabaseConfigured()) {
+      try {
+        const user = await getSupabaseUser();
+        if (user) {
+          await toggleSupabaseSavedGig(user.id, gig.id);
+        }
+      } catch (e) {
+        console.warn("Supabase toggleSavedGig failed:", e);
+      }
+    }
+
+    return toggleSaveGig(gig);
+  },
+
+  /**
+   * Admin: create or update gig listing
+   */
+  async adminSaveGig(gig: GigListing): Promise<void> {
+    if (isSupabaseConfigured()) {
+      try {
+        await upsertSupabaseGig(gig);
+      } catch (e) {
+        console.warn("Supabase adminSaveGig failed:", e);
+      }
+    }
+
+    try {
+      const isOnline = await this.isSpringServerOnline();
+      if (isOnline && getAuthToken()) {
+        await springRequest<any>(`/gigs`, {
+          method: "POST",
+          body: JSON.stringify(gig),
+        });
+      }
+    } catch (e) {
+      console.warn("Spring Boot adminSaveGig failed:", e);
+    }
   },
 };

@@ -33,12 +33,14 @@ import {
 import { calculateAllMatches } from "@/lib/matching";
 import { filterAndSortGigs, FilterState, DEFAULT_FILTERS } from "@/lib/filters";
 
+import { apiClient } from "@/lib/api";
+
 function DashboardContent() {
   const searchParams = useSearchParams();
 
   const [isLoading, setIsLoading] = useState(true);
-  const [profile, setProfile] = useState<UserProfile>(getStoredProfile());
-  const [allGigs, setAllGigs] = useState<GigListing[]>([]);
+  const [profile, setProfile] = useState<UserProfile>(() => getStoredProfile());
+  const [allGigs, setAllGigs] = useState<GigListing[]>(() => getStoredGigs());
   const [savedGigIds, setSavedGigIds] = useState<Set<string>>(new Set());
   const [selectedGig, setSelectedGig] = useState<GigListing | null>(null);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
@@ -53,26 +55,40 @@ function DashboardContent() {
     return DEFAULT_FILTERS;
   });
 
-  // Load initial data
+  // Load data via unified apiClient (Supabase > Spring Boot > LocalStorage)
   useEffect(() => {
-    const p = getStoredProfile();
-    const g = getStoredGigs();
-    const apps = getTrackedApplications();
+    let isMounted = true;
+    async function loadData() {
+      try {
+        const [p, g, apps] = await Promise.all([
+          apiClient.getProfile(),
+          apiClient.getGigs(),
+          apiClient.getApplications(),
+        ]);
+        if (isMounted) {
+          setProfile(p);
+          setAllGigs(g);
+          setSavedGigIds(new Set(apps.map((a) => a.gigId)));
+        }
+      } catch (err) {
+        console.error("Error loading dashboard data:", err);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
 
-    setProfile(p);
-    setAllGigs(g);
-    setSavedGigIds(new Set(apps.map((a) => a.gigId)));
+    loadData();
 
     // Check if user came from onboarding
     if (searchParams.get("onboarded") === "true") {
       setToastMessage("Profile saved! Your matches have been recalibrated based on your skills.");
     }
 
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 400);
-
-    return () => clearTimeout(timer);
+    return () => {
+      isMounted = false;
+    };
   }, [searchParams]);
 
   // Recalculate matches whenever profile or gigs change
@@ -94,8 +110,8 @@ function DashboardContent() {
     return Array.from(set).sort();
   }, [allGigs]);
 
-  const handleToggleSave = (gig: GigListing) => {
-    const isNowSaved = toggleSaveGig(gig);
+  const handleToggleSave = async (gig: GigListing) => {
+    const isNowSaved = await apiClient.toggleSavedGig(gig);
     const nextSet = new Set(savedGigIds);
     if (isNowSaved) {
       nextSet.add(gig.id);

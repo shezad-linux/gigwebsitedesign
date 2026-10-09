@@ -25,6 +25,7 @@ import { Badge, PaymentVerificationBadge, EligibilityBadge } from "@/components/
 import { Dialog } from "@/components/ui/dialog";
 import { GigListing, PaymentVerification, EligibilityVerification } from "@/types/gig";
 import { getStoredGigs, saveStoredGig, resetStoredGigs } from "@/lib/storage";
+import { apiClient } from "@/lib/api";
 
 export default function AdminPage() {
   const [gigs, setGigs] = useState<GigListing[]>([]);
@@ -57,13 +58,18 @@ export default function AdminPage() {
     eligibilitySourceNote: "Community verified via contributor onboarding threads.",
   });
 
-  const refreshGigs = () => {
-    setGigs(getStoredGigs());
+  const refreshGigs = async () => {
+    try {
+      const data = await apiClient.getGigs();
+      setGigs(data);
+    } catch {
+      setGigs(getStoredGigs());
+    }
   };
 
   useEffect(() => {
     refreshGigs();
-    const handleUpdate = () => refreshGigs();
+    const handleUpdate = () => { refreshGigs(); };
     window.addEventListener("gigmatcher_gigs_updated", handleUpdate);
     return () => window.removeEventListener("gigmatcher_gigs_updated", handleUpdate);
   }, []);
@@ -175,6 +181,7 @@ export default function AdminPage() {
     };
 
     saveStoredGig(newGig);
+    apiClient.adminSaveGig(newGig).catch((err) => console.warn("Admin backend sync failed:", err));
     setIsCreateModalOpen(false);
     showToast(editingGig ? `Updated "${newGig.title}"` : `Added "${newGig.title}" to catalog`);
   };
@@ -199,6 +206,7 @@ export default function AdminPage() {
   const toggleSponsored = (gig: GigListing) => {
     const updated = { ...gig, sponsored: !gig.sponsored };
     saveStoredGig(updated);
+    apiClient.adminSaveGig(updated).catch((err) => console.warn("Admin backend sync failed:", err));
     showToast(`${gig.platformName} marked as ${updated.sponsored ? "Sponsored" : "Organic"}`);
   };
 

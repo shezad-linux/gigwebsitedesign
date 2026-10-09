@@ -28,6 +28,8 @@ import {
   removeTrackedApplication,
 } from "@/lib/storage";
 
+import { apiClient } from "@/lib/api";
+
 const ALL_STATUSES: ApplicationStatus[] = [
   "Shortlisted",
   "Applied",
@@ -39,7 +41,7 @@ const ALL_STATUSES: ApplicationStatus[] = [
 ];
 
 export default function ApplicationsPage() {
-  const [applications, setApplications] = useState<TrackedApplication[]>([]);
+  const [applications, setApplications] = useState<TrackedApplication[]>(() => getTrackedApplications());
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>("All");
   const [editingApp, setEditingApp] = useState<TrackedApplication | null>(null);
 
@@ -48,8 +50,13 @@ export default function ApplicationsPage() {
   const [editNotes, setEditNotes] = useState("");
   const [editDate, setEditDate] = useState("");
 
-  const refreshApplications = () => {
-    setApplications(getTrackedApplications());
+  const refreshApplications = async () => {
+    try {
+      const data = await apiClient.getApplications();
+      setApplications(data);
+    } catch {
+      setApplications(getTrackedApplications());
+    }
   };
 
   useEffect(() => {
@@ -66,35 +73,19 @@ export default function ApplicationsPage() {
     setEditDate(app.appliedDate || new Date().toISOString().split("T")[0]);
   };
 
-  const handleSaveEdit = (e: React.FormEvent) => {
+  const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingApp) return;
 
-    const current = getTrackedApplications();
-    const updated = current.map((a) => {
-      if (a.id === editingApp.id) {
-        return {
-          ...a,
-          status: editStatus,
-          notes: editNotes,
-          appliedDate: editDate,
-          lastUpdated: new Date().toISOString().split("T")[0],
-        };
-      }
-      return a;
-    });
-
-    if (typeof window !== "undefined") {
-      localStorage.setItem("gigmatcher_applications_v1", JSON.stringify(updated));
-      window.dispatchEvent(new Event("gigmatcher_applications_updated"));
-    }
-
+    await apiClient.updateApplication(editingApp.id, editStatus, editNotes, editDate);
+    await refreshApplications();
     setEditingApp(null);
   };
 
-  const handleRemove = (id: string, title: string) => {
+  const handleRemove = async (id: string, title: string) => {
     if (confirm(`Remove "${title}" from your application tracker?`)) {
-      removeTrackedApplication(id);
+      await apiClient.deleteApplication(id);
+      await refreshApplications();
     }
   };
 

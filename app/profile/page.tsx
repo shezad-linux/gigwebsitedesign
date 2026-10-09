@@ -27,6 +27,7 @@ import {
   resetStoredProfile,
   removeResumeFromProfile,
 } from "@/lib/storage";
+import { apiClient } from "@/lib/api";
 
 const CATEGORY_CHOICES = [
   "AI Coding",
@@ -40,19 +41,38 @@ const CATEGORY_CHOICES = [
 const PAYOUT_CHOICES = ["PayPal", "Wise", "Direct Deposit", "Payoneer", "Deel"];
 
 export default function ProfilePage() {
-  const [profile, setProfile] = useState<UserProfile>(getStoredProfile());
+  const [profile, setProfile] = useState<UserProfile>(() => getStoredProfile());
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [newSkillInput, setNewSkillInput] = useState("");
   const [newLangName, setNewLangName] = useState("");
   const [newLangProf, setNewLangProf] = useState<UserLanguage["proficiency"]>("fluent");
 
   useEffect(() => {
-    setProfile(getStoredProfile());
+    let isMounted = true;
+    async function fetchLatestProfile() {
+      try {
+        const remoteProfile = await apiClient.getProfile();
+        if (isMounted && remoteProfile) {
+          setProfile(remoteProfile);
+        }
+      } catch (err) {
+        console.warn("Could not load remote profile:", err);
+      }
+    }
+    fetchLatestProfile();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     saveStoredProfile(profile);
+    try {
+      await apiClient.updateProfile(profile);
+    } catch (err) {
+      console.warn("Could not sync profile to backend:", err);
+    }
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 3000);
   };
