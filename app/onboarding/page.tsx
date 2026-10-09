@@ -79,8 +79,8 @@ export default function OnboardingPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Form State
-  const [fullName, setFullName] = useState("Aarav Sharma");
-  const [email, setEmail] = useState("aarav.sharma@example.com");
+  const [fullName, setFullName] = useState("Alex Chen");
+  const [email, setEmail] = useState("alex.chen@example.com");
   const [resume, setResume] = useState<UserResume | undefined>(undefined);
   const [customSkillInput, setCustomSkillInput] = useState("");
 
@@ -126,8 +126,8 @@ export default function OnboardingPage() {
   useEffect(() => {
     const existing = getStoredProfile();
     if (existing) {
-      setFullName(existing.fullName || "Aarav Sharma");
-      setEmail(existing.email || "aarav.sharma@example.com");
+      setFullName(existing.fullName || "Alex Chen");
+      setEmail(existing.email || "alex.chen@example.com");
       if (existing.resume) setResume(existing.resume);
       if (existing.country) setCountry(existing.country);
       if (existing.countryCode) setCountryCode(existing.countryCode);
@@ -210,7 +210,7 @@ export default function OnboardingPage() {
         "Prompt Engineering",
       ];
       setResume({
-        fileName: "Aarav_Sharma_Resume_2025.pdf",
+        fileName: "Alex_Chen_Software_Engineer_Resume.pdf",
         fileSize: 184500,
         uploadedAt: new Date().toISOString(),
         extractedSkills: extracted,
@@ -415,7 +415,7 @@ export default function OnboardingPage() {
                       isLoading={isSimulatingParse}
                     >
                       <FileText className="w-3.5 h-3.5 mr-1 text-brand-600" />
-                      Load Sample Resume (Aarav Sharma)
+                      Load Verified Sample Resume (Alex Chen)
                     </Button>
                     <Button
                       type="button"

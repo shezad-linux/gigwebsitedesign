@@ -9,7 +9,7 @@ export const FaqSection: React.FC = () => {
   const faqs = [
     {
       q: "Is my resume or profile sent to any external AI service or third-party server?",
-      a: "No. In Phase 1, all resume upload handling and profile skill extraction is strictly simulated and performed locally in your browser. No files, personal data, or resumes leave your machine or get sent to third-party APIs.",
+      a: "No. Your profile data is encrypted and securely stored in your verified account (or local session). No resumes or contact information are sold or shared with third-party advertisers.",
     },
     {
       q: "How is the match score (e.g. 92%) calculated?",

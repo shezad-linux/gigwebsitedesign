@@ -62,6 +62,19 @@ export async function signUpWithSupabase(email: string, password: string, fullNa
   return data;
 }
 
+export async function signInWithGoogleOAuth() {
+  if (!supabase) throw new Error("Supabase is not configured yet. Please configure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.");
+  const redirectUrl = typeof window !== "undefined" ? window.location.origin : undefined;
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: redirectUrl,
+    },
+  });
+  if (error) throw error;
+  return data;
+}
+
 export async function signOutFromSupabase() {
   if (!supabase) return;
   await supabase.auth.signOut();

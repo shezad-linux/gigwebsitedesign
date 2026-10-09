@@ -78,7 +78,7 @@ export default function ProfilePage() {
   };
 
   const handleResetProfile = () => {
-    if (confirm("Reset profile to original demo template (Aarav Sharma)?")) {
+    if (confirm("Reset profile to default verified candidate template?")) {
       const reset = resetStoredProfile();
       setProfile(reset);
       setSavedSuccess(true);
