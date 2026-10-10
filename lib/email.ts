@@ -469,6 +469,92 @@ export async function sendEmail(options: SendEmailOptions): Promise<EmailResult>
   }
 }
 
+export interface OtpEmailParams {
+  recipient: string;
+  otp: string;
+  fullName?: string;
+  expiresInMinutes?: number;
+}
+
+/**
+ * Renders an Obsidian Monochrome HTML email template for 6-digit OTP verification codes
+ */
+export function renderOtpVerificationEmail(params: OtpEmailParams): {
+  html: string;
+  text: string;
+  subject: string;
+} {
+  const subject = `Your Remotasks Verification Code: ${params.otp}`;
+  const name = params.fullName || "Candidate";
+  const minutes = params.expiresInMinutes || 10;
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escapeHtml(subject)}</title>
+  <style>
+    body { margin: 0; padding: 0; background-color: #fafafa; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #09090b; }
+    .wrapper { width: 100%; table-layout: fixed; background-color: #fafafa; padding: 40px 16px; }
+    .card { max-width: 500px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e4e4e7; border-radius: 16px; padding: 36px 32px; text-align: left; }
+    .badge { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; background-color: #000000; color: #ffffff; padding: 4px 10px; border-radius: 9999px; margin-bottom: 20px; }
+    h1 { font-size: 22px; font-weight: 800; color: #000000; margin: 0 0 10px 0; letter-spacing: -0.02em; }
+    p { font-size: 14px; line-height: 1.6; color: #52525b; margin: 0 0 20px 0; }
+    .otp-box { background-color: #000000; color: #ffffff; border-radius: 12px; padding: 20px; text-align: center; margin: 24px 0; }
+    .otp-code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; font-size: 36px; font-weight: 800; letter-spacing: 8px; color: #ffffff; margin: 0; }
+    .warning { background-color: #fafafa; border: 1px solid #e4e4e7; border-radius: 8px; padding: 12px 14px; font-size: 12px; color: #71717a; line-height: 1.5; margin-top: 20px; }
+    .footer { max-width: 500px; margin: 24px auto 0 auto; text-align: center; font-size: 12px; color: #a1a1aa; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="card">
+      <span class="badge">Security Verification</span>
+      <h1>Your Verification Code</h1>
+      <p>
+        Hello <strong>${escapeHtml(name)}</strong>, enter the 6-digit one-time code below to complete your sign-in to Remotasks.si.
+      </p>
+
+      <div class="otp-box">
+        <div class="otp-code">${escapeHtml(params.otp)}</div>
+      </div>
+
+      <div class="warning">
+        <strong>Security Notice:</strong> This code expires in ${minutes} minutes. Remotasks team members will never ask you for this code. If you did not request this code, you can safely ignore this email.
+      </div>
+    </div>
+    <div class="footer">
+      © 2026 Remotasks.si · Verified AI Freelance Matcher<br>
+      Enterprise Candidate Security
+    </div>
+  </div>
+</body>
+</html>`;
+
+  const text = `REMOTASKS.SI — VERIFICATION CODE
+Your 6-digit verification code is: ${params.otp}
+
+This code expires in ${minutes} minutes. Never share this code with anyone.
+If you did not request this code, please ignore this email.
+`;
+
+  return { html, text, subject };
+}
+
+/**
+ * Convenience helper to send an OTP email to the candidate
+ */
+export async function sendOtpEmail(params: OtpEmailParams): Promise<EmailResult> {
+  const { html, text, subject } = renderOtpVerificationEmail(params);
+  return sendEmail({
+    to: params.recipient,
+    subject,
+    html,
+    text,
+  });
+}
+
 /**
  * Convenience helper to send an order confirmation receipt to the customer
  */

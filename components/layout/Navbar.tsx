@@ -44,13 +44,33 @@ export const Navbar: React.FC = () => {
   useEffect(() => {
     setProfile(getStoredProfile());
 
+    // 1. Check local session storage for active verified session
+    try {
+      const stored = localStorage.getItem("remotasks_user_session");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed?.email) setCurrentUser(parsed);
+      }
+    } catch {}
+
+    // 2. Query /api/auth/me endpoint to verify active cookie session
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.authenticated && data.user) {
+          setCurrentUser(data.user);
+        }
+      })
+      .catch(() => {});
+
+    // 3. Sync with Supabase Auth if configured
     if (isSupabaseConfigured() && supabase) {
       getSupabaseUser().then((user) => {
         if (user) setCurrentUser(user);
       });
 
       const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-        setCurrentUser(session?.user ?? null);
+        if (session?.user) setCurrentUser(session.user);
       });
 
       return () => {
@@ -60,6 +80,15 @@ export const Navbar: React.FC = () => {
 
     const handleUpdate = () => {
       setProfile(getStoredProfile());
+      try {
+        const stored = localStorage.getItem("remotasks_user_session");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed?.email) setCurrentUser(parsed);
+        } else {
+          setCurrentUser(null);
+        }
+      } catch {}
     };
     window.addEventListener("gigmatcher_profile_updated", handleUpdate);
     return () => window.removeEventListener("gigmatcher_profile_updated", handleUpdate);
@@ -77,11 +106,18 @@ export const Navbar: React.FC = () => {
   }, []);
 
   const handleSignOut = async () => {
+    try {
+      await fetch("/api/auth/signout", { method: "POST" });
+    } catch {}
+    try {
+      localStorage.removeItem("remotasks_user_session");
+    } catch {}
     if (isSupabaseConfigured()) {
       await signOutFromSupabase();
     }
     setCurrentUser(null);
     setUserDropdownOpen(false);
+    window.dispatchEvent(new Event("gigmatcher_profile_updated"));
   };
 
   const openSignIn = () => {
