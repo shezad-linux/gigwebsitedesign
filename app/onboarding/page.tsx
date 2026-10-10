@@ -363,13 +363,13 @@ export default function OnboardingPage() {
       <div className="text-center mb-8">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-50 text-brand-700 text-xs font-semibold mb-2">
           <Sparkles className="w-3.5 h-3.5 text-brand-600" />
-          <span>Profile Onboarding · Phase 1</span>
+          <span>Candidate Profile Setup</span>
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">
           Let’s Personalize Your AI Gig Matches
         </h1>
         <p className="text-xs sm:text-sm text-ink-muted mt-1 max-w-xl mx-auto">
-          Upload a resume or enter details manually. Your profile is stored locally in your browser.
+          Upload your resume or enter details manually to match with verified, high-paying AI gigs.
         </p>
       </div>
 

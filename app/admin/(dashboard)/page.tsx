@@ -855,7 +855,7 @@ export default function AdminPage() {
                 Operations Console
               </Badge>
               <Badge variant="outline" size="sm" className="bg-white/80">
-                Phase 4 Verification
+                Listing Verification
               </Badge>
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-black text-white border border-neutral-700 shadow-sm">
                 <ShieldCheck className="w-3.5 h-3.5 text-white" />
@@ -1950,7 +1950,7 @@ export default function AdminPage() {
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <Badge variant="primary" size="sm">
-                      Phase 5 Go-Live
+                      Production Readiness
                     </Badge>
                     <Badge variant="outline" size="sm" className="bg-neutral-100 text-black border-neutral-300 font-bold">
                       {launchChecklist.filter((c) => c.completed).length} / {launchChecklist.length || 10} Checkpoints Complete

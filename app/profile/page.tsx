@@ -529,7 +529,7 @@ export default function ProfilePage() {
                   <div className="flex items-center gap-2">
                     <CardTitle className="text-base font-bold">Resume & Skill Calibration</CardTitle>
                     <span className="text-[11px] font-semibold text-brand-700 bg-brand-50 border border-brand-200 px-2 py-0.5 rounded-full">
-                      Phase 3 AI Parser
+                      AI Skills Extractor
                     </span>
                   </div>
                   <CardDescription>

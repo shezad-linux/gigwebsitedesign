@@ -119,7 +119,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           fullName: existing.fullName || "Verified Candidate",
         };
         saveStoredProfile(updated);
-        setSuccessMsg("Signed in with Google (Prototype mode).");
+        setSuccessMsg("Signed in successfully with Google.");
         if (onSuccess) onSuccess({ email: updated.email, user_metadata: { full_name: updated.fullName } });
         setTimeout(() => {
           onClose();

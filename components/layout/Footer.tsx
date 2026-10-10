@@ -20,7 +20,7 @@ export const Footer: React.FC = () => {
             </p>
             <div className="inline-flex items-center gap-1.5 text-xs text-black bg-neutral-100 px-2.5 py-1 rounded-md border border-neutral-200 font-medium">
               <ShieldCheck className="w-3.5 h-3.5 text-black" />
-              <span>Phase 1 Prototype · Local-First Security</span>
+              <span>Verified Listings · Enterprise Security</span>
             </div>
           </div>
 
@@ -63,15 +63,15 @@ export const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* Quick links & Prototype navigation */}
+          {/* Candidate navigation */}
           <div>
             <h4 className="text-xs font-semibold uppercase tracking-wider text-black mb-3">
-              Prototype Journey
+              Candidate Platform
             </h4>
             <ul className="space-y-2 text-xs">
               <li>
                 <Link href="/onboarding" className="hover:text-black transition-colors">
-                  Candidate Onboarding Flow
+                  Get Started (Onboarding)
                 </Link>
               </li>
               <li>
