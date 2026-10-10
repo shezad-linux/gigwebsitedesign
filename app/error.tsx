@@ -52,12 +52,10 @@ export default function ErrorBoundary({
             <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
             Try Again
           </Button>
-          <Link href="/dashboard" className="w-full sm:w-auto">
-            <Button variant="secondary" size="sm" className="w-full sm:w-auto">
-              <Home className="w-3.5 h-3.5 mr-1.5" />
-              Matching Dashboard
-            </Button>
-          </Link>
+          <Button href="/dashboard" variant="secondary" size="sm" className="w-full sm:w-auto">
+            <Home className="w-3.5 h-3.5 mr-1.5" />
+            Matching Dashboard
+          </Button>
         </div>
       </div>
     </div>

@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { UserProfile, UserLanguage } from "@/types/profile";
+import { DEFAULT_PROFILE } from "@/data/demo-profile";
 import {
   getStoredProfile,
   saveStoredProfile,
@@ -46,7 +47,7 @@ const CATEGORY_CHOICES = [
 const PAYOUT_CHOICES = ["PayPal", "Wise", "Direct Deposit", "Payoneer", "Deel"];
 
 export default function ProfilePage() {
-  const [profile, setProfile] = useState<UserProfile>(() => getStoredProfile());
+  const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [newSkillInput, setNewSkillInput] = useState("");
   const [newLangName, setNewLangName] = useState("");
@@ -389,11 +390,9 @@ export default function ProfilePage() {
             >
               <RotateCcw className="w-3.5 h-3.5 mr-1" /> Reset to Demo Profile
             </Button>
-            <Link href="/dashboard">
-              <Button size="sm" className="text-xs">
-                View Matches <ArrowRight className="w-3.5 h-3.5 ml-1" />
-              </Button>
-            </Link>
+            <Button href="/dashboard" size="sm" className="text-xs">
+              View Matches <ArrowRight className="w-3.5 h-3.5 ml-1" />
+            </Button>
           </div>
         </div>
 
@@ -670,7 +669,7 @@ export default function ProfilePage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">
+                <label className="block text-xs font-semibold text-slate-600 uppercase mb-1" suppressHydrationWarning>
                   Active Skills ({profile.skills.length})
                 </label>
                 <div className="flex flex-wrap gap-1.5 p-3 rounded-xl border border-border bg-slate-50 min-h-[50px]">
@@ -944,11 +943,9 @@ export default function ProfilePage() {
 
           {/* Form Save Button */}
           <div className="flex items-center justify-end gap-3 pt-4">
-            <Link href="/dashboard">
-              <Button type="button" variant="secondary">
-                Cancel
-              </Button>
-            </Link>
+            <Button href="/dashboard" type="button" variant="secondary">
+              Cancel
+            </Button>
             <Button type="submit" size="lg" className="font-bold shadow-md">
               <Save className="w-4 h-4 mr-2" /> Save Profile & Recalculate Matches
             </Button>

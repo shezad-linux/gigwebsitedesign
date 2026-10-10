@@ -27,6 +27,8 @@ import { SkeletonLoader } from "@/components/dashboard/SkeletonLoader";
 import { Dialog } from "@/components/ui/dialog";
 import { GigListing, GigMatchScore } from "@/types/gig";
 import { UserProfile } from "@/types/profile";
+import { DEFAULT_PROFILE } from "@/data/demo-profile";
+import { MOCK_GIGS } from "@/data/gigs";
 import {
   getStoredProfile,
   getStoredGigs,
@@ -41,9 +43,10 @@ import { apiClient } from "@/lib/api";
 function DashboardContent() {
   const searchParams = useSearchParams();
 
+  const [isMounted, setIsMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [profile, setProfile] = useState<UserProfile>(() => getStoredProfile());
-  const [allGigs, setAllGigs] = useState<GigListing[]>(() => getStoredGigs());
+  const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
+  const [allGigs, setAllGigs] = useState<GigListing[]>(MOCK_GIGS);
   const [savedGigIds, setSavedGigIds] = useState<Set<string>>(new Set());
   const [selectedGig, setSelectedGig] = useState<GigListing | null>(null);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
@@ -61,7 +64,8 @@ function DashboardContent() {
 
   // Load data via unified apiClient (Supabase > Spring Boot > LocalStorage)
   useEffect(() => {
-    let isMounted = true;
+    let isMountedLocal = true;
+    setIsMounted(true);
     async function loadData() {
       try {
         const [p, g, apps] = await Promise.all([
@@ -69,7 +73,7 @@ function DashboardContent() {
           apiClient.getGigs(),
           apiClient.getApplications(),
         ]);
-        if (isMounted) {
+        if (isMountedLocal) {
           setProfile(p);
           setAllGigs(g);
           setSavedGigIds(new Set(apps.map((a) => a.gigId)));
@@ -77,7 +81,7 @@ function DashboardContent() {
       } catch (err) {
         console.error("Error loading dashboard data:", err);
       } finally {
-        if (isMounted) {
+        if (isMountedLocal) {
           setIsLoading(false);
         }
       }
@@ -91,7 +95,7 @@ function DashboardContent() {
     }
 
     return () => {
-      isMounted = false;
+      isMountedLocal = false;
     };
   }, [searchParams]);
 
@@ -161,28 +165,41 @@ function DashboardContent() {
                 <h1 className="text-xl sm:text-2xl font-black text-black tracking-tight">
                   Your Best-Fit Opportunities
                 </h1>
-                <span className="text-xs font-bold text-black bg-neutral-100 border border-neutral-300 px-2.5 py-0.5 rounded-full">
+                <span
+                  suppressHydrationWarning
+                  className="text-xs font-bold text-black bg-neutral-100 border border-neutral-300 px-2.5 py-0.5 rounded-full"
+                >
                   {filteredGigs.length} {filteredGigs.length === 1 ? "match" : "matches"}
                 </span>
               </div>
-              <p className="text-xs text-neutral-500 mt-1">
+              <p className="text-xs text-neutral-500 mt-1" suppressHydrationWarning>
                 Personalized for <strong className="text-black">{profile.fullName}</strong> · Country:{" "}
                 <span className="text-black font-semibold">{profile.country} ({profile.countryCode})</span>
               </p>
             </div>
 
             <div className="flex items-center gap-2.5">
-              <Link href="/profile">
-                <Button variant="secondary" size="sm" className="text-xs border-neutral-300 hover:bg-neutral-100 text-black">
-                  <User className="w-3.5 h-3.5 mr-1 text-black" />
-                  Edit Skills ({profile.skills?.length || 0})
-                </Button>
-              </Link>
-              <Link href="/applications">
-                <Button variant="subtle" size="sm" className="text-xs bg-neutral-100 text-black hover:bg-neutral-200 border border-neutral-200">
-                  Saved Tracker ({savedGigIds.size})
-                </Button>
-              </Link>
+              <Button
+                href="/profile"
+                variant="secondary"
+                size="sm"
+                className="text-xs border-neutral-300 hover:bg-neutral-100 text-black"
+              >
+                <User className="w-3.5 h-3.5 mr-1 text-black" />
+                <span suppressHydrationWarning>
+                  Edit Skills ({isMounted ? (profile.skills?.length || 0) : DEFAULT_PROFILE.skills.length})
+                </span>
+              </Button>
+              <Button
+                href="/applications"
+                variant="subtle"
+                size="sm"
+                className="text-xs bg-neutral-100 text-black hover:bg-neutral-200 border border-neutral-200"
+              >
+                <span suppressHydrationWarning>
+                  Saved Tracker ({isMounted ? savedGigIds.size : 0})
+                </span>
+              </Button>
             </div>
           </div>
 
@@ -271,32 +288,31 @@ function DashboardContent() {
                   {profile.resume ? "AI Verified Extraction" : "Manual Input"}
                 </span>
               </div>
-              <p className="text-xs text-neutral-500 mt-0.5">
+              <p className="text-xs text-neutral-500 mt-0.5" suppressHydrationWarning>
                 Deterministic formula active across {profile.skills?.length || 0} skills · Geographic screening rules set for {profile.country} ({profile.countryCode})
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <Link href="/profile">
-              <Button
-                size="sm"
-                variant={profile.resume ? "secondary" : "primary"}
-                className="text-xs"
-              >
-                {profile.resume ? (
-                  <>
-                    <Sparkles className="w-3.5 h-3.5 mr-1 text-brand-600" />
-                    Manage Resume & Evidence
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-3.5 h-3.5 mr-1" />
-                    Upload Resume for AI Matching
-                  </>
-                )}
-              </Button>
-            </Link>
+            <Button
+              href="/profile"
+              size="sm"
+              variant={profile.resume ? "secondary" : "primary"}
+              className="text-xs"
+            >
+              {profile.resume ? (
+                <>
+                  <Sparkles className="w-3.5 h-3.5 mr-1 text-black" />
+                  Manage Resume & Evidence
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-3.5 h-3.5 mr-1" />
+                  Upload Resume for AI Matching
+                </>
+              )}
+            </Button>
           </div>
         </div>
 

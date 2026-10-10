@@ -248,17 +248,13 @@ export default function GuideDetailPage({ params }: { params: { slug: string } }
 
         {/* Back navigation CTA */}
         <div className="flex items-center justify-between">
-          <Link href="/guides">
-            <Button variant="secondary" size="sm">
-              &larr; Back to all guides
-            </Button>
-          </Link>
+          <Button href="/guides" variant="secondary" size="sm">
+            &larr; Back to all guides
+          </Button>
 
-          <Link href="/onboarding">
-            <Button size="sm" className="font-bold">
-              Match My Skills to Live Gigs <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
-            </Button>
-          </Link>
+          <Button href="/onboarding" size="sm" className="font-bold">
+            Match My Skills to Live Gigs <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+          </Button>
         </div>
       </div>
     </div>

@@ -128,11 +128,9 @@ export default function GuidesPage() {
                 </div>
 
                 <div className="shrink-0">
-                  <Link href={`/guides/${guide.slug}`}>
-                    <Button size="md" className="font-bold text-xs w-full md:w-auto">
-                      Read Guide <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
-                    </Button>
-                  </Link>
+                  <Button href={`/guides/${guide.slug}`} size="md" className="font-bold text-xs w-full md:w-auto">
+                    Read Guide <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+                  </Button>
                 </div>
               </CardContent>
             </Card>

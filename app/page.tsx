@@ -48,23 +48,21 @@ export default function LandingPage() {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
-            <Link href="/onboarding">
-              <Button
-                size="lg"
-                className="bg-white text-black hover:bg-neutral-200 border-none font-bold shadow-lg text-base px-8 h-12"
-              >
-                Find My Matches Now <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
-            <Link href="/dashboard">
-              <Button
-                variant="outline"
-                size="lg"
-                className="text-white border-neutral-700 hover:bg-neutral-900 text-base h-12"
-              >
-                Browse All 15 Gigs
-              </Button>
-            </Link>
+            <Button
+              href="/onboarding"
+              size="lg"
+              className="bg-white text-black hover:bg-neutral-200 border-none font-bold shadow-lg text-base px-8 h-12"
+            >
+              Find My Matches Now <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+            <Button
+              href="/dashboard"
+              variant="outline"
+              size="lg"
+              className="text-white border-neutral-700 hover:bg-neutral-900 text-base h-12"
+            >
+              Browse All 15 Gigs
+            </Button>
           </div>
 
           <p className="text-xs text-neutral-500 pt-2 flex items-center justify-center gap-2">

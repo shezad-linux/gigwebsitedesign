@@ -250,19 +250,20 @@ export const GigPreviewDrawer: React.FC<GigPreviewDrawerProps> = ({
             href={gig.officialUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1"
+            className="flex-1 inline-flex items-center justify-center font-medium transition-all duration-150 rounded-lg text-xs px-2.5 py-1.5 h-8 gap-1.5 w-full bg-black hover:bg-neutral-900 text-white shadow-xs"
           >
-            <Button size="sm" className="w-full bg-black hover:bg-neutral-900 text-white">
-              Apply Official <ExternalLink className="w-3.5 h-3.5 ml-1" />
-            </Button>
+            Apply Official <ExternalLink className="w-3.5 h-3.5 ml-1" />
           </a>
         </div>
 
-        <Link href={`/gigs/${gig.slug}`}>
-          <Button variant="secondary" size="sm" className="w-full border-neutral-300 text-black hover:bg-neutral-100">
-            Open Full Gig Page <ArrowRight className="w-3.5 h-3.5 ml-1" />
-          </Button>
-        </Link>
+        <Button
+          href={`/gigs/${gig.slug}`}
+          variant="secondary"
+          size="sm"
+          className="w-full border-neutral-300 text-black hover:bg-neutral-100"
+        >
+          Open Full Gig Page <ArrowRight className="w-3.5 h-3.5 ml-1" />
+        </Button>
       </div>
     </div>
   );

@@ -196,9 +196,9 @@ export const GigCard: React.FC<GigCardProps> = ({
 
       {/* Action Footer */}
       <div className="mt-4 pt-3 border-t border-neutral-100 flex items-center justify-between text-xs">
-        <span className="text-[11px] text-neutral-400 flex items-center gap-1">
+        <span suppressHydrationWarning className="text-[11px] text-neutral-400 flex items-center gap-1">
           <Clock className="w-3 h-3" />
-          Reviewed {gig.lastReviewedAt ? new Date(gig.lastReviewedAt).toLocaleDateString() : "recently"}
+          Reviewed {gig.lastReviewedAt ? gig.lastReviewedAt.split("T")[0] : "recently"}
         </span>
 
         <div className="flex items-center gap-2">

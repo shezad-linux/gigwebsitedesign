@@ -108,25 +108,23 @@ export const AccessDeniedScreen: React.FC<AccessDeniedScreenProps> = ({
               </button>
 
               <div className="grid grid-cols-2 gap-2">
-                <Link href="/dashboard" className="w-full">
-                  <Button
-                    variant="outline"
-                    className="w-full text-xs border-neutral-800 bg-neutral-900/80 hover:bg-neutral-800 text-white font-mono"
-                  >
-                    <ArrowLeft className="w-3.5 h-3.5 mr-1 text-neutral-400" />
-                    Candidate Portal
-                  </Button>
-                </Link>
+                <Button
+                  href="/dashboard"
+                  variant="outline"
+                  className="w-full text-xs border-neutral-800 bg-neutral-900/80 hover:bg-neutral-800 text-white font-mono"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5 mr-1 text-neutral-400" />
+                  Candidate Portal
+                </Button>
 
-                <Link href="/admin/login" className="w-full">
-                  <Button
-                    variant="outline"
-                    className="w-full text-xs border-neutral-800 bg-neutral-900/80 hover:bg-neutral-800 text-white font-mono"
-                  >
-                    <Lock className="w-3.5 h-3.5 mr-1 text-neutral-400" />
-                    Admin Login
-                  </Button>
-                </Link>
+                <Button
+                  href="/admin/login"
+                  variant="outline"
+                  className="w-full text-xs border-neutral-800 bg-neutral-900/80 hover:bg-neutral-800 text-white font-mono"
+                >
+                  <Lock className="w-3.5 h-3.5 mr-1 text-neutral-400" />
+                  Admin Login
+                </Button>
               </div>
             </div>
           </CardContent>

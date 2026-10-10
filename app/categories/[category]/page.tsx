@@ -227,11 +227,9 @@ export default function CategoryPage({ params }: { params: { category: string } 
               </p>
             </div>
 
-            <Link href={`/dashboard?category=${encodeURIComponent(meta.name)}`}>
-              <Button size="sm" variant="outline" className="text-xs">
-                View in Matching Dashboard <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
-              </Button>
-            </Link>
+            <Button href={`/dashboard?category=${encodeURIComponent(meta.name)}`} size="sm" variant="outline" className="text-xs">
+              View in Matching Dashboard <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+            </Button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -275,11 +273,9 @@ export default function CategoryPage({ params }: { params: { category: string } 
                   <span className="text-xs text-slate-500">
                     {gig.remote ? "Fully Remote" : "Regional"}
                   </span>
-                  <Link href={`/gigs/${gig.slug}`}>
-                    <Button size="sm" className="font-bold text-xs h-8">
-                      View Details & Apply <ArrowRight className="w-3.5 h-3.5 ml-1" />
-                    </Button>
-                  </Link>
+                  <Button href={`/gigs/${gig.slug}`} size="sm" className="font-bold text-xs h-8">
+                    View Details & Apply <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                  </Button>
                 </div>
               </Card>
             ))}
@@ -287,22 +283,20 @@ export default function CategoryPage({ params }: { params: { category: string } 
         </div>
 
         {/* Bottom CTA Banner */}
-        <div className="bg-gradient-to-br from-brand-900 to-slate-900 text-white p-8 sm:p-10 rounded-3xl shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="bg-black text-white p-8 sm:p-10 rounded-3xl border border-neutral-800 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="space-y-2 max-w-xl">
             <h3 className="text-xl sm:text-2xl font-black tracking-tight">
               Get Matched to {meta.name} Gigs
             </h3>
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed">
               Upload your resume or build your candidate profile to receive deterministic skill fit scores
               and real-time country eligibility verification.
             </p>
           </div>
 
-          <Link href="/onboarding">
-            <Button size="lg" className="bg-brand-500 hover:bg-brand-400 text-white font-extrabold text-sm px-6">
-              <Sparkles className="w-4 h-4 mr-2" /> Start Free Profile Match
-            </Button>
-          </Link>
+          <Button href="/onboarding" size="lg" className="bg-white hover:bg-neutral-100 text-black font-extrabold text-sm px-6">
+            <Sparkles className="w-4 h-4 mr-2" /> Start Free Profile Match
+          </Button>
         </div>
       </div>
     </div>

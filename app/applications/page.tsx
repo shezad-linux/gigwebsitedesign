@@ -23,6 +23,7 @@ import { ApplicationStatusBadge, Badge } from "@/components/ui/badge";
 import { Dialog } from "@/components/ui/dialog";
 import { TrackedApplication, ApplicationStatus } from "@/types/gig";
 import {
+  INITIAL_APPLICATIONS,
   getTrackedApplications,
   updateApplicationStatus,
   removeTrackedApplication,
@@ -41,7 +42,7 @@ const ALL_STATUSES: ApplicationStatus[] = [
 ];
 
 export default function ApplicationsPage() {
-  const [applications, setApplications] = useState<TrackedApplication[]>(() => getTrackedApplications());
+  const [applications, setApplications] = useState<TrackedApplication[]>(INITIAL_APPLICATIONS);
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>("All");
   const [editingApp, setEditingApp] = useState<TrackedApplication | null>(null);
 
@@ -120,11 +121,9 @@ export default function ApplicationsPage() {
               </p>
             </div>
 
-            <Link href="/dashboard">
-              <Button size="sm">
-                <Plus className="w-4 h-4 mr-1" /> Browse More Matches
-              </Button>
-            </Link>
+            <Button href="/dashboard" size="sm">
+              <Plus className="w-4 h-4 mr-1" /> Browse More Matches
+            </Button>
           </div>
 
           {/* KPI Metrics */}
@@ -133,7 +132,7 @@ export default function ApplicationsPage() {
               <span className="text-slate-500 font-semibold uppercase text-[10px] block">
                 Total Tracked
               </span>
-              <span className="text-2xl font-black text-ink mt-0.5 block">
+              <span className="text-2xl font-black text-ink mt-0.5 block" suppressHydrationWarning>
                 {applications.length}
               </span>
             </div>
@@ -188,6 +187,7 @@ export default function ApplicationsPage() {
               >
                 <span>{st}</span>
                 <span
+                  suppressHydrationWarning
                   className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
                     isSelected ? "bg-neutral-800 text-white" : "bg-neutral-100 text-neutral-600"
                   }`}
@@ -312,11 +312,9 @@ export default function ApplicationsPage() {
               Save opportunities from the matching dashboard to track your qualification steps and progress.
             </p>
             <div className="pt-2">
-              <Link href="/dashboard">
-                <Button size="sm">
-                  Go to Matching Dashboard <ArrowRight className="w-3.5 h-3.5 ml-1" />
-                </Button>
-              </Link>
+              <Button href="/dashboard" size="sm">
+                Go to Matching Dashboard <ArrowRight className="w-3.5 h-3.5 ml-1" />
+              </Button>
             </div>
           </div>
         )}

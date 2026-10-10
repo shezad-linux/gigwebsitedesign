@@ -31,6 +31,7 @@ import {
 import { Dialog } from "@/components/ui/dialog";
 import { GigListing, GigMatchScore, ReportType } from "@/types/gig";
 import { UserProfile } from "@/types/profile";
+import { DEFAULT_PROFILE } from "@/data/demo-profile";
 import {
   getStoredGigs,
   getStoredProfile,
@@ -47,7 +48,7 @@ export default function GigDetailPage() {
   const slug = params?.slug as string;
 
   const [gig, setGig] = useState<GigListing | null>(null);
-  const [profile, setProfile] = useState<UserProfile>(getStoredProfile());
+  const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
   const [matchScore, setMatchScore] = useState<GigMatchScore | null>(null);
   const [saved, setSaved] = useState(false);
   const [reportModalOpen, setReportModalOpen] = useState(false);
@@ -78,11 +79,9 @@ export default function GigDetailPage() {
           <p className="text-xs text-ink-muted">
             The role requested might have been updated or removed from the catalog.
           </p>
-          <Link href="/dashboard">
-            <Button variant="primary" size="sm">
-              Return to Matching Dashboard
-            </Button>
-          </Link>
+          <Button href="/dashboard" variant="primary" size="sm">
+            Return to Matching Dashboard
+          </Button>
         </div>
       </div>
     );
