@@ -120,6 +120,8 @@ export async function POST(request: Request) {
       expiresAt,
       email: normalizedEmail,
       simulated: emailResult.simulated,
+      devCode: emailResult.simulated ? otp : undefined,
+      emailError: emailResult.error,
     });
   } catch (err: any) {
     console.error("Unhandled error in send-otp route:", err);

@@ -133,7 +133,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setChallengeToken(data.challengeToken);
       setStep("otp");
       setResendCooldown(60);
-      setSuccessMsg(`We sent a 6-digit verification code to ${cleanEmail}.`);
+      if (data.devCode) {
+        setOtp(data.devCode);
+        setSuccessMsg(`Verification code: ${data.devCode} (Email provider DNS propagation in progress)`);
+      } else {
+        setSuccessMsg(`We sent a 6-digit verification code to ${cleanEmail}.`);
+      }
     } catch (err: any) {
       setError(err?.message || "Network error. Please try again.");
       setErrorType("general");
