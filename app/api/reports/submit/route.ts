@@ -2,9 +2,24 @@ import { NextRequest, NextResponse } from "next/server";
 import { insertSupabaseReport, isSupabaseConfigured } from "@/lib/supabase";
 import { submitReport } from "@/lib/operations";
 import { ReportType } from "@/types/gig";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
+    // Enforce rate limit: max 15 submissions per 60s per client IP
+    const clientIp = getClientIp(req);
+    const rateLimit = checkRateLimit(`report-submit:${clientIp}`, {
+      interval: 60_000,
+      uniqueTokenPerInterval: 15,
+    });
+
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { error: "Too many reports submitted. Please wait a minute before submitting another report." },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json();
     const { gigId, gigTitle, platformName, reporterEmail, reportType, description } = body;
 

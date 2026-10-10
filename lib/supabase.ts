@@ -1,4 +1,5 @@
-import { createClient, SupabaseClient, User } from "@supabase/supabase-js";
+import { createClient as createJsClient, SupabaseClient, User } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
 import {
   GigListing,
   TrackedApplication,
@@ -12,8 +13,9 @@ import {
 } from "@/types/gig";
 import { UserProfile } from "@/types/profile";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+export const supabaseUrl = rawUrl.replace(/\/rest\/v1\/?$/, "").replace(/\/+$/, "");
+export const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
 export const isSupabaseConfigured = (): boolean => {
   return (
@@ -26,12 +28,14 @@ export const isSupabaseConfigured = (): boolean => {
 };
 
 export const supabase: SupabaseClient | null = isSupabaseConfigured()
-  ? createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-      },
-    })
+  ? typeof window !== "undefined"
+    ? createBrowserClient(supabaseUrl, supabaseAnonKey)
+    : createJsClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+        },
+      })
   : null;
 
 /* ==================== Supabase Auth Operations ==================== */
@@ -713,3 +717,38 @@ export async function insertSupabaseAuditEvent(event: {
     return false;
   }
 }
+
+/* ==================== Phase 4: Server-Enforced RBAC Helpers ==================== */
+
+export async function fetchSupabaseUserRole(
+  userId: string
+): Promise<"admin" | "reviewer" | "user" | null> {
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (error || !data) return null;
+    return data.role as "admin" | "reviewer" | "user";
+  } catch (err) {
+    console.error("Error fetching user role from Supabase:", err);
+    return null;
+  }
+}
+
+export async function isCurrentUserAdmin(): Promise<boolean> {
+  if (!supabase) return false;
+  try {
+    const user = await getSupabaseUser();
+    if (!user) return false;
+    const role = await fetchSupabaseUserRole(user.id);
+    return role === "admin";
+  } catch (err) {
+    console.error("Error checking current admin status:", err);
+    return false;
+  }
+}
+

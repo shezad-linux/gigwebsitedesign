@@ -59,20 +59,20 @@ export const FeaturedPlatforms: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-200/60 text-slate-700 text-xs font-semibold mb-2">
-              <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-100 text-neutral-800 border border-neutral-200 text-xs font-semibold mb-2">
+              <Star className="w-3.5 h-3.5 text-black" />
               <span>Catalog Coverage</span>
             </div>
-            <h2 className="text-2xl font-extrabold text-ink tracking-tight">
+            <h2 className="text-2xl font-extrabold text-black tracking-tight">
               Featured Platforms & Reviewed Listings
             </h2>
-            <p className="text-xs sm:text-sm text-ink-muted mt-1">
+            <p className="text-xs sm:text-sm text-neutral-500 mt-1">
               Regularly audited for active payout cycles and open registration gates.
             </p>
           </div>
           <Link
             href="/dashboard"
-            className="text-xs font-semibold text-brand-600 hover:text-brand-700 flex items-center gap-1"
+            className="text-xs font-semibold text-black hover:underline flex items-center gap-1"
           >
             View all 15 catalog opportunities →
           </Link>
@@ -82,28 +82,28 @@ export const FeaturedPlatforms: React.FC = () => {
           {platforms.map((p) => (
             <div
               key={p.name}
-              className="p-5 rounded-xl bg-white border border-border shadow-xs hover:border-brand-200 hover:shadow-card transition-all"
+              className="p-5 rounded-xl bg-white border border-neutral-200 shadow-xs hover:border-black hover:shadow-md transition-all"
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="font-bold text-sm text-ink">{p.name}</h3>
-                  <p className="text-xs text-ink-muted">{p.category}</p>
+                  <h3 className="font-bold text-sm text-black">{p.name}</h3>
+                  <p className="text-xs text-neutral-500">{p.category}</p>
                 </div>
-                <span className="text-[10px] font-semibold text-brand-700 bg-brand-50 border border-brand-200/60 px-2 py-0.5 rounded-full">
+                <span className="text-[10px] font-semibold text-black bg-neutral-100 border border-neutral-200 px-2 py-0.5 rounded-full">
                   {p.badge}
                 </span>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+              <div className="mt-4 pt-3 border-t border-neutral-100 flex items-center justify-between text-xs">
                 <div>
-                  <span className="text-[10px] text-slate-400 block font-medium">Estimated Rate</span>
-                  <span className="font-semibold text-emerald-700 flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3 text-emerald-600" /> {p.verifiedRate}
+                  <span className="text-[10px] text-neutral-400 block font-medium">Estimated Rate</span>
+                  <span className="font-semibold text-black flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 text-black" /> {p.verifiedRate}
                   </span>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] text-slate-400 block font-medium">Eligible Regions</span>
-                  <span className="font-medium text-slate-600">{p.countries}</span>
+                  <span className="text-[10px] text-neutral-400 block font-medium">Eligible Regions</span>
+                  <span className="font-medium text-neutral-600">{p.countries}</span>
                 </div>
               </div>
             </div>

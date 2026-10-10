@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 import { recordStoredAffiliateClick } from "@/lib/monetization";
+import { validateOutboundUrl } from "@/lib/link-validator";
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,6 +20,14 @@ export async function POST(req: NextRequest) {
     if (!gigId || !destinationUrl) {
       return NextResponse.json(
         { error: "gigId and destinationUrl are required." },
+        { status: 400 }
+      );
+    }
+
+    const validation = validateOutboundUrl(destinationUrl);
+    if (!validation.valid || !validation.sanitizedUrl) {
+      return NextResponse.json(
+        { error: validation.error || "Invalid destination URL" },
         { status: 400 }
       );
     }

@@ -1,11 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateResumeFile, extractTextFromBuffer } from "@/lib/extraction/parser";
 import { extractStructuredProfile } from "@/lib/extraction/ai-extractor";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
+    // 0. Enforce rate limiting: 10 parses per 60s window per client IP
+    const clientIp = getClientIp(req);
+    const rateLimit = checkRateLimit(`resume-parse:${clientIp}`, {
+      interval: 60_000,
+      uniqueTokenPerInterval: 10,
+    });
+
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { error: "Too many parse requests. Please wait a minute before uploading another resume." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": "60",
+            "X-RateLimit-Limit": rateLimit.limit.toString(),
+            "X-RateLimit-Remaining": "0",
+          },
+        }
+      );
+    }
+
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
 

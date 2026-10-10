@@ -3,14 +3,15 @@
 @tailwind utilities;
 
 :root {
-  --primary: #4F46E5;
-  --background: #F5F7FB;
-  --surface: #FFFFFF;
-  --text: #0F172A;
-  --muted: #64748B;
-  --success: #15803D;
-  --warning: #B45309;
-  --border: #E2E8F0;
+  --primary: #000000;
+  --primary-foreground: #ffffff;
+  --background: #fafafa;
+  --surface: #ffffff;
+  --text: #09090b;
+  --muted: #71717a;
+  --success: #18181b;
+  --warning: #52525b;
+  --border: #e4e4e7;
 }
 
 body {
@@ -22,7 +23,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom scrollbars for clean modern SaaS feeling */
+/* Custom scrollbars for clean modern monochrome feel */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -33,16 +34,16 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #a1a1aa;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #71717a;
 }
 
-/* Focus outline accessibility */
+/* Focus outline accessibility in crisp monochrome */
 :focus-visible {
-  outline: 2px solid #4F46E5;
+  outline: 2px solid #000000;
   outline-offset: 2px;
 }

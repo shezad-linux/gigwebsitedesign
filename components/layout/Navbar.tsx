@@ -127,22 +127,22 @@ export const Navbar: React.FC = () => {
             {/* Logo */}
             <div className="flex items-center gap-6">
               <Link href="/" className="flex items-center gap-2.5 group">
-                <div className="h-9 w-9 rounded-xl bg-brand-600 flex items-center justify-center text-white shadow-sm group-hover:bg-brand-700 transition-colors">
+                <div className="h-9 w-9 rounded-xl bg-black flex items-center justify-center text-white shadow-sm group-hover:bg-neutral-900 transition-colors">
                   <Sparkles className="h-5 w-5" />
                 </div>
                 <div className="flex flex-col">
                   <div className="flex items-center gap-1.5">
-                    <span className="font-bold text-lg text-ink tracking-tight">GigMatcher</span>
-                    <span className="text-[10px] font-bold uppercase tracking-wider bg-brand-50 text-brand-700 border border-brand-200/60 px-1.5 py-0.5 rounded-full">
+                    <span className="font-bold text-lg text-black tracking-tight">GigMatcher</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-black text-white px-1.5 py-0.5 rounded-full">
                       AI
                     </span>
                     {backendType === "supabase" && (
-                      <span className="text-[9px] font-bold tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded-full hidden sm:flex items-center gap-0.5">
+                      <span className="text-[9px] font-bold tracking-wider bg-neutral-100 text-neutral-800 border border-neutral-300 px-1.5 py-0.5 rounded-full hidden sm:flex items-center gap-0.5">
                         <Cloud className="w-2.5 h-2.5" /> Supabase
                       </span>
                     )}
                   </div>
-                  <span className="text-[11px] text-ink-muted -mt-1 hidden sm:inline">
+                  <span className="text-[11px] text-neutral-500 -mt-1 hidden sm:inline">
                     Verified AI Gig Platform
                   </span>
                 </div>
@@ -158,8 +158,8 @@ export const Navbar: React.FC = () => {
                       href={link.href}
                       className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                         isActive
-                          ? "bg-brand-50 text-brand-700 font-semibold"
-                          : "text-ink-muted hover:text-ink hover:bg-slate-100/70"
+                          ? "bg-black text-white font-semibold"
+                          : "text-neutral-600 hover:text-black hover:bg-neutral-100"
                       }`}
                     >
                       {link.label}
@@ -176,53 +176,53 @@ export const Navbar: React.FC = () => {
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-slate-50 hover:bg-slate-100 transition-colors text-xs text-ink"
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-neutral-200 bg-neutral-50 hover:bg-neutral-100 transition-colors text-xs text-neutral-900"
                   >
-                    <div className="h-6 w-6 rounded-full bg-brand-600 text-white font-bold flex items-center justify-center text-[11px]">
+                    <div className="h-6 w-6 rounded-full bg-black text-white font-bold flex items-center justify-center text-[11px]">
                       {displayName.charAt(0).toUpperCase()}
                     </div>
                     <span className="font-semibold max-w-[120px] truncate">{displayName}</span>
-                    <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                    <ChevronDown className="w-3.5 h-3.5 text-neutral-500" />
                   </button>
 
                   {userDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-white border border-border shadow-xl p-2 z-50 animate-in fade-in-50 zoom-in-95 duration-100">
-                      <div className="px-3 py-2 border-b border-slate-100 mb-1">
-                        <p className="text-xs font-bold text-ink truncate">{displayName}</p>
-                        <p className="text-[11px] text-slate-400 truncate">{displayEmail}</p>
+                    <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-white border border-neutral-200 shadow-xl p-2 z-50 animate-in fade-in-50 zoom-in-95 duration-100">
+                      <div className="px-3 py-2 border-b border-neutral-100 mb-1">
+                        <p className="text-xs font-bold text-black truncate">{displayName}</p>
+                        <p className="text-[11px] text-neutral-400 truncate">{displayEmail}</p>
                       </div>
 
                       <Link
                         href="/dashboard"
                         onClick={() => setUserDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-neutral-700 hover:bg-neutral-100 transition-colors"
                       >
-                        <Compass className="w-4 h-4 text-brand-600" />
+                        <Compass className="w-4 h-4 text-black" />
                         Matching Dashboard
                       </Link>
 
                       <Link
                         href="/profile"
                         onClick={() => setUserDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-neutral-700 hover:bg-neutral-100 transition-colors"
                       >
-                        <User className="w-4 h-4 text-brand-600" />
+                        <User className="w-4 h-4 text-black" />
                         My Profile & Skills
                       </Link>
 
                       <Link
                         href="/applications"
                         onClick={() => setUserDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-neutral-700 hover:bg-neutral-100 transition-colors"
                       >
-                        <Briefcase className="w-4 h-4 text-brand-600" />
+                        <Briefcase className="w-4 h-4 text-black" />
                         Tracked Applications
                       </Link>
 
-                      <div className="border-t border-slate-100 mt-1 pt-1">
+                      <div className="border-t border-neutral-100 mt-1 pt-1">
                         <button
                           onClick={handleSignOut}
-                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-red-600 hover:bg-red-50 transition-colors"
+                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-black hover:bg-neutral-100 transition-colors"
                         >
                           <LogOut className="w-4 h-4" />
                           Sign Out
@@ -235,14 +235,14 @@ export const Navbar: React.FC = () => {
                 /* Unauthenticated Controls */
                 <button
                   onClick={openSignIn}
-                  className="px-3 py-1.5 rounded-lg text-sm font-medium text-ink-muted hover:text-ink hover:bg-slate-100 transition-colors"
+                  className="px-3 py-1.5 rounded-lg text-sm font-medium text-neutral-600 hover:text-black hover:bg-neutral-100 transition-colors"
                 >
                   Sign In
                 </button>
               )}
 
               <Link href="/onboarding">
-                <Button size="sm" className="font-semibold shadow-xs bg-brand-600 hover:bg-brand-700">
+                <Button size="sm" className="font-semibold shadow-xs bg-black hover:bg-neutral-900 text-white">
                   <Sparkles className="w-3.5 h-3.5 mr-1" />
                   Get Matched
                 </Button>
@@ -252,13 +252,13 @@ export const Navbar: React.FC = () => {
             {/* Mobile Hamburger & Actions */}
             <div className="flex md:hidden items-center gap-2">
               <Link href="/onboarding">
-                <Button size="sm" className="text-xs px-2.5 py-1 bg-brand-600">
+                <Button size="sm" className="text-xs px-2.5 py-1 bg-black text-white hover:bg-neutral-900">
                   Get Matched
                 </Button>
               </Link>
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 rounded-xl text-ink-muted hover:text-ink hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="p-2 rounded-xl text-neutral-600 hover:text-black hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-black"
                 aria-label="Toggle Navigation Menu"
               >
                 {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -271,19 +271,19 @@ export const Navbar: React.FC = () => {
         {mobileMenuOpen && (
           <div className="md:hidden border-b border-border bg-white px-4 pt-2 pb-5 space-y-3 animate-in slide-in-from-top duration-200">
             {currentUser && (
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+              <div className="p-3 rounded-xl bg-neutral-50 border border-neutral-200 flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="h-8 w-8 rounded-full bg-brand-600 text-white font-bold flex items-center justify-center text-xs">
+                  <div className="h-8 w-8 rounded-full bg-black text-white font-bold flex items-center justify-center text-xs">
                     {displayName.charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-ink">{displayName}</p>
-                    <p className="text-[10px] text-slate-400 truncate max-w-[160px]">{displayEmail}</p>
+                    <p className="text-xs font-bold text-black">{displayName}</p>
+                    <p className="text-[10px] text-neutral-400 truncate max-w-[160px]">{displayEmail}</p>
                   </div>
                 </div>
                 <button
                   onClick={handleSignOut}
-                  className="text-xs text-red-600 font-semibold p-1 hover:underline"
+                  className="text-xs text-neutral-700 hover:text-black font-semibold p-1 hover:underline"
                 >
                   Sign Out
                 </button>
@@ -301,11 +301,11 @@ export const Navbar: React.FC = () => {
                     onClick={() => setMobileMenuOpen(false)}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium ${
                       isActive
-                        ? "bg-brand-50 text-brand-700 font-semibold"
-                        : "text-ink hover:bg-slate-50"
+                        ? "bg-black text-white font-semibold"
+                        : "text-black hover:bg-neutral-100"
                     }`}
                   >
-                    <Icon className="w-4 h-4 text-ink-muted" />
+                    <Icon className="w-4 h-4 text-neutral-500" />
                     {link.label}
                   </Link>
                 );
@@ -313,15 +313,15 @@ export const Navbar: React.FC = () => {
               <Link
                 href="/profile"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-ink hover:bg-slate-50"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-black hover:bg-neutral-100"
               >
-                <User className="w-4 h-4 text-ink-muted" />
+                <User className="w-4 h-4 text-neutral-500" />
                 Profile & Resume
               </Link>
             </div>
 
             {!currentUser && (
-              <div className="pt-2 border-t border-slate-100 flex flex-col gap-2">
+              <div className="pt-2 border-t border-neutral-100 flex flex-col gap-2">
                 <Button
                   variant="secondary"
                   size="md"
@@ -334,7 +334,7 @@ export const Navbar: React.FC = () => {
                   variant="primary"
                   size="md"
                   onClick={openSignUp}
-                  className="w-full justify-center bg-brand-600"
+                  className="w-full justify-center bg-black hover:bg-neutral-900 text-white"
                 >
                   <Sparkles className="w-4 h-4 mr-2" />
                   Create Free Account

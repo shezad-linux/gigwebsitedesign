@@ -1,0 +1,41 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    name: Lint, Type Check & Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Type Check (TypeScript)
+        run: npx tsc --noEmit
+
+      - name: Lint Codebase
+        run: npm run lint
+
+      - name: Run Automated Tests
+        run: npm test --if-present
+
+      - name: Production Next.js Build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: "https://mock-ci-project.supabase.co"
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "mock-ci-anon-key"
+          SUPABASE_SERVICE_ROLE_KEY: "mock-ci-service-role-key"
+          ADMIN_EMAIL: "admin@gigmatcher.io"
+        run: npm run build

@@ -73,7 +73,7 @@ export default function GigDetailPage() {
     return (
       <div className="min-h-screen flex items-center justify-center p-6 bg-canvas-bg">
         <div className="text-center space-y-4 max-w-md bg-white p-8 rounded-2xl border border-border shadow-xs">
-          <AlertCircle className="w-10 h-10 text-amber-600 mx-auto" />
+          <AlertCircle className="w-10 h-10 text-neutral-400 mx-auto" />
           <h2 className="text-lg font-bold text-ink">Gig Listing Not Found</h2>
           <p className="text-xs text-ink-muted">
             The role requested might have been updated or removed from the catalog.
@@ -174,7 +174,7 @@ export default function GigDetailPage() {
               className="p-2 rounded-lg border border-border bg-white text-slate-600 hover:bg-slate-50 text-xs flex items-center gap-1 transition-colors"
               title="Copy link to this opportunity"
             >
-              {copiedLink ? <Check className="w-4 h-4 text-emerald-600" /> : <Share2 className="w-4 h-4" />}
+              {copiedLink ? <Check className="w-4 h-4 text-black" /> : <Share2 className="w-4 h-4" />}
               <span className="hidden sm:inline">{copiedLink ? "Copied" : "Share"}</span>
             </button>
 
@@ -216,21 +216,21 @@ export default function GigDetailPage() {
                     </span>
                   )}
                   {gig.experienceLevel && (
-                    <span className="text-xs text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full capitalize">
+                    <span className="text-xs text-neutral-700 bg-neutral-100 px-2 py-0.5 rounded-full capitalize">
                       {gig.experienceLevel} Level
                     </span>
                   )}
                   {gig.sponsored && (
-                    <span className="text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                    <span className="text-xs font-semibold text-black bg-neutral-100 border border-neutral-300 px-2 py-0.5 rounded-full">
                       Sponsored
                     </span>
                   )}
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-black tracking-tight">
                   {gig.title}
                 </h1>
-                <p className="text-sm font-semibold text-slate-600 mt-1">
-                  Platform: <span className="text-ink">{gig.platformName}</span>
+                <p className="text-sm font-semibold text-neutral-600 mt-1">
+                  Platform: <span className="text-black">{gig.platformName}</span>
                 </p>
               </div>
             </div>
@@ -243,12 +243,12 @@ export default function GigDetailPage() {
                 rel="noopener noreferrer"
                 className="w-full sm:w-auto"
               >
-                <Button size="lg" className="w-full sm:w-auto font-bold shadow-md">
+                <Button size="lg" className="w-full sm:w-auto font-bold shadow-md bg-black hover:bg-neutral-900 text-white">
                   Apply on Official Site <ExternalLink className="w-4 h-4 ml-2" />
                 </Button>
               </a>
-              <span className="text-[11px] text-slate-400 flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span className="text-[11px] text-neutral-500 flex items-center gap-1">
+                <ShieldCheck className="w-3.5 h-3.5 text-black" />
                 Verified direct destination
               </span>
             </div>
@@ -260,9 +260,9 @@ export default function GigDetailPage() {
               {gig.overviewHighlights.map((hl, i) => (
                 <div
                   key={i}
-                  className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-xs text-slate-700 flex items-start gap-2"
+                  className="p-3 rounded-xl bg-neutral-50 border border-neutral-200 text-xs text-neutral-800 flex items-start gap-2"
                 >
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                  <CheckCircle2 className="w-4 h-4 text-black shrink-0 mt-0.5" />
                   <span className="font-medium">{hl}</span>
                 </div>
               ))}
@@ -325,35 +325,35 @@ export default function GigDetailPage() {
               <span className="text-base font-bold text-ink">
                 {matchScore.scoreBreakdown.experienceScore} / 15
               </span>
-              <div className="w-full bg-slate-200 h-1.5 rounded-full mt-2 overflow-hidden">
+              <div className="w-full bg-neutral-200 h-1.5 rounded-full mt-2 overflow-hidden">
                 <div
-                  className="bg-emerald-600 h-full"
+                  className="bg-black h-full"
                   style={{ width: `${(matchScore.scoreBreakdown.experienceScore / 15) * 100}%` }}
                 />
               </div>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-              <span className="text-slate-500 block text-[10px] font-semibold uppercase">Category Interest</span>
-              <span className="text-base font-bold text-ink">
+            <div className="p-3 rounded-xl bg-neutral-50 border border-neutral-200">
+              <span className="text-neutral-500 block text-[10px] font-semibold uppercase">Category Interest</span>
+              <span className="text-base font-bold text-black font-mono">
                 {matchScore.scoreBreakdown.categoryScore} / 15
               </span>
-              <div className="w-full bg-slate-200 h-1.5 rounded-full mt-2 overflow-hidden">
+              <div className="w-full bg-neutral-200 h-1.5 rounded-full mt-2 overflow-hidden">
                 <div
-                  className="bg-brand-600 h-full"
+                  className="bg-black h-full"
                   style={{ width: `${(matchScore.scoreBreakdown.categoryScore / 15) * 100}%` }}
                 />
               </div>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-              <span className="text-slate-500 block text-[10px] font-semibold uppercase">Geo Fit</span>
-              <span className="text-base font-bold text-ink">
+            <div className="p-3 rounded-xl bg-neutral-50 border border-neutral-200">
+              <span className="text-neutral-500 block text-[10px] font-semibold uppercase">Geo Fit</span>
+              <span className="text-base font-bold text-black font-mono">
                 {matchScore.scoreBreakdown.countryFitScore} / 15
               </span>
-              <div className="w-full bg-slate-200 h-1.5 rounded-full mt-2 overflow-hidden">
+              <div className="w-full bg-neutral-200 h-1.5 rounded-full mt-2 overflow-hidden">
                 <div
-                  className="bg-emerald-600 h-full"
+                  className="bg-black h-full"
                   style={{ width: `${(matchScore.scoreBreakdown.countryFitScore / 15) * 100}%` }}
                 />
               </div>
@@ -363,51 +363,51 @@ export default function GigDetailPage() {
           {/* Matched vs Missing Skills */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
             {/* Matched */}
-            <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/30 space-y-2">
-              <div className="flex items-center justify-between text-xs font-bold text-emerald-900">
+            <div className="p-4 rounded-xl border border-neutral-200 bg-neutral-50 space-y-2">
+              <div className="flex items-center justify-between text-xs font-bold text-black">
                 <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <CheckCircle2 className="w-4 h-4 text-black" />
                   Matched Skills ({matchScore.matchedSkills.length})
                 </span>
-                <span className="text-[11px] text-emerald-700">Present in your profile</span>
+                <span className="text-[11px] text-neutral-600">Present in your profile</span>
               </div>
               <div className="flex flex-wrap gap-1.5 pt-1">
                 {matchScore.matchedSkills.length > 0 ? (
                   matchScore.matchedSkills.map((s) => (
                     <span
                       key={s}
-                      className="px-2.5 py-1 text-xs rounded-md bg-emerald-100 text-emerald-800 font-semibold"
+                      className="px-2.5 py-1 text-xs rounded-md bg-black text-white font-semibold"
                     >
                       {s}
                     </span>
                   ))
                 ) : (
-                  <span className="text-xs text-slate-400">No overlapping skills detected yet.</span>
+                  <span className="text-xs text-neutral-400">No overlapping skills detected yet.</span>
                 )}
               </div>
             </div>
 
             {/* Missing */}
-            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-2">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-800">
+            <div className="p-4 rounded-xl border border-neutral-200 bg-neutral-50 space-y-2">
+              <div className="flex items-center justify-between text-xs font-bold text-black">
                 <span className="flex items-center gap-1.5">
-                  <AlertCircle className="w-4 h-4 text-amber-600" />
+                  <AlertCircle className="w-4 h-4 text-neutral-500" />
                   Missing Requirements ({matchScore.missingSkills.length})
                 </span>
-                <span className="text-[11px] text-slate-500">Not in your active profile</span>
+                <span className="text-[11px] text-neutral-500">Not in your active profile</span>
               </div>
               <div className="flex flex-wrap gap-1.5 pt-1">
                 {matchScore.missingSkills.length > 0 ? (
                   matchScore.missingSkills.map((s) => (
                     <span
                       key={s}
-                      className="px-2.5 py-1 text-xs rounded-md bg-white border border-slate-300 text-slate-700 font-medium"
+                      className="px-2.5 py-1 text-xs rounded-md bg-white border border-neutral-300 text-neutral-700 font-medium"
                     >
                       {s}
                     </span>
                   ))
                 ) : (
-                  <span className="text-xs text-emerald-700 font-medium">
+                  <span className="text-xs text-black font-semibold">
                     100% of required skills matched!
                   </span>
                 )}
@@ -485,20 +485,20 @@ export default function GigDetailPage() {
 
           {/* Payment Terms & Evidence */}
           <div className="rounded-[16px] bg-white border border-border p-6 shadow-card space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
               <div className="flex items-center gap-2">
-                <DollarSign className="w-4 h-4 text-emerald-600" />
-                <h3 className="text-sm font-bold text-ink">Payment Evidence & Terms</h3>
+                <DollarSign className="w-4 h-4 text-black" />
+                <h3 className="text-sm font-bold text-black">Payment Evidence & Terms</h3>
               </div>
               <PaymentVerificationBadge status={gig.paymentVerification} />
             </div>
 
             <div className="text-xs space-y-3">
               <div>
-                <span className="text-slate-500 block font-semibold uppercase text-[10px]">
+                <span className="text-neutral-500 block font-semibold uppercase text-[10px]">
                   Published Rate:
                 </span>
-                <p className="text-xl font-extrabold text-ink mt-0.5">
+                <p className="text-xl font-extrabold text-black font-mono mt-0.5">
                   {gig.payment
                     ? `$${gig.payment.amount} ${gig.payment.currency} / ${gig.payment.unit}`
                     : "Variable Rate"}
@@ -507,14 +507,14 @@ export default function GigDetailPage() {
 
               {gig.payment?.paymentMethod && (
                 <div>
-                  <span className="text-slate-500 block font-semibold uppercase text-[10px] mb-1">
+                  <span className="text-neutral-500 block font-semibold uppercase text-[10px] mb-1">
                     Payout Rails:
                   </span>
                   <div className="flex flex-wrap gap-1.5">
                     {gig.payment.paymentMethod.map((m) => (
                       <span
                         key={m}
-                        className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-xs font-medium"
+                        className="px-2 py-0.5 rounded bg-neutral-100 text-neutral-800 text-xs font-medium border border-neutral-200"
                       >
                         {m}
                       </span>
@@ -524,7 +524,7 @@ export default function GigDetailPage() {
               )}
 
               {gig.payment?.termsNote && (
-                <p className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 text-[11px] leading-relaxed">
+                <p className="p-2.5 rounded-lg bg-neutral-50 border border-neutral-200 text-neutral-600 text-[11px] leading-relaxed">
                   {gig.payment.termsNote}
                 </p>
               )}
@@ -534,17 +534,17 @@ export default function GigDetailPage() {
 
         {/* SECTION 6 & 7: ONBOARDING STEPS & EFFORT */}
         <div className="rounded-[16px] bg-white border border-border p-6 sm:p-8 shadow-card space-y-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-100">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-neutral-100">
             <div>
-              <h3 className="text-base font-bold text-ink">
+              <h3 className="text-base font-bold text-black">
                 Qualification & Onboarding Roadmap
               </h3>
-              <p className="text-xs text-ink-muted mt-0.5">
+              <p className="text-xs text-neutral-500 mt-0.5">
                 Estimated qualification effort:{" "}
-                <strong className="text-ink">{gig.estimatedEffort || "1 - 2 hours"}</strong>
+                <strong className="text-black">{gig.estimatedEffort || "1 - 2 hours"}</strong>
               </p>
             </div>
-            <span className="text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full self-start sm:self-auto">
+            <span className="text-xs font-semibold text-black bg-neutral-100 border border-neutral-300 px-2.5 py-1 rounded-full self-start sm:self-auto">
               Status: {gig.availabilityStatus || "Open"}
             </span>
           </div>
@@ -553,9 +553,9 @@ export default function GigDetailPage() {
             {gig.onboardingSteps.map((step, idx) => (
               <li
                 key={idx}
-                className="flex items-start gap-3.5 p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/50 text-xs sm:text-sm text-slate-700"
+                className="flex items-start gap-3.5 p-3.5 rounded-xl border border-neutral-200 bg-neutral-50/50 text-xs sm:text-sm text-neutral-800"
               >
-                <div className="h-6 w-6 rounded-full bg-brand-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
+                <div className="h-6 w-6 rounded-full bg-black text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
                   {idx + 1}
                 </div>
                 <div className="leading-relaxed font-medium">{step}</div>
@@ -567,20 +567,20 @@ export default function GigDetailPage() {
         {/* SECTION 8, 9 & 10: MANDATORY EARNINGS NOTICE, AFFILIATE DISCLOSURE & REPORT */}
         <div className="space-y-4">
           {/* Earnings notice callout (Mandatory per spec) */}
-          <div className="p-4 rounded-xl bg-amber-50/90 border border-amber-200 text-xs text-amber-900 flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <div className="p-4 rounded-xl bg-neutral-50 border border-neutral-200 text-xs text-neutral-800 flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-black shrink-0 mt-0.5" />
             <div>
-              <h4 className="font-bold">Earning & Queue Disclosure</h4>
-              <p className="mt-0.5 leading-relaxed">
+              <h4 className="font-bold text-black">Earning & Queue Disclosure</h4>
+              <p className="mt-0.5 leading-relaxed text-neutral-600">
                 A published rate must not be presented as guaranteed earnings. A platform accepting registrations does not prove that projects are currently available. Workloads, task volumes, and project allocations depend on client budgets and platform test benchmarks.
               </p>
             </div>
           </div>
 
           {/* Affiliate Disclosure & Outbound Attribution */}
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-xs text-slate-600 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="p-4 rounded-xl bg-neutral-50 border border-neutral-200 text-xs text-neutral-600 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="flex items-start gap-2.5">
-              <Info className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+              <Info className="w-4 h-4 text-neutral-400 shrink-0 mt-0.5" />
               <span className="leading-relaxed">
                 {outboundData?.isAffiliate
                   ? outboundData.disclosure
@@ -590,7 +590,7 @@ export default function GigDetailPage() {
             </div>
             <button
               onClick={() => setReportModalOpen(true)}
-              className="text-brand-600 hover:underline font-semibold shrink-0 ml-auto sm:ml-0"
+              className="text-black hover:underline font-semibold shrink-0 ml-auto sm:ml-0"
             >
               Report outdated info
             </button>
@@ -598,10 +598,10 @@ export default function GigDetailPage() {
         </div>
 
         {/* Bottom CTA Bar */}
-        <div className="p-6 rounded-2xl bg-white border border-border shadow-md flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="p-6 rounded-2xl bg-white border border-neutral-200 shadow-md flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
-            <h3 className="font-bold text-base text-ink">Ready to begin qualification?</h3>
-            <p className="text-xs text-ink-muted mt-0.5">
+            <h3 className="font-bold text-base text-black">Ready to begin qualification?</h3>
+            <p className="text-xs text-neutral-500 mt-0.5">
               Review platform requirements and complete the official application.
             </p>
           </div>
@@ -610,9 +610,9 @@ export default function GigDetailPage() {
             <Button
               variant={saved ? "secondary" : "subtle"}
               onClick={handleToggleSave}
-              className="flex-1 sm:flex-none"
+              className="flex-1 sm:flex-none border-neutral-300 text-black hover:bg-neutral-100"
             >
-              <Bookmark className={`w-4 h-4 mr-1.5 ${saved ? "fill-brand-600 text-brand-600" : ""}`} />
+              <Bookmark className={`w-4 h-4 mr-1.5 ${saved ? "fill-black text-black" : ""}`} />
               {saved ? "Saved in Tracker" : "Save for Later"}
             </Button>
             <a
@@ -622,7 +622,7 @@ export default function GigDetailPage() {
               onClick={handleApplyClick}
               className="flex-1 sm:flex-none"
             >
-              <Button size="md" className="w-full font-bold">
+              <Button size="md" className="w-full font-bold bg-black hover:bg-neutral-900 text-white">
                 Apply on Official Platform <ExternalLink className="w-4 h-4 ml-1.5" />
               </Button>
             </a>
@@ -639,9 +639,9 @@ export default function GigDetailPage() {
       >
         {reportSubmitted ? (
           <div className="p-6 text-center space-y-2">
-            <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto" />
-            <h3 className="text-base font-bold text-ink">Thank you for reporting!</h3>
-            <p className="text-xs text-slate-500">
+            <CheckCircle2 className="w-10 h-10 text-black mx-auto" />
+            <h3 className="text-base font-bold text-black">Thank you for reporting!</h3>
+            <p className="text-xs text-neutral-500">
               Our review queue has received your note for {gig.platformName}.
             </p>
           </div>

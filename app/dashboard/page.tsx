@@ -139,14 +139,14 @@ function DashboardContent() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Toast / Notification Banner */}
         {toastMessage && (
-          <div className="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs sm:text-sm font-medium flex items-center justify-between shadow-xs animate-in slide-in-from-top">
+          <div className="mb-6 p-4 rounded-xl bg-black border border-neutral-800 text-white text-xs sm:text-sm font-medium flex items-center justify-between shadow-xs animate-in slide-in-from-top">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-white shrink-0" />
               <span>{toastMessage}</span>
             </div>
             <button
               onClick={() => setToastMessage(null)}
-              className="text-emerald-700 hover:text-emerald-900 ml-2"
+              className="text-neutral-400 hover:text-white ml-2"
             >
               <X className="w-4 h-4" />
             </button>
@@ -154,32 +154,32 @@ function DashboardContent() {
         )}
 
         {/* Dashboard Top Header & Search / Controls */}
-        <div className="bg-white rounded-[14px] border border-border p-5 sm:p-6 shadow-xs mb-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+        <div className="bg-white rounded-[14px] border border-neutral-200 p-5 sm:p-6 shadow-xs mb-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-neutral-100">
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-black text-ink tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-black text-black tracking-tight">
                   Your Best-Fit Opportunities
                 </h1>
-                <span className="text-xs font-bold text-brand-700 bg-brand-50 border border-brand-200/60 px-2.5 py-0.5 rounded-full">
+                <span className="text-xs font-bold text-black bg-neutral-100 border border-neutral-300 px-2.5 py-0.5 rounded-full">
                   {filteredGigs.length} {filteredGigs.length === 1 ? "match" : "matches"}
                 </span>
               </div>
-              <p className="text-xs text-ink-muted mt-1">
-                Personalized for <strong className="text-ink">{profile.fullName}</strong> · Country:{" "}
-                <span className="text-brand-700 font-semibold">{profile.country} ({profile.countryCode})</span>
+              <p className="text-xs text-neutral-500 mt-1">
+                Personalized for <strong className="text-black">{profile.fullName}</strong> · Country:{" "}
+                <span className="text-black font-semibold">{profile.country} ({profile.countryCode})</span>
               </p>
             </div>
 
             <div className="flex items-center gap-2.5">
               <Link href="/profile">
-                <Button variant="secondary" size="sm" className="text-xs">
-                  <User className="w-3.5 h-3.5 mr-1 text-slate-500" />
+                <Button variant="secondary" size="sm" className="text-xs border-neutral-300 hover:bg-neutral-100 text-black">
+                  <User className="w-3.5 h-3.5 mr-1 text-black" />
                   Edit Skills ({profile.skills?.length || 0})
                 </Button>
               </Link>
               <Link href="/applications">
-                <Button variant="subtle" size="sm" className="text-xs">
+                <Button variant="subtle" size="sm" className="text-xs bg-neutral-100 text-black hover:bg-neutral-200 border border-neutral-200">
                   Saved Tracker ({savedGigIds.size})
                 </Button>
               </Link>
@@ -189,18 +189,18 @@ function DashboardContent() {
           {/* Search bar & Sort Controls */}
           <div className="pt-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
             <div className="relative flex-1">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Search roles, platforms, skills (e.g. Java, Python, Outlier)..."
                 value={filters.search}
                 onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                className="w-full h-10 pl-9 pr-4 rounded-lg border border-border text-xs sm:text-sm bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-brand-500"
+                className="w-full h-10 pl-9 pr-4 rounded-lg border border-neutral-300 text-xs sm:text-sm bg-neutral-50 focus:bg-white focus:ring-2 focus:ring-black focus:border-black text-black"
               />
               {filters.search && (
                 <button
                   onClick={() => setFilters({ ...filters, search: "" })}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-black"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -213,20 +213,20 @@ function DashboardContent() {
                 variant="secondary"
                 size="md"
                 onClick={() => setMobileFilterOpen(true)}
-                className="lg:hidden flex items-center gap-1.5 text-xs"
+                className="lg:hidden flex items-center gap-1.5 text-xs border-neutral-300 text-black"
               >
-                <SlidersHorizontal className="w-3.5 h-3.5 text-slate-600" />
+                <SlidersHorizontal className="w-3.5 h-3.5 text-black" />
                 <span>Filters</span>
               </Button>
 
               {/* Sort Selector */}
-              <div className="flex items-center gap-1.5 text-xs text-slate-600 shrink-0">
-                <ArrowUpDown className="w-3.5 h-3.5 text-slate-400" />
+              <div className="flex items-center gap-1.5 text-xs text-neutral-600 shrink-0">
+                <ArrowUpDown className="w-3.5 h-3.5 text-neutral-500" />
                 <span className="hidden sm:inline">Sort:</span>
                 <select
                   value={filters.sortBy}
                   onChange={(e) => setFilters({ ...filters, sortBy: e.target.value as any })}
-                  className="h-10 px-2.5 rounded-lg border border-border bg-white text-xs font-semibold text-ink focus:ring-1 focus:ring-brand-500"
+                  className="h-10 px-2.5 rounded-lg border border-neutral-300 bg-white text-xs font-semibold text-black focus:ring-1 focus:ring-black"
                 >
                   <option value="best-match">Best Match Score</option>
                   <option value="newest-reviewed">Newest Reviewed</option>
@@ -239,13 +239,13 @@ function DashboardContent() {
         </div>
 
         {/* Phase 3 Resume Calibration Status Card */}
-        <div className="mb-8 rounded-[14px] border border-border bg-white p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="mb-8 rounded-[14px] border border-neutral-200 bg-white p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-start sm:items-center gap-3">
             <div
               className={`p-2.5 rounded-xl border shrink-0 ${
                 profile.resume
-                  ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                  : "bg-brand-50 border-brand-200 text-brand-700"
+                  ? "bg-black border-black text-white"
+                  : "bg-neutral-100 border-neutral-300 text-black"
               }`}
             >
               {profile.resume ? (
@@ -256,7 +256,7 @@ function DashboardContent() {
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm font-bold text-ink">
+                <span className="text-sm font-bold text-black">
                   {profile.resume
                     ? `Resume Calibrated: ${profile.resume.fileName}`
                     : "Scoring with Manual Skills Profile"}
@@ -264,14 +264,14 @@ function DashboardContent() {
                 <span
                   className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
                     profile.resume
-                      ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-                      : "bg-slate-100 text-slate-700 border-slate-200"
+                      ? "bg-black text-white border-black"
+                      : "bg-neutral-100 text-neutral-800 border-neutral-300"
                   }`}
                 >
                   {profile.resume ? "AI Verified Extraction" : "Manual Input"}
                 </span>
               </div>
-              <p className="text-xs text-ink-muted mt-0.5">
+              <p className="text-xs text-neutral-500 mt-0.5">
                 Deterministic formula active across {profile.skills?.length || 0} skills · Geographic screening rules set for {profile.country} ({profile.countryCode})
               </p>
             </div>

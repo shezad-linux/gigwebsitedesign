@@ -36,14 +36,14 @@ export const Badge: React.FC<BadgeProps> = ({
   };
 
   const variants = {
-    default: "bg-slate-100 text-slate-800 border border-slate-200/80",
-    secondary: "bg-slate-200/60 text-slate-700",
-    outline: "bg-transparent text-slate-700 border border-border",
-    success: "bg-emerald-50 text-emerald-800 border border-emerald-200/80",
-    warning: "bg-amber-50 text-amber-800 border border-amber-200/80",
-    neutral: "bg-slate-100 text-slate-600 border border-slate-200",
-    primary: "bg-indigo-50 text-indigo-700 border border-indigo-200/80",
-    score: "bg-brand-600 text-white font-semibold shadow-xs",
+    default: "bg-neutral-100 text-neutral-800 border border-neutral-200",
+    secondary: "bg-neutral-200/60 text-neutral-700",
+    outline: "bg-transparent text-black border border-neutral-300",
+    success: "bg-neutral-100 text-black border border-neutral-300",
+    warning: "bg-neutral-100 text-neutral-700 border border-neutral-300",
+    neutral: "bg-neutral-100 text-neutral-600 border border-neutral-200",
+    primary: "bg-black text-white border border-black",
+    score: "bg-black text-white font-semibold border border-black shadow-xs font-mono",
   };
 
   return (
@@ -59,23 +59,23 @@ export const PaymentVerificationBadge: React.FC<{
 }> = ({ status, className }) => {
   if (status === "verified") {
     return (
-      <Badge variant="success" className={cn("font-medium", className)}>
-        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+      <Badge variant="primary" className={cn("font-medium", className)}>
+        <CheckCircle2 className="w-3.5 h-3.5 text-white" />
         <span>Payment verified</span>
       </Badge>
     );
   }
   if (status === "partial") {
     return (
-      <Badge variant="warning" className={cn("font-medium", className)}>
-        <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+      <Badge variant="outline" className={cn("font-medium text-neutral-800", className)}>
+        <AlertCircle className="w-3.5 h-3.5 text-neutral-700" />
         <span>Payment partially verified</span>
       </Badge>
     );
   }
   return (
     <Badge variant="neutral" className={cn("font-medium", className)}>
-      <HelpCircle className="w-3.5 h-3.5 text-slate-500" />
+      <HelpCircle className="w-3.5 h-3.5 text-neutral-500" />
       <span>Payment unverified</span>
     </Badge>
   );
@@ -90,23 +90,23 @@ export const EligibilityBadge: React.FC<{
   if (isEligible) {
     if (status === "verified") {
       return (
-        <Badge variant="success" className={cn("font-medium", className)}>
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+        <Badge variant="primary" className={cn("font-medium", className)}>
+          <CheckCircle2 className="w-3.5 h-3.5 text-white" />
           <span>{label}</span>
         </Badge>
       );
     }
     return (
-      <Badge variant="warning" className={cn("font-medium", className)}>
-        <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+      <Badge variant="outline" className={cn("font-medium text-neutral-800", className)}>
+        <AlertCircle className="w-3.5 h-3.5 text-neutral-700" />
         <span>Needs current verification</span>
       </Badge>
     );
   }
 
   return (
-    <Badge variant="neutral" className={cn("font-medium text-slate-600", className)}>
-      <Globe className="w-3.5 h-3.5 text-slate-400" />
+    <Badge variant="neutral" className={cn("font-medium text-neutral-600", className)}>
+      <Globe className="w-3.5 h-3.5 text-neutral-400" />
       <span>{label}</span>
     </Badge>
   );

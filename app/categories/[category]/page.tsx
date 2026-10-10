@@ -171,7 +171,7 @@ export default function CategoryPage({ params }: { params: { category: string } 
             <Badge variant="primary" size="sm">
               Category Directory
             </Badge>
-            <Badge variant="outline" size="sm" className="bg-emerald-50 text-emerald-800 border-emerald-200">
+            <Badge variant="outline" size="sm" className="bg-neutral-100 text-black border-neutral-300">
               Verified Rates: {meta.typicalPay}
             </Badge>
           </div>

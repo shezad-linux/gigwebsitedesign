@@ -36,6 +36,7 @@ import {
   CheckSquare,
   BarChart3,
   Award,
+  LogOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -67,6 +68,7 @@ import {
   ReviewQueueItem,
 } from "@/lib/operations";
 import { apiClient } from "@/lib/api";
+import { adminSignOutAction, getAdminSessionStatusAction } from "@/lib/supabase/auth-actions";
 
 type ActiveTab =
   | "listings"
@@ -87,6 +89,9 @@ export default function AdminPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | PublicationStatus>("all");
   const [reportStatusFilter, setReportStatusFilter] = useState<"all" | ReportStatus>("all");
+  const [adminEmail, setAdminEmail] = useState<string>("admin@gigmatcher.io");
+  const [adminRole, setAdminRole] = useState<string>("admin");
+  const [isDemo, setIsDemo] = useState<boolean>(false);
 
   // Modals state
   const [isListingModalOpen, setIsListingModalOpen] = useState(false);
@@ -226,8 +231,19 @@ export default function AdminPage() {
     }
   };
 
+  const handleLogout = async () => {
+    await adminSignOutAction();
+    window.location.href = "/admin/login";
+  };
+
   useEffect(() => {
     loadAllData();
+
+    getAdminSessionStatusAction().then((status) => {
+      if (status.email) setAdminEmail(status.email);
+      if (status.role) setAdminRole(status.role);
+      if (status.isDemo) setIsDemo(true);
+    });
 
     const handleGigsUpdate = () => loadAllData();
     const handleReportsUpdate = () => loadAllData();
@@ -421,7 +437,7 @@ export default function AdminPage() {
     await apiClient.recordAuditEvent({
       entityType: "gig_listing",
       entityId: newGig.id,
-      actorEmail: "operations_admin@gigmatcher.io",
+      actorEmail: adminEmail,
       action: isNew ? "create" : "update",
       changes: {
         title: { before: previousGig?.title || null, after: newGig.title },
@@ -464,7 +480,7 @@ export default function AdminPage() {
     await apiClient.recordAuditEvent({
       entityType: "gig_listing",
       entityId: gig.id,
-      actorEmail: "operations_admin@gigmatcher.io",
+      actorEmail: adminEmail,
       action: actionName,
       changes: {
         publicationStatus: { before: oldStatus, after: newStatus },
@@ -536,7 +552,7 @@ export default function AdminPage() {
     await apiClient.recordAuditEvent({
       entityType: "gig_listing",
       entityId: gig.id,
-      actorEmail: "lead_reviewer@gigmatcher.io",
+      actorEmail: adminEmail,
       action: "verify_evidence",
       changes: {
         reviewDecision: { before: null, after: reviewDecision },
@@ -573,7 +589,7 @@ export default function AdminPage() {
       selectedReport.id,
       newStatus,
       reportResolutionNotes,
-      "ops_reviewer@gigmatcher.io"
+      adminEmail
     );
 
     setIsReportActionModalOpen(false);
@@ -587,7 +603,7 @@ export default function AdminPage() {
       report.id,
       "triaged",
       "Acknowledged by operations reviewer and placed in verification schedule.",
-      "ops_reviewer@gigmatcher.io"
+      adminEmail
     );
     showToast(`Report ${report.id} marked as Triaged.`);
     loadAllData();
@@ -665,7 +681,7 @@ export default function AdminPage() {
     await apiClient.recordAuditEvent({
       entityType: "payment_evidence",
       entityId: updated.id,
-      actorEmail: "lead_verifier@gigmatcher.io",
+      actorEmail: adminEmail,
       action: "verify_evidence",
       changes: {
         rate: { before: editingEvidence.advertisedRate, after: updated.advertisedRate },
@@ -820,8 +836,8 @@ export default function AdminPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         {/* TOAST ALERT */}
         {toastMessage && (
-          <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 border border-slate-700 animate-in fade-in slide-in-from-bottom-3">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+          <div className="fixed bottom-6 right-6 z-50 bg-black text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 border border-neutral-800 animate-in fade-in slide-in-from-bottom-3">
+            <CheckCircle2 className="w-5 h-5 text-white shrink-0" />
             <span className="text-sm font-semibold">{toastMessage}</span>
           </div>
         )}
@@ -829,13 +845,25 @@ export default function AdminPage() {
         {/* HEADER */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/80 pb-6">
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Badge variant="primary" size="sm">
                 Operations Console
               </Badge>
               <Badge variant="outline" size="sm" className="bg-white/80">
                 Phase 4 Verification
               </Badge>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-black text-white border border-neutral-700 shadow-sm">
+                <ShieldCheck className="w-3.5 h-3.5 text-white" />
+                <span>{adminEmail}</span>
+                <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 bg-white text-black rounded font-mono">
+                  {adminRole}
+                </span>
+              </div>
+              {isDemo && (
+                <Badge variant="outline" size="sm" className="bg-neutral-100 text-black border-neutral-300">
+                  Demo Auth
+                </Badge>
+              )}
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-ink mt-2 tracking-tight">
               Gig Operations & Review Center
@@ -846,7 +874,16 @@ export default function AdminPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLogout}
+              className="bg-white text-neutral-600 hover:text-black hover:bg-neutral-100 border-neutral-300"
+            >
+              <LogOut className="w-3.5 h-3.5 mr-1.5" />
+              Sign Out
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -856,7 +893,11 @@ export default function AdminPage() {
               <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
               Reset Catalog
             </Button>
-            <Button size="sm" onClick={handleOpenCreate} className="font-semibold">
+            <Button 
+              size="sm" 
+              onClick={handleOpenCreate} 
+              className="font-semibold bg-black hover:bg-neutral-800 text-white border border-black shadow-sm"
+            >
               <Plus className="w-4 h-4 mr-1.5" />
               New Opportunity
             </Button>
@@ -865,13 +906,13 @@ export default function AdminPage() {
 
         {/* METRICS KPI CARDS (Phase 4 Spec) */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-white border-border shadow-xs hover:border-slate-300 transition-all">
+          <Card className="bg-white border-border shadow-xs hover:border-black transition-all">
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   Published Listings
                 </span>
-                <span className="p-2 bg-emerald-50 text-emerald-700 rounded-lg">
+                <span className="p-2 bg-neutral-100 text-black rounded-lg">
                   <CheckCircle2 className="w-4 h-4" />
                 </span>
               </div>
@@ -883,15 +924,15 @@ export default function AdminPage() {
                   of {metrics.totalListingsCount} total
                 </span>
               </div>
-              <p className="text-xs text-emerald-700 font-medium mt-1">
+              <p className="text-xs text-black font-semibold mt-1">
                 Active in public search & matcher
               </p>
             </CardContent>
           </Card>
 
           <Card
-            className={`bg-white border-border shadow-xs hover:border-slate-300 transition-all ${
-              metrics.needsReviewCount > 0 ? "border-amber-200" : ""
+            className={`bg-white border-border shadow-xs hover:border-black transition-all ${
+              metrics.needsReviewCount > 0 ? "border-black" : ""
             }`}
           >
             <CardContent className="p-5">
@@ -899,7 +940,7 @@ export default function AdminPage() {
                 <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   Needs Review
                 </span>
-                <span className="p-2 bg-amber-50 text-amber-700 rounded-lg">
+                <span className="p-2 bg-neutral-100 text-black rounded-lg">
                   <Clock className="w-4 h-4" />
                 </span>
               </div>
@@ -907,7 +948,7 @@ export default function AdminPage() {
                 <span className="text-3xl font-extrabold text-ink">
                   {metrics.needsReviewCount}
                 </span>
-                <span className="text-xs text-amber-700 font-semibold">
+                <span className="text-xs text-black font-semibold">
                   Queue pending
                 </span>
               </div>
@@ -918,8 +959,8 @@ export default function AdminPage() {
           </Card>
 
           <Card
-            className={`bg-white border-border shadow-xs hover:border-slate-300 transition-all ${
-              metrics.openReportsCount > 0 ? "border-rose-200" : ""
+            className={`bg-white border-border shadow-xs hover:border-black transition-all ${
+              metrics.openReportsCount > 0 ? "border-black" : ""
             }`}
           >
             <CardContent className="p-5">
@@ -927,7 +968,7 @@ export default function AdminPage() {
                 <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   Open Reports
                 </span>
-                <span className="p-2 bg-rose-50 text-rose-700 rounded-lg">
+                <span className="p-2 bg-neutral-100 text-black rounded-lg">
                   <MessageSquare className="w-4 h-4" />
                 </span>
               </div>
@@ -935,7 +976,7 @@ export default function AdminPage() {
                 <span className="text-3xl font-extrabold text-ink">
                   {metrics.openReportsCount}
                 </span>
-                <span className="text-xs text-rose-700 font-semibold">
+                <span className="text-xs text-black font-semibold">
                   Community flagged
                 </span>
               </div>
@@ -945,13 +986,13 @@ export default function AdminPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-white border-border shadow-xs hover:border-slate-300 transition-all">
+          <Card className="bg-white border-border shadow-xs hover:border-black transition-all">
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   Unverified Claims
                 </span>
-                <span className="p-2 bg-indigo-50 text-indigo-700 rounded-lg">
+                <span className="p-2 bg-neutral-100 text-black rounded-lg">
                   <ShieldAlert className="w-4 h-4" />
                 </span>
               </div>
@@ -995,7 +1036,7 @@ export default function AdminPage() {
             <Clock className="w-4 h-4" />
             Review Queue
             {reviewQueue.length > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full text-xs bg-amber-100 text-amber-800 font-bold">
+              <span className="px-1.5 py-0.2 rounded-full text-xs bg-black text-white font-bold">
                 {reviewQueue.length}
               </span>
             )}
@@ -1024,7 +1065,7 @@ export default function AdminPage() {
             <MessageSquare className="w-4 h-4" />
             User Reports
             {metrics.openReportsCount > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full text-xs bg-rose-100 text-rose-800 font-bold">
+              <span className="px-1.5 py-0.2 rounded-full text-xs bg-black text-white font-bold">
                 {metrics.openReportsCount}
               </span>
             )}
@@ -1052,7 +1093,7 @@ export default function AdminPage() {
           >
             <CheckSquare className="w-4 h-4" />
             Launch Checklist
-            <span className="px-1.5 py-0.2 rounded-full text-xs bg-emerald-100 text-emerald-800 font-bold">
+            <span className="px-1.5 py-0.2 rounded-full text-xs bg-neutral-200 text-black font-bold">
               {launchChecklist.filter((c) => c.completed).length}/{launchChecklist.length || 10}
             </span>
           </button>
@@ -1129,7 +1170,7 @@ export default function AdminPage() {
                         {/* Status Badge */}
                         <div className="shrink-0">
                           {pubStatus === "published" && (
-                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-black text-white border border-black">
                               Published
                             </span>
                           )}
@@ -1139,7 +1180,7 @@ export default function AdminPage() {
                             </span>
                           )}
                           {pubStatus === "paused" && (
-                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-neutral-200 text-black border border-neutral-300">
                               Paused
                             </span>
                           )}
@@ -1209,7 +1250,7 @@ export default function AdminPage() {
                             variant="subtle"
                             size="sm"
                             onClick={() => handleQuickStatusChange(gig, "published")}
-                            className="h-7 px-2 text-xs text-emerald-700 hover:bg-emerald-50"
+                            className="h-7 px-2 text-xs text-black hover:bg-neutral-200 font-semibold"
                             title="Publish listing"
                           >
                             <Play className="w-3 h-3 mr-1" />
@@ -1221,7 +1262,7 @@ export default function AdminPage() {
                             variant="subtle"
                             size="sm"
                             onClick={() => handleQuickStatusChange(gig, "paused")}
-                            className="h-7 px-2 text-xs text-amber-700 hover:bg-amber-50"
+                            className="h-7 px-2 text-xs text-neutral-700 hover:bg-neutral-200 font-semibold"
                             title="Pause listing temporarily"
                           >
                             <Pause className="w-3 h-3 mr-1" />
@@ -1233,7 +1274,7 @@ export default function AdminPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleQuickStatusChange(gig, "archived")}
-                            className="h-7 px-2 text-xs text-slate-500 hover:text-rose-600"
+                            className="h-7 px-2 text-xs text-slate-500 hover:text-black"
                             title="Archive listing"
                           >
                             <Archive className="w-3 h-3" />
@@ -1251,13 +1292,13 @@ export default function AdminPage() {
         {/* TAB 2: REVIEW QUEUE & STALE FLAGS */}
         {activeTab === "queue" && (
           <div className="space-y-4">
-            <div className="bg-amber-50/60 border border-amber-200/80 rounded-xl p-4 flex items-start gap-3">
-              <Clock className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+            <div className="bg-neutral-100 border border-neutral-300 rounded-xl p-4 flex items-start gap-3">
+              <Clock className="w-5 h-5 text-black shrink-0 mt-0.5" />
               <div>
-                <h4 className="text-xs font-bold text-amber-900 uppercase tracking-wide">
+                <h4 className="text-xs font-bold text-black uppercase tracking-wide">
                   Stale-Data Detection & Review Scheduler
                 </h4>
-                <p className="text-xs text-amber-800 mt-0.5">
+                <p className="text-xs text-neutral-600 mt-0.5">
                   Records that have exceeded their scheduled review date, have unverified claims, or have
                   received open community discrepancy reports are held here for verification sign-off.
                 </p>
@@ -1266,7 +1307,7 @@ export default function AdminPage() {
 
             {reviewQueue.length === 0 ? (
               <div className="p-12 text-center bg-white rounded-2xl border border-border">
-                <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
+                <CheckCircle2 className="w-12 h-12 text-black mx-auto" />
                 <h3 className="text-base font-bold text-ink mt-3">All Listings Verified!</h3>
                 <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1">
                   No listings require immediate attention. All scheduled review dates are current and all
@@ -1291,17 +1332,17 @@ export default function AdminPage() {
                         <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
                           <td className="py-3 px-4 font-semibold">
                             {item.urgency === "critical" && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-black text-white border border-black">
                                 <AlertTriangle className="w-3 h-3" /> Critical
                               </span>
                             )}
                             {item.urgency === "warning" && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-neutral-200 text-black border border-neutral-300">
                                 <Clock className="w-3 h-3" /> Warning
                               </span>
                             )}
                             {item.urgency === "normal" && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-neutral-100 text-neutral-600 border border-neutral-200">
                                 Normal
                               </span>
                             )}
@@ -1376,12 +1417,12 @@ export default function AdminPage() {
                           </td>
                           <td className="py-3 px-4">
                             {pe.rateType === "official_advertised" && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-black text-white border border-black">
                                 <CheckCircle2 className="w-3 h-3" /> Official Advertised
                               </span>
                             )}
                             {pe.rateType === "worker_reported" && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-neutral-200 text-black border border-neutral-300">
                                 <Activity className="w-3 h-3" /> Worker Reported
                               </span>
                             )}
@@ -1462,7 +1503,7 @@ export default function AdminPage() {
 
             {filteredReports.length === 0 ? (
               <div className="p-12 text-center bg-white rounded-2xl border border-border">
-                <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto" />
+                <CheckCircle2 className="w-10 h-10 text-black mx-auto" />
                 <h3 className="text-sm font-bold text-ink mt-2">No Reports in this View</h3>
                 <p className="text-xs text-slate-500">All reports matching the filter have been processed.</p>
               </div>
@@ -1478,17 +1519,17 @@ export default function AdminPage() {
                           </span>
 
                           {report.status === "open" && (
-                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-black text-white border border-black">
                               Open
                             </span>
                           )}
                           {report.status === "triaged" && (
-                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-neutral-200 text-black border border-neutral-300">
                               Triaged
                             </span>
                           )}
                           {report.status === "resolved" && (
-                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-neutral-100 text-black border border-neutral-300">
                               Resolved
                             </span>
                           )}
@@ -1513,7 +1554,7 @@ export default function AdminPage() {
                         </p>
 
                         {report.resolutionNotes && (
-                          <p className="text-xs text-emerald-700 font-medium">
+                          <p className="text-xs text-black font-medium">
                             <span className="font-bold">Resolution Note:</span> {report.resolutionNotes}
                           </p>
                         )}
@@ -1535,7 +1576,7 @@ export default function AdminPage() {
                           <Button
                             size="sm"
                             onClick={() => handleOpenReportAction(report, "resolve")}
-                            className="text-xs h-8 font-semibold bg-emerald-600 hover:bg-emerald-700 text-white"
+                            className="text-xs h-8 font-semibold bg-black hover:bg-neutral-800 text-white"
                           >
                             <Check className="w-3.5 h-3.5 mr-1" />
                             Resolve
@@ -1637,7 +1678,7 @@ export default function AdminPage() {
                   <span className="text-2xl font-black text-ink mt-1 block">
                     {(analyticsSummary?.pageViews || 14250).toLocaleString()}
                   </span>
-                  <span className="text-[11px] text-emerald-600 font-medium">30-day traffic</span>
+                  <span className="text-[11px] text-neutral-600 font-medium">30-day traffic</span>
                 </CardContent>
               </Card>
 
@@ -1649,7 +1690,7 @@ export default function AdminPage() {
                   <span className="text-2xl font-black text-ink mt-1 block">
                     {(analyticsSummary?.uniqueVisitors || 4890).toLocaleString()}
                   </span>
-                  <span className="text-[11px] text-brand-600 font-medium">Profiles evaluated</span>
+                  <span className="text-[11px] text-black font-semibold">Profiles evaluated</span>
                 </CardContent>
               </Card>
 
@@ -1661,7 +1702,7 @@ export default function AdminPage() {
                   <span className="text-2xl font-black text-ink mt-1 block">
                     {(analyticsSummary?.outboundApplications || 1026).toLocaleString()}
                   </span>
-                  <span className="text-[11px] text-indigo-600 font-medium">Direct applications</span>
+                  <span className="text-[11px] text-neutral-600 font-medium">Direct applications</span>
                 </CardContent>
               </Card>
 
@@ -1673,7 +1714,7 @@ export default function AdminPage() {
                   <span className="text-2xl font-black text-ink mt-1 block">
                     {(analyticsSummary?.affiliateClicks || 640).toLocaleString()}
                   </span>
-                  <span className="text-[11px] text-emerald-600 font-medium">Attributed leads</span>
+                  <span className="text-[11px] text-neutral-600 font-medium">Attributed leads</span>
                 </CardContent>
               </Card>
 
@@ -1682,7 +1723,7 @@ export default function AdminPage() {
                   <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
                     Est. Revenue
                   </span>
-                  <span className="text-2xl font-black text-emerald-700 mt-1 block">
+                  <span className="text-2xl font-black text-black mt-1 block">
                     ${(
                       (analyticsSummary?.estimatedAffiliateRevenue || 770) +
                       (analyticsSummary?.sponsoredRevenue || 527.5)
@@ -1737,16 +1778,16 @@ export default function AdminPage() {
                         </td>
                         <td className="py-3 px-4 text-slate-600">
                           <span className="font-bold text-ink">{partner.totalClicks || 0}</span> clicks ·{" "}
-                          <span className="font-bold text-emerald-700">{partner.totalConversions || 0}</span> conv
+                          <span className="font-bold text-black">{partner.totalConversions || 0}</span> conv
                         </td>
                         <td className="py-3 px-4">
                           {partner.status === "active" && (
-                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-black text-white border border-black">
                               Active
                             </span>
                           )}
                           {partner.status === "pending" && (
-                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-neutral-200 text-black border border-neutral-300">
                               Pending
                             </span>
                           )}
@@ -1778,7 +1819,7 @@ export default function AdminPage() {
               <div className="p-5 border-b border-border flex items-center justify-between">
                 <div>
                   <h3 className="font-bold text-base text-ink flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-amber-600" />
+                    <Sparkles className="w-4 h-4 text-black" />
                     Sponsored Promotional Placements
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5">
@@ -1815,7 +1856,7 @@ export default function AdminPage() {
                         <td className="py-3 px-4 font-semibold text-ink">
                           ${camp.budget} / ${camp.dailyBudget}
                         </td>
-                        <td className="py-3 px-4 font-bold text-emerald-700">
+                        <td className="py-3 px-4 font-bold text-black">
                           ${camp.spent.toFixed(2)}
                         </td>
                         <td className="py-3 px-4 text-slate-600">
@@ -1829,12 +1870,12 @@ export default function AdminPage() {
                         </td>
                         <td className="py-3 px-4">
                           {camp.status === "active" && (
-                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-black text-white border border-black">
                               Active
                             </span>
                           )}
                           {camp.status === "paused" && (
-                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-neutral-200 text-black border border-neutral-300">
                               Paused
                             </span>
                           )}
@@ -1874,7 +1915,7 @@ export default function AdminPage() {
                     <Badge variant="primary" size="sm">
                       Phase 5 Go-Live
                     </Badge>
-                    <Badge variant="outline" size="sm" className="bg-emerald-50 text-emerald-800 border-emerald-200 font-bold">
+                    <Badge variant="outline" size="sm" className="bg-neutral-100 text-black border-neutral-300 font-bold">
                       {launchChecklist.filter((c) => c.completed).length} / {launchChecklist.length || 10} Checkpoints Complete
                     </Badge>
                   </div>
@@ -1887,7 +1928,7 @@ export default function AdminPage() {
                 </div>
 
                 <div className="shrink-0 flex items-center gap-2">
-                  <span className="text-2xl font-black text-emerald-600">
+                  <span className="text-2xl font-black text-black">
                     {Math.round(
                       (launchChecklist.filter((c) => c.completed).length / (launchChecklist.length || 10)) *
                         100
@@ -1901,7 +1942,7 @@ export default function AdminPage() {
               {/* Progress bar */}
               <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-emerald-500 transition-all duration-500 rounded-full"
+                  className="h-full bg-black transition-all duration-500 rounded-full"
                   style={{
                     width: `${Math.round(
                       (launchChecklist.filter((c) => c.completed).length / (launchChecklist.length || 10)) *
@@ -1918,7 +1959,7 @@ export default function AdminPage() {
                 <Card
                   key={item.id}
                   className={`bg-white border transition-all ${
-                    item.completed ? "border-emerald-200/80 bg-emerald-50/20" : "border-border shadow-xs"
+                    item.completed ? "border-neutral-400 bg-neutral-100" : "border-border shadow-xs"
                   }`}
                 >
                   <CardContent className="p-5 flex items-start gap-4">
@@ -1927,8 +1968,8 @@ export default function AdminPage() {
                       onClick={() => handleToggleChecklist(item.id)}
                       className={`h-6 w-6 rounded-lg border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
                         item.completed
-                          ? "bg-emerald-600 border-emerald-600 text-white"
-                          : "border-slate-300 hover:border-slate-400 bg-white"
+                          ? "bg-black border-black text-white"
+                          : "border-slate-300 hover:border-black bg-white"
                       }`}
                     >
                       {item.completed && <Check className="w-4 h-4 stroke-[3]" />}
@@ -1939,23 +1980,13 @@ export default function AdminPage() {
                         <span className="text-[11px] font-bold text-slate-400">#{item.order}</span>
                         <h4
                           className={`font-bold text-sm ${
-                            item.completed ? "text-slate-900 line-through decoration-emerald-500/60" : "text-ink"
+                            item.completed ? "text-neutral-500 line-through decoration-neutral-400" : "text-ink"
                           }`}
                         >
                           {item.title}
                         </h4>
 
-                        <span
-                          className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
-                            item.category === "security"
-                              ? "bg-rose-50 text-rose-700 border border-rose-200"
-                              : item.category === "legal"
-                              ? "bg-amber-50 text-amber-700 border border-amber-200"
-                              : item.category === "infra"
-                              ? "bg-blue-50 text-blue-700 border border-blue-200"
-                              : "bg-purple-50 text-purple-700 border border-purple-200"
-                          }`}
-                        >
+                        <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-neutral-100 text-black border border-neutral-300">
                           {item.category}
                         </span>
 
@@ -2291,7 +2322,7 @@ export default function AdminPage() {
               >
                 Cancel
               </Button>
-              <Button type="submit" size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
+              <Button type="submit" size="sm" className="bg-black hover:bg-neutral-800 text-white font-bold">
                 Submit Review Decision
               </Button>
             </div>
@@ -2336,11 +2367,7 @@ export default function AdminPage() {
               <Button
                 type="submit"
                 size="sm"
-                className={
-                  reportActionType === "resolve"
-                    ? "bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
-                    : "bg-slate-800 hover:bg-slate-900 text-white font-bold"
-                }
+                className="bg-black hover:bg-neutral-800 text-white font-bold"
               >
                 {reportActionType === "resolve" ? "Mark as Resolved" : "Dismiss Report"}
               </Button>

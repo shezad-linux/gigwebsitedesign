@@ -219,7 +219,7 @@ export default function GuideDetailPage({ params }: { params: { slug: string } }
                 ))}
 
                 {section.callout && (
-                  <div className="p-4 sm:p-5 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs sm:text-sm text-amber-900 font-medium">
+                  <div className="p-4 sm:p-5 rounded-2xl bg-neutral-100 border border-neutral-300 text-xs sm:text-sm text-black font-medium">
                     {section.callout}
                   </div>
                 )}
@@ -230,13 +230,13 @@ export default function GuideDetailPage({ params }: { params: { slug: string } }
           {/* Practical Checklist */}
           <div className="p-6 sm:p-8 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-4">
             <h3 className="font-bold text-base text-ink flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+              <CheckCircle2 className="w-5 h-5 text-black" />
               Pre-Screening Action Checklist
             </h3>
             <ul className="space-y-2.5 text-xs sm:text-sm text-slate-700">
               {article.checklist.map((item, i) => (
                 <li key={i} className="flex items-start gap-2.5">
-                  <span className="h-5 w-5 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                  <span className="h-5 w-5 rounded-full bg-black text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
                     ✓
                   </span>
                   <span>{item}</span>

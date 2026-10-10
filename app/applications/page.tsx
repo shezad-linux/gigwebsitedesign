@@ -147,20 +147,20 @@ export default function ApplicationsPage() {
               </span>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-amber-50/60 border border-amber-200/60">
-              <span className="text-amber-800 font-semibold uppercase text-[10px] block">
+            <div className="p-3.5 rounded-xl bg-neutral-50 border border-neutral-200">
+              <span className="text-neutral-500 font-semibold uppercase text-[10px] block">
                 In Qualification
               </span>
-              <span className="text-2xl font-black text-amber-800 mt-0.5 block">
+              <span className="text-2xl font-black text-black mt-0.5 block font-mono">
                 {onboardingCount}
               </span>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
-              <span className="text-slate-500 font-semibold uppercase text-[10px] block">
+            <div className="p-3.5 rounded-xl bg-neutral-50 border border-neutral-200">
+              <span className="text-neutral-500 font-semibold uppercase text-[10px] block">
                 Submitted Applications
               </span>
-              <span className="text-2xl font-black text-slate-800 mt-0.5 block">
+              <span className="text-2xl font-black text-black mt-0.5 block font-mono">
                 {appliedCount}
               </span>
             </div>
@@ -182,14 +182,14 @@ export default function ApplicationsPage() {
                 onClick={() => setSelectedStatusFilter(st)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 ${
                   isSelected
-                    ? "bg-brand-600 text-white shadow-xs"
-                    : "bg-white text-slate-600 border border-border hover:bg-slate-50"
+                    ? "bg-black text-white shadow-xs font-bold"
+                    : "bg-white text-neutral-600 border border-neutral-300 hover:bg-neutral-50"
                 }`}
               >
                 <span>{st}</span>
                 <span
-                  className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                    isSelected ? "bg-brand-700 text-white" : "bg-slate-100 text-slate-600"
+                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                    isSelected ? "bg-neutral-800 text-white" : "bg-neutral-100 text-neutral-600"
                   }`}
                 >
                   {count}
@@ -205,20 +205,20 @@ export default function ApplicationsPage() {
             {filteredApps.map((app) => (
               <div
                 key={app.id}
-                className="rounded-[14px] bg-white border border-border p-5 sm:p-6 shadow-xs hover:border-brand-200 transition-all space-y-4"
+                className="rounded-[14px] bg-white border border-neutral-200 p-5 sm:p-6 shadow-xs hover:border-black transition-all space-y-4"
               >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-bold text-xs text-brand-700 bg-brand-50 px-2 py-0.5 rounded">
+                      <span className="font-bold text-xs text-black bg-neutral-100 border border-neutral-200 px-2 py-0.5 rounded">
                         {app.platformName}
                       </span>
-                      <span className="text-slate-300">·</span>
-                      <span className="text-xs text-slate-500">{app.category}</span>
+                      <span className="text-neutral-300">·</span>
+                      <span className="text-xs text-neutral-500">{app.category}</span>
                       {app.paySummary && (
                         <>
-                          <span className="text-slate-300">·</span>
-                          <span className="text-xs font-semibold text-emerald-700">
+                          <span className="text-neutral-300">·</span>
+                          <span className="text-xs font-semibold text-black font-mono">
                             {app.paySummary}
                           </span>
                         </>
@@ -226,7 +226,7 @@ export default function ApplicationsPage() {
                     </div>
                     <Link
                       href={`/gigs/${app.gigSlug}`}
-                      className="text-base sm:text-lg font-bold text-ink hover:text-brand-600 transition-colors inline-block"
+                      className="text-base sm:text-lg font-bold text-black hover:underline transition-colors inline-block"
                     >
                       {app.roleTitle}
                     </Link>
@@ -247,7 +247,7 @@ export default function ApplicationsPage() {
 
                     <button
                       onClick={() => handleRemove(app.id, app.roleTitle)}
-                      className="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 transition-colors"
+                      className="p-2 rounded-lg text-neutral-400 hover:text-black hover:bg-neutral-100 border border-transparent hover:border-neutral-300 transition-colors"
                       title="Remove from tracker"
                     >
                       <Trash2 className="w-4 h-4" />

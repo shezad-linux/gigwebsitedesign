@@ -9,9 +9,19 @@ import {
   updateListingReportStatus,
 } from "@/lib/operations";
 import { ReportStatus } from "@/types/gig";
+import { verifyAdminSession } from "@/lib/supabase/server";
 
 export async function GET() {
   try {
+    // Server-enforced role check: only admins & reviewers can view full reports queue
+    const authResult = await verifyAdminSession(["admin", "reviewer"]);
+    if (!authResult.authorized) {
+      return NextResponse.json(
+        { error: authResult.reason || "Forbidden: Administrator or reviewer role required." },
+        { status: authResult.user ? 403 : 401 }
+      );
+    }
+
     if (isSupabaseConfigured()) {
       const reports = await fetchSupabaseReports();
       if (reports && reports.length > 0) {
@@ -30,6 +40,15 @@ export async function GET() {
 
 export async function PATCH(req: NextRequest) {
   try {
+    // Server-enforced role check: mutations require admin or reviewer role
+    const authResult = await verifyAdminSession(["admin", "reviewer"]);
+    if (!authResult.authorized) {
+      return NextResponse.json(
+        { error: authResult.reason || "Forbidden: Administrator or reviewer role required to modify reports." },
+        { status: authResult.user ? 403 : 401 }
+      );
+    }
+
     const body = await req.json();
     const { reportId, status, resolutionNotes, actorEmail } = body;
 
@@ -48,11 +67,13 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
+    const effectiveActor = authResult.user?.email || actorEmail || "admin@gigmatcher.io";
+
     const updated = updateListingReportStatus(
       reportId,
       status as ReportStatus,
       resolutionNotes,
-      actorEmail || "admin@gigmatcher.io"
+      effectiveActor
     );
 
     return NextResponse.json({

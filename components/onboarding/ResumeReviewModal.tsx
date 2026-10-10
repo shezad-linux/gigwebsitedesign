@@ -108,7 +108,7 @@ export const ResumeReviewModal: React.FC<ResumeReviewModalProps> = ({
 
         <button
           onClick={onDeleteResume}
-          className="inline-flex items-center gap-1.5 text-xs text-red-600 hover:text-red-700 font-semibold p-2 rounded-lg hover:bg-red-50 transition-colors self-start sm:self-auto"
+          className="inline-flex items-center gap-1.5 text-xs text-neutral-600 hover:text-black font-semibold p-2 rounded-lg hover:bg-neutral-100 transition-colors self-start sm:self-auto"
           title="Delete uploaded file and parsed data"
         >
           <Trash2 className="w-3.5 h-3.5" />
@@ -202,7 +202,7 @@ export const ResumeReviewModal: React.FC<ResumeReviewModalProps> = ({
                 <button
                   type="button"
                   onClick={() => removeSkill(skill)}
-                  className="text-slate-400 hover:text-red-600 ml-0.5"
+                  className="text-neutral-400 hover:text-black ml-0.5"
                   aria-label={`Remove ${skill}`}
                 >
                   <X className="w-3 h-3" />

@@ -47,9 +47,9 @@ export const Interactive3DOrb: React.FC = () => {
     const outerGeo = new THREE.IcosahedronGeometry(2.0, 1);
     const outerWireframe = new THREE.WireframeGeometry(outerGeo);
     const outerMat = new THREE.LineBasicMaterial({
-      color: 0x4f46e5, // Indigo primary
+      color: 0xffffff, // Pure white wireframe
       transparent: true,
-      opacity: 0.55,
+      opacity: 0.45,
       linewidth: 1,
     });
     const outerMesh = new THREE.LineSegments(outerWireframe, outerMat);
@@ -58,10 +58,10 @@ export const Interactive3DOrb: React.FC = () => {
     // B. Inner Glowing Sphere (AI Core)
     const innerGeo = new THREE.IcosahedronGeometry(1.2, 2);
     const innerMat = new THREE.MeshBasicMaterial({
-      color: 0x06b6d4, // Cyan secondary
+      color: 0xffffff, // White core
       wireframe: true,
       transparent: true,
-      opacity: 0.65,
+      opacity: 0.75,
     });
     const innerMesh = new THREE.Mesh(innerGeo, innerMat);
     group.add(innerMesh);
@@ -69,9 +69,9 @@ export const Interactive3DOrb: React.FC = () => {
     // C. Orbiting Rings (Data Calibration Streams)
     const ringGeo1 = new THREE.TorusGeometry(2.4, 0.02, 16, 80);
     const ringMat1 = new THREE.MeshBasicMaterial({
-      color: 0x6366f1,
+      color: 0xffffff,
       transparent: true,
-      opacity: 0.7,
+      opacity: 0.6,
     });
     const ring1 = new THREE.Mesh(ringGeo1, ringMat1);
     ring1.rotation.x = Math.PI / 3;
@@ -80,9 +80,9 @@ export const Interactive3DOrb: React.FC = () => {
 
     const ringGeo2 = new THREE.TorusGeometry(2.6, 0.015, 16, 80);
     const ringMat2 = new THREE.MeshBasicMaterial({
-      color: 0x0ea5e9,
+      color: 0xd4d4d8,
       transparent: true,
-      opacity: 0.5,
+      opacity: 0.45,
     });
     const ring2 = new THREE.Mesh(ringGeo2, ringMat2);
     ring2.rotation.x = -Math.PI / 4;
@@ -107,7 +107,7 @@ export const Interactive3DOrb: React.FC = () => {
     particleGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
 
     const particleMat = new THREE.PointsMaterial({
-      color: 0xa5b4fc,
+      color: 0xffffff,
       size: 0.065,
       transparent: true,
       opacity: 0.85,
@@ -259,37 +259,37 @@ export const Interactive3DOrb: React.FC = () => {
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-[360px] sm:h-[420px] md:h-[460px] rounded-2xl overflow-hidden cursor-grab active:cursor-grabbing select-none flex items-center justify-center bg-gradient-to-br from-slate-900/90 via-slate-950 to-indigo-950/90 border border-indigo-500/20 shadow-2xl backdrop-blur-xl"
+      className="relative w-full h-[360px] sm:h-[420px] md:h-[460px] rounded-2xl overflow-hidden cursor-grab active:cursor-grabbing select-none flex items-center justify-center bg-black border border-neutral-800 shadow-2xl backdrop-blur-xl"
     >
       {/* 3D Canvas */}
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full block" />
 
-      {/* Floating Holographic Telemetry Cards */}
+      {/* Floating Telemetry Cards */}
       <div className="absolute top-4 left-4 pointer-events-none">
-        <div className="px-3 py-1.5 rounded-xl bg-slate-900/80 backdrop-blur-md border border-indigo-500/30 text-white shadow-lg flex items-center gap-2 text-xs">
-          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="font-semibold tracking-wide text-[11px] text-slate-200">
+        <div className="px-3 py-1.5 rounded-xl bg-neutral-900/90 backdrop-blur-md border border-neutral-700 text-white shadow-lg flex items-center gap-2 text-xs">
+          <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+          <span className="font-semibold tracking-wide text-[11px] text-white">
             AI Matching Neural Core
           </span>
         </div>
       </div>
 
       <div className="absolute top-4 right-4 pointer-events-none">
-        <div className="px-3 py-1.5 rounded-xl bg-slate-900/80 backdrop-blur-md border border-indigo-500/30 text-white shadow-lg flex items-center gap-1.5 text-xs">
-          <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-          <span className="font-bold text-cyan-300">96.8% Precision</span>
+        <div className="px-3 py-1.5 rounded-xl bg-neutral-900/90 backdrop-blur-md border border-neutral-700 text-white shadow-lg flex items-center gap-1.5 text-xs">
+          <Sparkles className="w-3.5 h-3.5 text-white" />
+          <span className="font-bold text-white">96.8% Precision</span>
         </div>
       </div>
 
       {/* Floating Bottom Live Signal Pill */}
       <div className="absolute bottom-4 inset-x-4 sm:inset-x-8 flex items-center justify-between pointer-events-none">
-        <div className="px-3 py-2 rounded-xl bg-slate-900/85 backdrop-blur-md border border-slate-700/80 text-white shadow-lg flex items-center gap-2 text-[11px]">
-          <Cpu className="w-3.5 h-3.5 text-indigo-400" />
-          <span className="text-slate-300 hidden sm:inline">Calibrating Skills:</span>
-          <span className="font-medium text-indigo-200">Python · Java · RLHF · QA</span>
+        <div className="px-3 py-2 rounded-xl bg-neutral-900/90 backdrop-blur-md border border-neutral-700 text-white shadow-lg flex items-center gap-2 text-[11px]">
+          <Cpu className="w-3.5 h-3.5 text-white" />
+          <span className="text-neutral-400 hidden sm:inline">Calibrating Skills:</span>
+          <span className="font-medium text-white">Python · Java · RLHF · QA</span>
         </div>
 
-        <div className="px-3 py-1.5 rounded-full bg-indigo-500/20 border border-indigo-400/40 text-indigo-200 text-[10px] font-semibold tracking-wider uppercase">
+        <div className="px-3 py-1.5 rounded-full bg-neutral-900/90 border border-neutral-700 text-neutral-300 text-[10px] font-semibold tracking-wider uppercase">
           {isInteracting ? "Interacting" : "Touch / Drag to Rotate"}
         </div>
       </div>

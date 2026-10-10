@@ -31,7 +31,7 @@ export default function TermsOfUsePage() {
             <Badge variant="primary" size="sm">
               Legal & Terms
             </Badge>
-            <Badge variant="outline" size="sm" className="bg-amber-50 text-amber-800 border-amber-200">
+            <Badge variant="outline" size="sm" className="bg-neutral-100 text-black border-neutral-300">
               Commercial & FTC Disclosures
             </Badge>
           </div>
@@ -57,9 +57,9 @@ export default function TermsOfUsePage() {
 
           <section className="space-y-3">
             <h2 className="text-xl font-bold text-ink">2. Earning & Project Availability Notice</h2>
-            <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs sm:text-sm text-amber-900 space-y-1.5">
+            <div className="p-4 rounded-2xl bg-neutral-100 border border-neutral-300 text-xs sm:text-sm text-black space-y-1.5">
               <div className="font-bold flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-amber-700" /> Earning Disclaimer
+                <AlertTriangle className="w-4 h-4 text-black" /> Earning Disclaimer
               </div>
               <p className="leading-relaxed">
                 Published rates (e.g. &ldquo;$40 / hour&rdquo;) reflect community-reported or platform-advertised maximum compensation tiers for qualifying tasks. Rates do not constitute a guarantee of income, minimum wage, or ongoing task volume.

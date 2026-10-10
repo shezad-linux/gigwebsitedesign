@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Invitation — AI Gig-Matcher</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #fafafa;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #09090b;
+    }
+    .wrapper {
+      width: 100%;
+      table-layout: fixed;
+      background-color: #fafafa;
+      padding: 40px 16px;
+    }
+    .main-card {
+      max-width: 520px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border: 1px solid #e4e4e7;
+      border-radius: 16px;
+      padding: 36px 32px;
+      text-align: left;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background-color: #000000;
+      color: #ffffff;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-size: 22px;
+      font-weight: 800;
+      color: #000000;
+      margin: 0 0 12px 0;
+      letter-spacing: -0.02em;
+    }
+    p {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #52525b;
+      margin: 0 0 24px 0;
+    }
+    .button {
+      display: inline-block;
+      background-color: #000000;
+      color: #ffffff !important;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 12px 24px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .footer {
+      margin-top: 32px;
+      padding-top: 20px;
+      border-top: 1px solid #f4f4f5;
+      font-size: 12px;
+      color: #a1a1aa;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="main-card">
+      <div class="badge">ADMINISTRATION CONSOLE</div>
+      <h1>You have been invited</h1>
+      <p>You have been invited to join the AI Gig-Matcher operations team as an authorized administrator. Click below to complete your credential setup and access the administration console.</p>
+      <div>
+        <a href="{{ .ConfirmationURL }}" class="button" target="_blank">Accept Invitation</a>
+      </div>
+      <div class="footer">
+        Security Note: Administrative privileges require active multi-factor authentication or server-verified session tokens. Contact security if you did not expect this invitation.
+      </div>
+    </div>
+  </div>
+</body>
+</html>

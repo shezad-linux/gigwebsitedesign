@@ -398,9 +398,9 @@ export default function ProfilePage() {
         </div>
 
         {savedSuccess && (
-          <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm font-medium flex items-center justify-between animate-in fade-in">
+          <div className="p-4 rounded-xl bg-black border border-neutral-800 text-white text-xs sm:text-sm font-medium flex items-center justify-between animate-in fade-in">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <CheckCircle2 className="w-4 h-4 text-white" />
               <span>Profile updated successfully! Matching dashboard scores have been updated.</span>
             </div>
           </div>
@@ -519,7 +519,7 @@ export default function ProfilePage() {
                       variant="ghost"
                       size="sm"
                       onClick={handleRemoveResume}
-                      className="text-red-600 hover:bg-red-50 text-xs"
+                      className="text-neutral-600 hover:text-black hover:bg-neutral-100 text-xs"
                     >
                       <Trash2 className="w-3.5 h-3.5 mr-1" /> Remove
                     </Button>
@@ -529,12 +529,12 @@ export default function ProfilePage() {
             </CardHeader>
             <CardContent className="space-y-4">
               {parseError && (
-                <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs flex items-center justify-between">
+                <div className="p-3 rounded-lg bg-neutral-100 border border-neutral-300 text-black text-xs flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 shrink-0" />
                     <span>{parseError}</span>
                   </div>
-                  <button type="button" onClick={() => setParseError(null)} className="text-red-500 hover:text-red-700">
+                  <button type="button" onClick={() => setParseError(null)} className="text-neutral-500 hover:text-black">
                     <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -553,8 +553,8 @@ export default function ProfilePage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[11px] text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1 font-semibold">
-                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                      <span className="text-[11px] text-black bg-neutral-100 px-2.5 py-0.5 rounded-full border border-neutral-300 flex items-center gap-1 font-semibold">
+                        <ShieldCheck className="w-3.5 h-3.5 text-black" />
                         Verified Skills Active
                       </span>
                     </div>
@@ -678,7 +678,7 @@ export default function ProfilePage() {
                     <span
                       key={sk}
                       onClick={() => removeSkill(sk)}
-                      className="px-2.5 py-1 text-xs rounded-md bg-brand-600 text-white font-medium cursor-pointer hover:bg-red-600 transition-colors flex items-center gap-1 group"
+                      className="px-2.5 py-1 text-xs rounded-md bg-black text-white font-medium cursor-pointer hover:bg-neutral-800 transition-colors flex items-center gap-1 group"
                       title="Click to remove"
                     >
                       {sk}
@@ -768,7 +768,7 @@ export default function ProfilePage() {
                       <button
                         type="button"
                         onClick={() => removeLanguage(idx)}
-                        className="text-slate-400 hover:text-red-600"
+                        className="text-slate-400 hover:text-black"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -898,33 +898,33 @@ export default function ProfilePage() {
           </Card>
 
           {/* Data Privacy & Account Deletion (GDPR / CCPA) */}
-          <Card className="bg-white border-rose-200 shadow-xs">
-            <CardHeader className="pb-3 border-b border-rose-100">
+          <Card className="bg-white border-neutral-300 shadow-xs">
+            <CardHeader className="pb-3 border-b border-neutral-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-base text-rose-900 flex items-center gap-2">
-                    <Trash2 className="w-4 h-4 text-rose-600" />
+                  <CardTitle className="text-base text-black flex items-center gap-2">
+                    <Trash2 className="w-4 h-4 text-black" />
                     Data Privacy & Account Deletion
                   </CardTitle>
-                  <CardDescription className="text-xs text-rose-700 mt-0.5">
+                  <CardDescription className="text-xs text-neutral-600 mt-0.5">
                     GDPR & CCPA self-service data management and zero-retention controls.
                   </CardDescription>
                 </div>
-                <Badge variant="outline" size="sm" className="bg-rose-50 text-rose-700 border-rose-200">
+                <Badge variant="outline" size="sm" className="bg-neutral-100 text-black border-neutral-300">
                   Zero Retention
                 </Badge>
               </div>
             </CardHeader>
             <CardContent className="pt-4 space-y-3">
-              <p className="text-xs text-slate-600 leading-relaxed">
+              <p className="text-xs text-neutral-600 leading-relaxed">
                 You can permanently purge all stored candidate data, including cached resume extractions,
                 saved application entries, and skill attributes. Once executed, no residual candidate profile
                 remains on this browser or linked backend.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
-                <span className="text-[11px] text-slate-500">
+                <span className="text-[11px] text-neutral-500">
                   Need details? Read our{" "}
-                  <Link href="/privacy" className="text-brand-600 underline font-semibold">
+                  <Link href="/privacy" className="text-black underline font-semibold">
                     Privacy Safeguards & Policy
                   </Link>
                   .
@@ -934,7 +934,7 @@ export default function ProfilePage() {
                   variant="outline"
                   size="sm"
                   onClick={handleWipeAccountData}
-                  className="w-full sm:w-auto text-xs text-rose-700 border-rose-200 hover:bg-rose-50 hover:text-rose-800 font-semibold"
+                  className="w-full sm:w-auto text-xs text-black border-neutral-300 hover:bg-black hover:text-white font-semibold transition-colors"
                 >
                   <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Wipe Profile & All Stored Data
                 </Button>

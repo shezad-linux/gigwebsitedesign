@@ -32,7 +32,7 @@ export default function PrivacyPolicyPage() {
             <Badge variant="primary" size="sm">
               Legal & Trust
             </Badge>
-            <Badge variant="outline" size="sm" className="bg-emerald-50 text-emerald-800 border-emerald-200">
+            <Badge variant="outline" size="sm" className="bg-neutral-100 text-black border-neutral-300">
               GDPR & CCPA Compliant
             </Badge>
           </div>
@@ -94,7 +94,7 @@ export default function PrivacyPolicyPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
                 <div className="flex items-center gap-2 font-bold text-xs text-ink uppercase">
-                  <Trash2 className="w-4 h-4 text-rose-600" /> Resume Deletion
+                  <Trash2 className="w-4 h-4 text-black" /> Resume Deletion
                 </div>
                 <p className="text-xs text-slate-600">
                   Click &ldquo;Remove Attached Resume&rdquo; on your Profile page to purge the cached resume file, extracted summary, and document references.
