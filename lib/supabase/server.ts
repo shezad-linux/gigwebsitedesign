@@ -145,13 +145,11 @@ export async function verifyAdminSession(
   allowedRoles: UserRole[] = ["admin"]
 ): Promise<AdminVerificationResult> {
   if (!isSupabaseConfigured()) {
-    // Graceful fallback for local development without Supabase keys
     return {
-      authorized: true,
+      authorized: false,
       user: null,
-      role: "admin",
-      isDemoMode: true,
-      reason: "Supabase credentials not configured; local demo admin mode enabled.",
+      role: null,
+      reason: "Supabase authentication backend not configured. Access denied.",
     };
   }
 

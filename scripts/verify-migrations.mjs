@@ -21,6 +21,8 @@ const REQUIRED_MIGRATIONS = [
   "phase5_seed.sql",
   "admin_rbac.sql",
   "setup_admin.sql",
+  "coupons_schema.sql",
+  "coupons_seed.sql",
 ];
 
 console.log("🔍 Verifying Supabase SQL Migrations...");

@@ -5,11 +5,11 @@ import { ArrowLeft, AlertTriangle, ShieldCheck, DollarSign } from "lucide-react"
 import { Badge } from "@/components/ui/badge";
 
 export const metadata: Metadata = {
-  title: "Terms of Use & Commercial Disclosures | GigMatcher",
+  title: "Terms of Use & Commercial Disclosures | Remotasks.si",
   description:
-    "Review GigMatcher Terms of Service, independent directory disclaimers, affiliate referral disclosures, and earning notice policies.",
+    "Review Remotasks.si Terms of Service, independent directory disclaimers, affiliate referral disclosures, and earning notice policies.",
   alternates: {
-    canonical: "https://gigmatcher.io/terms",
+    canonical: "https://remotasks.si/terms",
   },
 };
 
@@ -119,7 +119,7 @@ export default function TermsOfUsePage() {
               For questions regarding these Terms or commercial disclosures, please contact:
             </p>
             <p className="font-semibold text-brand-600 text-sm">
-              legal@gigmatcher.io
+              legal@remotasks.si
             </p>
           </section>
         </div>

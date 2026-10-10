@@ -67,7 +67,7 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
-    const effectiveActor = authResult.user?.email || actorEmail || "admin@gigmatcher.io";
+    const effectiveActor = authResult.user?.email || actorEmail || "admin@remotasks.si";
 
     const updated = updateListingReportStatus(
       reportId,

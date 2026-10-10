@@ -76,6 +76,42 @@ VALUES
         'active',
         'https://testlio.com',
         'Networked testing runs and device lab contributors.'
+    ),
+    (
+        'aff_mercor',
+        'mercor',
+        'Mercor AI Talent Network',
+        'https://t.mercor.com/hYqU9',
+        'hYqU9',
+        'cpa',
+        '$50 - $100 per placed engineer',
+        'active',
+        'https://mercor.com',
+        'Elite AI developer and researcher network. Fast-track screening.'
+    ),
+    (
+        'aff_ethos',
+        'ethos',
+        'AskEthos Contributor Referral Program',
+        'https://agent.askethos.com/refer/i9tslep82zx4',
+        'i9tslep82zx4',
+        'cpa',
+        '$30 per verified contributor',
+        'active',
+        'https://agent.askethos.com',
+        'Autonomous agent workflow evaluation and RLHF.'
+    ),
+    (
+        'aff_handshake',
+        'handshake',
+        'Handshake Move Program',
+        'https://joinhandshake.com/move-program/referral?referralCode=6EE9DF&utm_source=referral',
+        '6EE9DF',
+        'cpa',
+        '$25 per accepted student or candidate',
+        'active',
+        'https://joinhandshake.com',
+        'Student & early-career talent AI training and evaluation initiative.'
     )
 ON CONFLICT (id) DO NOTHING;
 

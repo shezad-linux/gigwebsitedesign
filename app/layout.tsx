@@ -4,9 +4,9 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
-  title: "GigMatcher — Find Verified AI Evaluation, Coding & Annotation Gigs",
+  title: "Remotasks.si — Find Verified AI Evaluation, Coding & Annotation Gigs",
   description:
-    "Personalized matching platform for AI coding, prompt evaluation, data annotation, and QA gigs. Transparent pay rates, country eligibility verification, and application tracking.",
+    "Personalized matching platform for AI coding, prompt evaluation, data annotation, and QA gigs on Remotasks.si. Transparent pay rates, country eligibility verification, and application tracking.",
 };
 
 export default function RootLayout({

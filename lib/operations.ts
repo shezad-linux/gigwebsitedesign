@@ -205,7 +205,7 @@ export const INITIAL_AUDIT_EVENTS: AuditEvent[] = [
     id: "aud_001",
     entityType: "gig_listing",
     entityId: "gig-outlier-01",
-    actorEmail: "operations_lead@gigmatcher.io",
+    actorEmail: "operations_lead@remotasks.si",
     action: "update",
     changes: {
       pay_amount: { before: 35, after: 40 },
@@ -218,7 +218,7 @@ export const INITIAL_AUDIT_EVENTS: AuditEvent[] = [
     id: "aud_002",
     entityType: "payment_evidence",
     entityId: "pe_mindrift_01",
-    actorEmail: "verification_bot@gigmatcher.io",
+    actorEmail: "verification_bot@remotasks.si",
     action: "verify_evidence",
     changes: {
       rate_type: { before: "unverified", after: "worker_reported" },
@@ -230,7 +230,7 @@ export const INITIAL_AUDIT_EVENTS: AuditEvent[] = [
     id: "aud_003",
     entityType: "listing_report",
     entityId: "rep_004",
-    actorEmail: "admin_reviewer@gigmatcher.io",
+    actorEmail: "admin_reviewer@remotasks.si",
     action: "resolve_report",
     changes: {
       status: { before: "open", after: "resolved" },
@@ -342,7 +342,7 @@ export function submitReport(report: {
     gigId: report.gigId,
     gigTitle: report.gigTitle,
     platformName: report.platformName,
-    reporterEmail: report.reporterEmail || "anonymous_contributor@gigmatcher.io",
+    reporterEmail: report.reporterEmail || "anonymous_contributor@remotasks.si",
     reportType: report.reportType,
     description: report.description,
     status: "open",
@@ -373,7 +373,7 @@ export function updateListingReportStatus(
   reportId: string,
   status: ReportStatus,
   resolutionNotes?: string,
-  actorEmail = "admin@gigmatcher.io"
+  actorEmail = "admin@remotasks.si"
 ): ListingReport[] {
   const current = getStoredListingReports();
   const target = current.find((r) => r.id === reportId);
@@ -422,10 +422,25 @@ export function getStoredAuditEvents(): AuditEvent[] {
   }
 }
 
+function sanitizeAuditChanges(
+  changes: Record<string, { before: any; after: any }>
+): Record<string, { before: any; after: any }> {
+  const sanitized: Record<string, { before: any; after: any }> = {};
+  for (const [key, val] of Object.entries(changes)) {
+    if (/password|token|secret|key|authorization|cookie|session/i.test(key)) {
+      sanitized[key] = { before: "[REDACTED]", after: "[REDACTED]" };
+    } else {
+      sanitized[key] = val;
+    }
+  }
+  return sanitized;
+}
+
 export function recordAuditEvent(event: Omit<AuditEvent, "id" | "createdAt">): AuditEvent {
   const newEvent: AuditEvent = {
     ...event,
     id: `aud_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+    changes: sanitizeAuditChanges(event.changes || {}),
     createdAt: new Date().toISOString(),
   };
 

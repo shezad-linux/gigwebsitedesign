@@ -6,11 +6,26 @@ export async function middleware(request: NextRequest) {
     request,
   });
 
+  const pathname = request.nextUrl.pathname;
   const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
   const supabaseUrl = rawUrl.replace(/\/rest\/v1\/?$/, "").replace(/\/+$/, "");
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
-  // If Supabase is not yet configured or is the default template placeholder, pass through
+  // Fail-closed protection for /admin routes: never allow bypass even if unconfigured
+  if (pathname.startsWith("/admin") && pathname !== "/admin/login") {
+    if (
+      !supabaseUrl ||
+      !supabaseAnonKey ||
+      supabaseUrl.includes("your-project-id")
+    ) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = "/admin/login";
+      redirectUrl.searchParams.set("next", pathname);
+      return NextResponse.redirect(redirectUrl);
+    }
+  }
+
+  // For public routes, pass through if Supabase is not yet configured
   if (
     !supabaseUrl ||
     !supabaseAnonKey ||
@@ -42,8 +57,6 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const pathname = request.nextUrl.pathname;
 
   // Enforce server-side route protection for /admin routes
   if (pathname.startsWith("/admin") && pathname !== "/admin/login") {

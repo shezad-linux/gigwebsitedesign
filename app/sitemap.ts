@@ -1,7 +1,10 @@
 import { MetadataRoute } from "next";
 import { MOCK_GIGS } from "@/data/gigs";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://gigmatcher.io";
+const BASE_URL =
+  process.env.NEXT_PUBLIC_APP_URL ||
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  "https://remotasks.si";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();

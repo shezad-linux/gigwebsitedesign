@@ -134,7 +134,7 @@ export default function GigDetailPage() {
         gigId: gig.id,
         gigTitle: gig.title,
         platformName: gig.platformName,
-        reporterEmail: profile.email || "contributor@gigmatcher.io",
+        reporterEmail: profile.email || "contributor@remotasks.si",
         reportType: mappedType,
         description: reportNotes.trim() || `Flagged issue: ${reportIssueType} for ${gig.platformName}`,
       });

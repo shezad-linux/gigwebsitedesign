@@ -45,6 +45,9 @@ describe("Link Validator & SSRF Guard Suite", () => {
       "https://www.dataannotation.tech/apply",
       "https://alignerr.com/experts",
       "https://mindrift.ai/jobs",
+      "https://t.mercor.com/hYqU9",
+      "https://agent.askethos.com/refer/i9tslep82zx4",
+      "https://joinhandshake.com/move-program/referral?referralCode=6EE9DF&utm_source=referral",
     ];
 
     for (const url of validUrls) {

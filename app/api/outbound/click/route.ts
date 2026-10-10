@@ -2,9 +2,23 @@ import { NextRequest, NextResponse } from "next/server";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 import { recordStoredAffiliateClick } from "@/lib/monetization";
 import { validateOutboundUrl } from "@/lib/link-validator";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
+    const clientIp = getClientIp(req);
+    const rateLimit = checkRateLimit(`click-track:${clientIp}`, {
+      interval: 60_000,
+      uniqueTokenPerInterval: 60,
+    });
+
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { error: "Too many click tracking requests." },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json();
     const {
       gigId,

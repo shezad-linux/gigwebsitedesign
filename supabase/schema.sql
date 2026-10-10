@@ -135,11 +135,11 @@ CREATE POLICY "Public read access for gig listings"
     FOR SELECT
     USING (true);
 
-CREATE POLICY "Admin or service role can modify gig listings"
+CREATE POLICY "Service role can modify gig listings"
     ON public.gig_listings
     FOR ALL
-    USING (auth.jwt() ->> 'role' = 'service_role' OR auth.jwt() ->> 'email' LIKE '%admin%')
-    WITH CHECK (auth.jwt() ->> 'role' = 'service_role' OR auth.jwt() ->> 'email' LIKE '%admin%');
+    USING (auth.role() = 'service_role')
+    WITH CHECK (auth.role() = 'service_role');
 
 -- Profiles Policies
 CREATE POLICY "Users can view their own profile"
@@ -157,6 +157,11 @@ CREATE POLICY "Users can insert their own profile"
     ON public.profiles
     FOR INSERT
     WITH CHECK (auth.uid() = id);
+
+CREATE POLICY "Users can delete their own profile"
+    ON public.profiles
+    FOR DELETE
+    USING (auth.uid() = id);
 
 -- Saved Gigs Policies (Strict User Isolation)
 CREATE POLICY "Users can view own saved gigs"

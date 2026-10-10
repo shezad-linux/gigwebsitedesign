@@ -83,10 +83,17 @@ export async function POST(req: NextRequest) {
       extractedProfile: structuredProfile,
     });
   } catch (error: any) {
-    console.error("Error parsing resume:", error);
+    const isValidationError =
+      error.message &&
+      (error.message.includes("Scanned image") ||
+        error.message.includes("readable text") ||
+        error.message.includes("Legacy") ||
+        error.message.includes("Unsupported") ||
+        error.message.includes("format"));
+
     return NextResponse.json(
       { error: error.message || "An unexpected error occurred during resume parsing." },
-      { status: 500 }
+      { status: isValidationError ? 422 : 500 }
     );
   }
 }

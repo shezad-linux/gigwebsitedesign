@@ -11,13 +11,12 @@ import {
   Briefcase,
   Compass,
   Layers,
-  Settings,
   ShieldCheck,
   CheckCircle,
   Database,
-  Cloud,
   LogOut,
   ChevronDown,
+  Tag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthModal } from "@/components/auth/AuthModal";
@@ -29,7 +28,6 @@ import {
   getSupabaseUser,
   supabase,
 } from "@/lib/supabase";
-import { apiClient } from "@/lib/api";
 
 export const Navbar: React.FC = () => {
   const pathname = usePathname();
@@ -37,7 +35,6 @@ export const Navbar: React.FC = () => {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<"signin" | "signup">("signin");
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [backendType, setBackendType] = useState<"supabase" | "springboot" | "local">("local");
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -46,10 +43,6 @@ export const Navbar: React.FC = () => {
 
   useEffect(() => {
     setProfile(getStoredProfile());
-
-    apiClient.getActiveBackend().then((type) => {
-      setBackendType(type);
-    });
 
     if (isSupabaseConfigured() && supabase) {
       getSupabaseUser().then((user) => {
@@ -105,19 +98,19 @@ export const Navbar: React.FC = () => {
 
   const navLinks = [
     { label: "Find Gigs", href: "/dashboard", icon: Compass },
+    { label: "Pricing", href: "/pricing", icon: Tag },
     { label: "Categories", href: "/#categories", icon: Layers },
     { label: "How It Works", href: "/#how-it-works", icon: Sparkles },
     { label: "Tracker", href: "/applications", icon: Briefcase },
-    { label: "Admin", href: "/admin", icon: Settings },
   ];
 
   const displayName =
     currentUser?.user_metadata?.full_name ||
     currentUser?.email?.split("@")[0] ||
     profile?.fullName ||
-    "User";
+    "Account";
 
-  const displayEmail = currentUser?.email || profile?.email || "candidate@gigmatcher.io";
+  const displayEmail = currentUser?.email || profile?.email || "";
 
   return (
     <>
@@ -132,15 +125,10 @@ export const Navbar: React.FC = () => {
                 </div>
                 <div className="flex flex-col">
                   <div className="flex items-center gap-1.5">
-                    <span className="font-bold text-lg text-black tracking-tight">GigMatcher</span>
+                    <span className="font-bold text-lg text-black tracking-tight">Remotasks</span>
                     <span className="text-[10px] font-bold uppercase tracking-wider bg-black text-white px-1.5 py-0.5 rounded-full">
-                      AI
+                      .SI
                     </span>
-                    {backendType === "supabase" && (
-                      <span className="text-[9px] font-bold tracking-wider bg-neutral-100 text-neutral-800 border border-neutral-300 px-1.5 py-0.5 rounded-full hidden sm:flex items-center gap-0.5">
-                        <Cloud className="w-2.5 h-2.5" /> Supabase
-                      </span>
-                    )}
                   </div>
                   <span className="text-[11px] text-neutral-500 -mt-1 hidden sm:inline">
                     Verified AI Gig Platform

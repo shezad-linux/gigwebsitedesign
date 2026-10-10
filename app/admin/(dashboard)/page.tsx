@@ -37,6 +37,9 @@ import {
   BarChart3,
   Award,
   LogOut,
+  Tag,
+  Globe,
+  Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -69,6 +72,8 @@ import {
 } from "@/lib/operations";
 import { apiClient } from "@/lib/api";
 import { adminSignOutAction, getAdminSessionStatusAction } from "@/lib/supabase/auth-actions";
+import { CouponsManagementTab } from "@/components/admin/CouponsManagementTab";
+import { DomainHealthCard } from "@/components/admin/DomainHealthCard";
 
 type ActiveTab =
   | "listings"
@@ -76,6 +81,8 @@ type ActiveTab =
   | "evidence"
   | "reports"
   | "monetization"
+  | "coupons"
+  | "domain"
   | "checklist"
   | "audit";
 
@@ -89,9 +96,8 @@ export default function AdminPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | PublicationStatus>("all");
   const [reportStatusFilter, setReportStatusFilter] = useState<"all" | ReportStatus>("all");
-  const [adminEmail, setAdminEmail] = useState<string>("admin@gigmatcher.io");
+  const [adminEmail, setAdminEmail] = useState<string>("admin@remotasks.si");
   const [adminRole, setAdminRole] = useState<string>("admin");
-  const [isDemo, setIsDemo] = useState<boolean>(false);
 
   // Modals state
   const [isListingModalOpen, setIsListingModalOpen] = useState(false);
@@ -242,7 +248,6 @@ export default function AdminPage() {
     getAdminSessionStatusAction().then((status) => {
       if (status.email) setAdminEmail(status.email);
       if (status.role) setAdminRole(status.role);
-      if (status.isDemo) setIsDemo(true);
     });
 
     const handleGigsUpdate = () => loadAllData();
@@ -859,11 +864,6 @@ export default function AdminPage() {
                   {adminRole}
                 </span>
               </div>
-              {isDemo && (
-                <Badge variant="outline" size="sm" className="bg-neutral-100 text-black border-neutral-300">
-                  Demo Auth
-                </Badge>
-              )}
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-ink mt-2 tracking-tight">
               Gig Operations & Review Center
@@ -1081,6 +1081,30 @@ export default function AdminPage() {
           >
             <TrendingUp className="w-4 h-4" />
             Monetization & Ads ({affiliatePartners.length})
+          </button>
+
+          <button
+            onClick={() => setActiveTab("coupons")}
+            className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
+              activeTab === "coupons"
+                ? "border-black text-black"
+                : "border-transparent text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <Tag className="w-4 h-4" />
+            Coupons & Pricing
+          </button>
+
+          <button
+            onClick={() => setActiveTab("domain")}
+            className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
+              activeTab === "domain"
+                ? "border-black text-black"
+                : "border-transparent text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <Globe className="w-4 h-4" />
+            Domain & Email
           </button>
 
           <button
@@ -1904,6 +1928,19 @@ export default function AdminPage() {
           </div>
         )}
 
+        {/* TAB: COUPONS & PRICING MANAGEMENT */}
+        {activeTab === "coupons" && (
+          <CouponsManagementTab showToast={showToast} />
+        )}
+
+        {/* TAB: DOMAIN & EMAIL DELIVERABILITY */}
+        {activeTab === "domain" && (
+          <DomainHealthCard
+            adminEmail={adminEmail}
+            onRefreshChecklist={loadAllData}
+          />
+        )}
+
         {/* TAB 6: LAUNCH READINESS CHECKLIST */}
         {activeTab === "checklist" && (
           <div className="space-y-6">
@@ -2002,6 +2039,21 @@ export default function AdminPage() {
                       {item.notes && (
                         <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 text-xs text-slate-700">
                           <span className="font-bold text-slate-900">Verification Stamp:</span> {item.notes}
+                        </div>
+                      )}
+
+                      {item.id === "chk_01_domain_https" && (
+                        <div className="pt-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setActiveTab("domain")}
+                            className="text-xs h-7 gap-1.5 font-bold border-black text-black hover:bg-neutral-100 rounded-lg"
+                          >
+                            <Globe className="w-3.5 h-3.5" />
+                            Open Domain & Email Deliverability Center
+                          </Button>
                         </div>
                       )}
                     </div>

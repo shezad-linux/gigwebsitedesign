@@ -110,7 +110,7 @@ export async function checkUrlHealth(
       method: "HEAD",
       signal: controller.signal,
       headers: {
-        "User-Agent": "AIGigMatcher-HealthCheck/1.0 (+https://aigigmatcher.com)",
+        "User-Agent": "Remotasks-HealthCheck/1.0 (+https://remotasks.si)",
       },
     });
 
@@ -120,7 +120,7 @@ export async function checkUrlHealth(
         method: "GET",
         signal: controller.signal,
         headers: {
-          "User-Agent": "AIGigMatcher-HealthCheck/1.0 (+https://aigigmatcher.com)",
+          "User-Agent": "Remotasks-HealthCheck/1.0 (+https://remotasks.si)",
         },
       });
     }

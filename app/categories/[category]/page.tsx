@@ -124,14 +124,14 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const meta = CATEGORIES_DATA[params.category.toLowerCase()];
   if (!meta) {
-    return { title: "Category Not Found | GigMatcher" };
+    return { title: "Category Not Found | Remotasks.si" };
   }
 
   return {
-    title: `${meta.name} Gigs & Platforms (Verified Rates) | GigMatcher`,
+    title: `${meta.name} Gigs & Platforms (Verified Rates) | Remotasks.si`,
     description: `${meta.headline}. Verified pay ranges of ${meta.typicalPay}, country eligibility, and direct application links for top AI companies.`,
     alternates: {
-      canonical: `https://gigmatcher.io/categories/${meta.slug}`,
+      canonical: `https://remotasks.si/categories/${meta.slug}`,
     },
   };
 }

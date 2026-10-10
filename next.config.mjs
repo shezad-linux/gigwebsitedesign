@@ -2,6 +2,9 @@
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  experimental: {
+    serverComponentsExternalPackages: ["pdfjs-dist", "mammoth"],
+  },
   headers: async () => [
     {
       source: "/(.*)",
@@ -29,6 +32,20 @@ const nextConfig = {
         {
           key: "Permissions-Policy",
           value: "camera=(), microphone=(), geolocation=(), browsing-topics=()",
+        },
+        {
+          key: "Content-Security-Policy",
+          value: [
+            "default-src 'self'",
+            "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+            "style-src 'self' 'unsafe-inline'",
+            "img-src 'self' data: https:",
+            "font-src 'self' data:",
+            "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com https://api.openai.com",
+            "frame-ancestors 'none'",
+            "base-uri 'self'",
+            "form-action 'self'",
+          ].join("; "),
         },
       ],
     },

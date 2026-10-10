@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   FileText,
@@ -20,6 +20,7 @@ import {
   ExternalLink,
   Info,
   ShieldCheck,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -79,36 +80,30 @@ export default function OnboardingPage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [isParsing, setIsParsing] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Form State
-  const [fullName, setFullName] = useState("Alex Chen");
-  const [email, setEmail] = useState("alex.chen@example.com");
+  // Form State - Clean initial state for new candidate onboarding
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
   const [resume, setResume] = useState<UserResume | undefined>(undefined);
   const [customSkillInput, setCustomSkillInput] = useState("");
 
-  const [country, setCountry] = useState("India");
-  const [countryCode, setCountryCode] = useState("IN");
+  const [country, setCountry] = useState("United States");
+  const [countryCode, setCountryCode] = useState("US");
   const [workAuth, setWorkAuth] = useState("Independent Contractor (W-8BEN compliant)");
 
   const [languages, setLanguages] = useState<UserLanguage[]>([
     { name: "English", proficiency: "fluent" },
-    { name: "Hindi", proficiency: "native" },
   ]);
   const [newLangName, setNewLangName] = useState("");
   const [newLangProf, setNewLangProf] = useState<UserLanguage["proficiency"]>("fluent");
 
-  const [skills, setSkills] = useState<string[]>([
-    "Python",
-    "Java",
-    "Code Review",
-    "SQL",
-    "Git",
-    "Prompt Engineering",
-  ]);
+  const [skills, setSkills] = useState<string[]>([]);
   const [experienceLevel, setExperienceLevel] = useState<"entry" | "mid" | "expert">("mid");
-  const [yearsOfExperience, setYearsOfExperience] = useState(3);
-  const [portfolioUrl, setPortfolioUrl] = useState("https://github.com/alexchen-dev");
+  const [yearsOfExperience, setYearsOfExperience] = useState(1);
+  const [portfolioUrl, setPortfolioUrl] = useState("");
   const [extractedData, setExtractedData] = useState<{
     fileName: string;
     fileSize: number;
@@ -119,18 +114,14 @@ export default function OnboardingPage() {
   const [desiredCategories, setDesiredCategories] = useState<string[]>([
     "AI Coding",
     "AI Evaluation",
-    "Software & QA Testing",
   ]);
   const [remoteOnly, setRemoteOnly] = useState(true);
   const [weeklyHours, setWeeklyHours] = useState(20);
   const [preferredPayouts, setPreferredPayouts] = useState<string[]>([
     "PayPal",
     "Wise",
-    "Direct Deposit",
   ]);
-  const [bio, setBio] = useState(
-    "Full-stack engineer and AI code evaluator with 3 years background in Java, Python, and API development."
-  );
+  const [bio, setBio] = useState("");
 
   useEffect(() => {
     const existing = getStoredProfile();
@@ -153,9 +144,8 @@ export default function OnboardingPage() {
     }
   }, []);
 
-  // Real Resume Document Upload & AI Parsing
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  // Process Document File (shared by file picker & drag-and-drop)
+  const processFile = async (file: File) => {
     if (!file) return;
 
     setErrorMsg(null);
@@ -189,45 +179,34 @@ export default function OnboardingPage() {
     }
   };
 
-  const handleUseSampleResume = () => {
-    setIsParsing(true);
-    setTimeout(() => {
-      const sampleProfile: ExtractedProfileData = {
-        fullName: fullName || "Alex Chen",
-        email: email || "alex.chen@example.com",
-        country: country || "India",
-        countryCode: countryCode || "IN",
-        skills: [
-          "Python",
-          "Java",
-          "Code Review",
-          "SQL",
-          "Git",
-          "Unit Testing",
-          "Prompt Engineering",
-        ],
-        tools: ["Git", "Docker", "IntelliJ", "Postman"],
-        experienceLevel: "mid_level",
-        yearsOfExperience: 3,
-        evidence: [
-          { skill: "Java", sourceSection: "Projects", confidence: 0.95 },
-          { skill: "Python", sourceSection: "Work Experience", confidence: 0.95 },
-          { skill: "Code Review", sourceSection: "Work Experience", confidence: 0.9 },
-          { skill: "SQL", sourceSection: "Projects", confidence: 0.9 },
-          { skill: "Prompt Engineering", sourceSection: "Technical Skills", confidence: 0.85 },
-        ],
-        summary: "Software Developer experienced in Java Spring, Python automation, and software testing.",
-        needsUserReview: true,
-      };
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      await processFile(file);
+    }
+    e.target.value = "";
+  };
 
-      setExtractedData({
-        fileName: "Alex_Chen_Software_Engineer_Resume.pdf",
-        fileSize: 184500,
-        profile: sampleProfile,
-      });
-      setShowReviewModal(true);
-      setIsParsing(false);
-    }, 400);
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      await processFile(file);
+    }
   };
 
   const handleConfirmExtraction = (confirmed: {
@@ -236,6 +215,7 @@ export default function OnboardingPage() {
     phone?: string;
     country?: string;
     countryCode?: string;
+    languages?: UserLanguage[];
     skills: string[];
     experienceLevel: string;
     yearsOfExperience: number;
@@ -245,6 +225,9 @@ export default function OnboardingPage() {
     if (confirmed.email) setEmail(confirmed.email);
     if (confirmed.country) setCountry(confirmed.country);
     if (confirmed.countryCode) setCountryCode(confirmed.countryCode);
+    if (confirmed.languages && confirmed.languages.length > 0) {
+      setLanguages(confirmed.languages);
+    }
     setSkills(confirmed.skills);
     setExperienceLevel(
       confirmed.experienceLevel === "senior"
@@ -333,12 +316,13 @@ export default function OnboardingPage() {
   };
 
   const handleFinishOnboarding = async () => {
+    const existing = getStoredProfile();
     const finalProfile: UserProfile = {
-      id: "user_demo_01",
+      id: existing?.id || "candidate_" + Math.random().toString(36).substring(2, 9),
       fullName: fullName.trim() || "Candidate",
-      email: email.trim() || "candidate@example.com",
-      country,
-      countryCode,
+      email: email.trim(),
+      country: country || "United States",
+      countryCode: countryCode || "US",
       workAuthorization: workAuth,
       languages,
       skills,
@@ -352,7 +336,7 @@ export default function OnboardingPage() {
       bio,
       resume,
       hasCompletedOnboarding: true,
-      createdAt: new Date().toISOString(),
+      createdAt: existing?.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
@@ -456,44 +440,66 @@ export default function OnboardingPage() {
             ) : !resume ? (
               <div className="space-y-4">
                 {/* Upload Box */}
-                <div className="border-2 border-dashed border-slate-300 hover:border-brand-500 rounded-2xl p-8 text-center bg-slate-50/50 transition-colors">
-                  <div className="h-12 w-12 rounded-full bg-brand-50 text-brand-600 mx-auto flex items-center justify-center mb-3">
-                    <Upload className="w-6 h-6" />
-                  </div>
-                  <h3 className="text-sm font-semibold text-ink">
-                    Drop your resume here, or{" "}
-                    <label className="text-brand-600 hover:underline cursor-pointer">
-                      browse
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept=".pdf,.docx,.doc"
-                        onChange={handleFileUpload}
-                      />
-                    </label>
-                  </h3>
-                  <p className="text-xs text-ink-muted mt-1">Supports PDF, DOCX, or DOC (up to 5 MB)</p>
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={() => !isParsing && fileInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer ${
+                    isDragging
+                      ? "border-black bg-neutral-100 scale-[1.01]"
+                      : "border-neutral-300 hover:border-black bg-neutral-50/70"
+                  }`}
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    className="hidden"
+                    accept=".pdf,.docx,.txt,.md,.rtf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
+                    onChange={handleFileUpload}
+                    disabled={isParsing}
+                  />
 
-                  <div className="mt-4 pt-4 border-t border-slate-200/60 flex flex-wrap items-center justify-center gap-3">
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      onClick={handleUseSampleResume}
-                      isLoading={isParsing}
-                    >
-                      <FileText className="w-3.5 h-3.5 mr-1 text-brand-600" />
-                      Load Full Demo Candidate Resume
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setCurrentStep(2)}
-                    >
-                      Skip & Enter Manually →
-                    </Button>
-                  </div>
+                  {isParsing ? (
+                    <div className="py-6 flex flex-col items-center justify-center space-y-3">
+                      <div className="h-12 w-12 rounded-full bg-neutral-200 border border-neutral-300 flex items-center justify-center text-black">
+                        <Loader2 className="w-6 h-6 animate-spin text-black" />
+                      </div>
+                      <h3 className="text-sm font-semibold text-black">
+                        Extracting candidate facts & skills...
+                      </h3>
+                      <p className="text-xs text-neutral-500">
+                        Analyzing document sections into verified skills and evidence
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="h-12 w-12 rounded-full bg-neutral-200 text-black mx-auto flex items-center justify-center mb-3">
+                        <Upload className="w-6 h-6" />
+                      </div>
+                      <h3 className="text-sm font-semibold text-black">
+                        {isDragging ? "Drop your resume now" : "Click to select or drag & drop your resume"}
+                      </h3>
+                      <p className="text-xs text-neutral-500 mt-1">
+                        Supports PDF, DOCX, or TXT (up to 5 MB)
+                      </p>
+
+                      <div className="mt-4 pt-4 border-t border-neutral-200 flex flex-wrap items-center justify-center gap-3">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCurrentStep(2);
+                          }}
+                          className="text-xs text-neutral-600 hover:text-black"
+                        >
+                          Skip & Enter Manually →
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 <div className="p-3 bg-brand-50/70 border border-brand-200/60 rounded-xl flex items-start gap-2.5 text-xs text-brand-800">

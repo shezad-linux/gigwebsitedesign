@@ -4,6 +4,7 @@ import { createClient, getServerUserRole, UserRole } from "./server";
 import { isSupabaseConfigured } from "./client";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export interface LoginActionResult {
   success: boolean;
@@ -32,14 +33,23 @@ export async function adminLoginAction(
     };
   }
 
-  // Handle local development without Supabase
-  if (!isSupabaseConfigured()) {
-    // If not configured, allow local dev admin access with simulated session
+  // Rate limiting: max 5 login attempts per 60s per email to stop credential stuffing
+  const rateLimit = checkRateLimit(`admin-login:${email.toLowerCase()}`, {
+    interval: 60_000,
+    uniqueTokenPerInterval: 5,
+  });
+
+  if (!rateLimit.success) {
     return {
-      success: true,
-      role: "admin",
-      email,
-      isDemo: true,
+      success: false,
+      error: "Too many sign-in attempts. Please wait 60 seconds before trying again.",
+    };
+  }
+
+  if (!isSupabaseConfigured()) {
+    return {
+      success: false,
+      error: "Authentication service unavailable: Supabase credentials are not configured in environment variables.",
     };
   }
 
@@ -112,15 +122,13 @@ export async function getAdminSessionStatusAction(): Promise<{
   authorized: boolean;
   role: UserRole | null;
   email: string | null;
-  isDemo?: boolean;
 }> {
   if (!isSupabaseConfigured()) {
     return {
-      authenticated: true,
-      authorized: true,
-      role: "admin",
-      email: "demo-admin@gigmatcher.local",
-      isDemo: true,
+      authenticated: false,
+      authorized: false,
+      role: null,
+      email: null,
     };
   }
 

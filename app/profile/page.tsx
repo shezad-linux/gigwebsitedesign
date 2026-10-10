@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
   User,
@@ -55,7 +55,9 @@ export default function ProfilePage() {
 
   // Phase 3 Resume Parsing & Review State
   const [isParsingResume, setIsParsingResume] = useState(false);
+  const [isDraggingResume, setIsDraggingResume] = useState(false);
   const [parseError, setParseError] = useState<string | null>(null);
+  const profileFileInputRef = useRef<HTMLInputElement>(null);
   const [extractedData, setExtractedData] = useState<{
     fileName: string;
     fileSize: number;
@@ -94,7 +96,7 @@ export default function ProfilePage() {
   };
 
   const handleResetProfile = () => {
-    if (confirm("Reset profile to default verified candidate template?")) {
+    if (confirm("Reset profile and matching preferences to default?")) {
       const reset = resetStoredProfile();
       setProfile(reset);
       setSavedSuccess(true);
@@ -103,8 +105,7 @@ export default function ProfilePage() {
   };
 
   // Upload and parse real resume document via server API
-  const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const processResumeFile = async (file: File) => {
     if (!file) return;
 
     setParseError(null);
@@ -135,8 +136,36 @@ export default function ProfilePage() {
       setParseError(err.message || "Failed to process resume. Please try again.");
     } finally {
       setIsParsingResume(false);
-      // Reset input value so user can re-upload same file if desired
-      e.target.value = "";
+    }
+  };
+
+  const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      await processResumeFile(file);
+    }
+    e.target.value = "";
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingResume(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingResume(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingResume(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      await processResumeFile(file);
     }
   };
 
@@ -188,6 +217,7 @@ export default function ProfilePage() {
     phone?: string;
     country?: string;
     countryCode?: string;
+    languages?: UserLanguage[];
     skills: string[];
     experienceLevel: string;
     yearsOfExperience: number;
@@ -199,6 +229,10 @@ export default function ProfilePage() {
       email: confirmed.email || profile.email,
       country: confirmed.country || profile.country,
       countryCode: confirmed.countryCode || profile.countryCode,
+      languages:
+        confirmed.languages && confirmed.languages.length > 0
+          ? confirmed.languages
+          : profile.languages,
       skills: confirmed.skills,
       experienceLevel:
         confirmed.experienceLevel === "senior"
@@ -386,9 +420,9 @@ export default function ProfilePage() {
               variant="secondary"
               size="sm"
               onClick={handleResetProfile}
-              className="text-xs text-slate-600"
+              className="text-xs text-neutral-600 hover:text-black border-neutral-300"
             >
-              <RotateCcw className="w-3.5 h-3.5 mr-1" /> Reset to Demo Profile
+              <RotateCcw className="w-3.5 h-3.5 mr-1" /> Reset Profile
             </Button>
             <Button href="/dashboard" size="sm" className="text-xs">
               View Matches <ArrowRight className="w-3.5 h-3.5 ml-1" />
@@ -573,7 +607,7 @@ export default function ProfilePage() {
                       <label className="cursor-pointer">
                         <input
                           type="file"
-                          accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                          accept=".pdf,.docx,.txt,.md,.rtf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
                           onChange={handleResumeUpload}
                           disabled={isParsingResume}
                           className="hidden"
@@ -583,7 +617,7 @@ export default function ProfilePage() {
                           variant="secondary"
                           size="sm"
                           disabled={isParsingResume}
-                          className="text-xs pointer-events-none"
+                          className="text-xs pointer-events-none border-neutral-300 bg-white text-black hover:bg-neutral-100"
                         >
                           {isParsingResume ? (
                             <>
@@ -602,56 +636,63 @@ export default function ProfilePage() {
                   </div>
                 </div>
               ) : (
-                <div className="p-6 rounded-xl border border-dashed border-slate-300 bg-slate-50/50 text-center space-y-4">
-                  <div className="mx-auto w-12 h-12 rounded-full bg-brand-50 flex items-center justify-center text-brand-600">
-                    <Upload className="w-6 h-6" />
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={() => !isParsingResume && profileFileInputRef.current?.click()}
+                  className={`p-6 rounded-xl border-2 border-dashed text-center space-y-4 transition-all cursor-pointer ${
+                    isDraggingResume
+                      ? "border-black bg-neutral-100 scale-[1.01]"
+                      : "border-neutral-300 hover:border-black bg-neutral-50/70"
+                  }`}
+                >
+                  <input
+                    ref={profileFileInputRef}
+                    type="file"
+                    accept=".pdf,.docx,.txt,.md,.rtf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
+                    onChange={handleResumeUpload}
+                    disabled={isParsingResume}
+                    className="hidden"
+                  />
+                  <div className="mx-auto w-12 h-12 rounded-full bg-neutral-200 flex items-center justify-center text-black">
+                    {isParsingResume ? (
+                      <Loader2 className="w-6 h-6 animate-spin text-black" />
+                    ) : (
+                      <Upload className="w-6 h-6" />
+                    )}
                   </div>
                   <div className="max-w-md mx-auto space-y-1">
-                    <p className="text-sm font-bold text-ink">Upload your PDF or DOCX Resume</p>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-sm font-bold text-black">
+                      {isParsingResume
+                        ? "Extracting skills and verifying facts..."
+                        : isDraggingResume
+                        ? "Drop your resume now"
+                        : "Upload your PDF, DOCX, or TXT Resume"}
+                    </p>
+                    <p className="text-xs text-neutral-500">
                       Our server-side AI extracts your concrete technical skills and evidence without guessing. You review and approve before saving.
                     </p>
                   </div>
 
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-                    <label className="cursor-pointer w-full sm:w-auto">
-                      <input
-                        type="file"
-                        accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                        onChange={handleResumeUpload}
-                        disabled={isParsingResume}
-                        className="hidden"
-                      />
-                      <Button
-                        type="button"
-                        size="sm"
-                        disabled={isParsingResume}
-                        className="w-full sm:w-auto text-xs pointer-events-none shadow-xs"
-                      >
-                        {isParsingResume ? (
-                          <>
-                            <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                            Parsing Document...
-                          </>
-                        ) : (
-                          <>
-                            <Upload className="w-3.5 h-3.5 mr-1.5" />
-                            Select Resume File
-                          </>
-                        )}
-                      </Button>
-                    </label>
-
                     <Button
                       type="button"
-                      variant="secondary"
                       size="sm"
-                      onClick={handleUseSampleResume}
                       disabled={isParsingResume}
-                      className="w-full sm:w-auto text-xs"
+                      className="w-full sm:w-auto text-xs pointer-events-none shadow-xs bg-black text-white hover:bg-neutral-800"
                     >
-                      <Sparkles className="w-3.5 h-3.5 mr-1.5 text-brand-600" />
-                      Try Sample Developer Resume
+                      {isParsingResume ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                          Parsing Document...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-3.5 h-3.5 mr-1.5" />
+                          Select Resume File
+                        </>
+                      )}
                     </Button>
                   </div>
                 </div>

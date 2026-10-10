@@ -615,7 +615,7 @@ export const apiClient = {
     reportId: string,
     status: ReportStatus,
     resolutionNotes?: string,
-    actorEmail = "admin@gigmatcher.io"
+    actorEmail = "admin@remotasks.si"
   ): Promise<void> {
     if (isSupabaseConfigured()) {
       try {

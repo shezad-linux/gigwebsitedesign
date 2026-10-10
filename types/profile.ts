@@ -1,6 +1,6 @@
 export interface UserLanguage {
   name: string;
-  proficiency: "native" | "fluent" | "professional" | "basic";
+  proficiency: "native" | "fluent" | "professional" | "conversational" | "basic";
 }
 
 export interface UserResume {

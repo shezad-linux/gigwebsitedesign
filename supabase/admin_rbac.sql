@@ -159,9 +159,19 @@ DO $$
 BEGIN
     IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'gig_listings') THEN
         EXECUTE 'DROP POLICY IF EXISTS "Admin or service role can modify gig listings" ON public.gig_listings';
+        EXECUTE 'DROP POLICY IF EXISTS "Public read access for gig listings" ON public.gig_listings';
+        EXECUTE 'DROP POLICY IF EXISTS "Public can view published gigs, admins and reviewers can view all" ON public.gig_listings';
         EXECUTE 'DROP POLICY IF EXISTS "Admins can insert gig listings" ON public.gig_listings';
         EXECUTE 'DROP POLICY IF EXISTS "Admins and reviewers can update gig listings" ON public.gig_listings';
         EXECUTE 'DROP POLICY IF EXISTS "Admins can delete gig listings" ON public.gig_listings';
+
+        EXECUTE 'CREATE POLICY "Public can view published gigs, admins and reviewers can view all"
+            ON public.gig_listings FOR SELECT
+            USING (
+                publication_status = ''published''
+                OR public.is_admin_or_reviewer()
+                OR auth.role() = ''service_role''
+            )';
 
         EXECUTE 'CREATE POLICY "Admins can insert gig listings"
             ON public.gig_listings FOR INSERT

@@ -22,7 +22,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { adminLoginAction, getAdminSessionStatusAction } from "@/lib/supabase/auth-actions";
 
 function AdminLoginForm() {
@@ -37,7 +36,6 @@ function AdminLoginForm() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showSetupGuide, setShowSetupGuide] = useState(false);
-  const [isConfigured, setIsConfigured] = useState(true);
   const [currentSession, setCurrentSession] = useState<{
     authenticated: boolean;
     authorized: boolean;
@@ -46,8 +44,6 @@ function AdminLoginForm() {
   } | null>(null);
 
   useEffect(() => {
-    setIsConfigured(isSupabaseConfigured());
-
     // Check if user already has an active session
     getAdminSessionStatusAction().then((status) => {
       setCurrentSession(status);
@@ -80,9 +76,7 @@ function AdminLoginForm() {
       }
 
       setSuccessMessage(
-        result.isDemo
-          ? "Local demo administrator session initialized. Redirecting..."
-          : `Signed in as ${result.role} (${result.email}). Redirecting to Admin Dashboard...`
+        `Signed in as ${result.role} (${result.email}). Redirecting to Admin Dashboard...`
       );
 
       setTimeout(() => {
@@ -175,18 +169,6 @@ function AdminLoginForm() {
               </div>
             )}
 
-            {!isConfigured && (
-              <div className="p-3 rounded-lg bg-neutral-900 border border-neutral-700 text-neutral-300 text-xs flex items-start gap-2">
-                <AlertTriangle className="w-4 h-4 text-neutral-400 shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-medium text-white">Local Mockup Mode Active</p>
-                  <p className="text-neutral-400 text-[11px] mt-0.5">
-                    Supabase credentials are not set in .env.local. Sign in with any credentials to simulate admin dashboard access.
-                  </p>
-                </div>
-              </div>
-            )}
-
             {currentSession?.authenticated && !currentSession?.authorized && (
               <div className="p-3 rounded-lg bg-neutral-900 border border-neutral-700 text-neutral-300 text-xs flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 text-neutral-400 shrink-0 mt-0.5" />
@@ -213,7 +195,7 @@ function AdminLoginForm() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="admin@gigmatcher.io"
+                    placeholder="admin@remotasks.si"
                     className="block w-full rounded-lg border border-neutral-800 bg-[#141414] pl-9 pr-3 py-2 text-sm text-white placeholder-neutral-600 focus:border-white focus:outline-none focus:ring-1 focus:ring-white/30 transition-all font-mono"
                   />
                 </div>

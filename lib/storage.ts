@@ -9,50 +9,7 @@ const STORAGE_KEYS = {
   APPLICATIONS: "gigmatcher_applications_v1",
 };
 
-export const INITIAL_APPLICATIONS: TrackedApplication[] = [
-  {
-    id: "app_init_01",
-    gigId: "gig-outlier-01",
-    gigSlug: "ai-coding-evaluation-outlier",
-    platformName: "Outlier AI",
-    roleTitle: "AI Coding Evaluation & Code Review",
-    category: "AI Coding",
-    status: "Shortlisted",
-    appliedDate: "2025-05-09",
-    lastUpdated: "2025-05-10",
-    notes: "Top match (92%). Prepared LeetCode algorithms review and verified W-8BEN requirements.",
-    paySummary: "$40 / hour",
-    officialUrl: "https://outlier.ai",
-  },
-  {
-    id: "app_init_02",
-    gigId: "gig-mindrift-01",
-    gigSlug: "llm-reasoning-evaluator-mindrift",
-    platformName: "Mindrift",
-    roleTitle: "LLM Reasoning & Factuality Evaluator",
-    category: "AI Evaluation",
-    status: "Applied",
-    appliedDate: "2025-05-08",
-    lastUpdated: "2025-05-08",
-    notes: "Completed reasoning test; awaiting reviewer assessment response via email.",
-    paySummary: "$22 / hour",
-    officialUrl: "https://mindrift.ai",
-  },
-  {
-    id: "app_init_03",
-    gigId: "gig-testlio-01",
-    gigSlug: "exploratory-mobile-ai-tester-testlio",
-    platformName: "Testlio",
-    roleTitle: "Exploratory Mobile App & AI Assistant Tester",
-    category: "Software & QA Testing",
-    status: "Onboarding",
-    appliedDate: "2025-05-05",
-    lastUpdated: "2025-05-07",
-    notes: "Registered iPhone 15 & MacBook hardware specs. Scheduled sample bug report trial.",
-    paySummary: "$28 / hour",
-    officialUrl: "https://testlio.com",
-  },
-];
+export const INITIAL_APPLICATIONS: TrackedApplication[] = [];
 
 /* ==================== Profile Storage ==================== */
 
@@ -126,6 +83,12 @@ export function getStoredGigs(): GigListing[] {
     if (!Array.isArray(parsed) || parsed.length === 0) {
       localStorage.setItem(STORAGE_KEYS.GIGS, JSON.stringify(MOCK_GIGS));
       return MOCK_GIGS;
+    }
+    const missing = MOCK_GIGS.filter((mg) => !parsed.some((pg: any) => pg.id === mg.id));
+    if (missing.length > 0) {
+      const merged = [...missing, ...parsed];
+      localStorage.setItem(STORAGE_KEYS.GIGS, JSON.stringify(merged));
+      return merged as GigListing[];
     }
     return parsed as GigListing[];
   } catch (e) {

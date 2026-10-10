@@ -13,7 +13,7 @@ export const Footer: React.FC = () => {
               <div className="h-8 w-8 rounded-lg bg-black flex items-center justify-center text-white">
                 <Sparkles className="h-4 w-4" />
               </div>
-              <span className="font-bold text-lg text-black">GigMatcher</span>
+              <span className="font-bold text-lg text-black">Remotasks</span>
             </div>
             <p className="text-xs text-neutral-500 leading-relaxed">
               Transparent, verified discovery platform for AI evaluation, coding benchmarks, and data annotation freelance gigs.
@@ -85,13 +85,13 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/profile" className="hover:text-black transition-colors">
-                  Profile & Preferences
+                <Link href="/pricing" className="hover:text-black transition-colors font-medium text-black">
+                  Services & Pricing (Coupons)
                 </Link>
               </li>
               <li>
-                <Link href="/admin" className="hover:text-black transition-colors">
-                  Admin Listing Catalog
+                <Link href="/profile" className="hover:text-black transition-colors">
+                  Profile & Preferences
                 </Link>
               </li>
             </ul>
@@ -113,7 +113,7 @@ export const Footer: React.FC = () => {
 
         {/* Bottom bar */}
         <div className="mt-12 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-4">
-          <p>© {new Date().getFullYear()} GigMatcher. Verified AI Freelance Matcher. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Remotasks.si. Verified AI Freelance Matcher. All rights reserved.</p>
           <div className="flex flex-wrap gap-5">
             <Link href="/privacy" className="hover:text-slate-600 transition-colors">
               Privacy Policy

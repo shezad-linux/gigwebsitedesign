@@ -147,13 +147,13 @@ export async function generateMetadata({
   params: { slug: string };
 }): Promise<Metadata> {
   const article = ARTICLES_DATA[params.slug];
-  if (!article) return { title: "Guide Not Found | GigMatcher" };
+  if (!article) return { title: "Guide Not Found | Remotasks.si" };
 
   return {
-    title: `${article.title} | GigMatcher Guides`,
+    title: `${article.title} | Remotasks.si Guides`,
     description: article.introduction.slice(0, 160),
     alternates: {
-      canonical: `https://gigmatcher.io/guides/${article.slug}`,
+      canonical: `https://remotasks.si/guides/${article.slug}`,
     },
   };
 }

@@ -289,7 +289,7 @@ function DashboardContent() {
                 </span>
               </div>
               <p className="text-xs text-neutral-500 mt-0.5" suppressHydrationWarning>
-                Deterministic formula active across {profile.skills?.length || 0} skills · Geographic screening rules set for {profile.country} ({profile.countryCode})
+                Deterministic formula active across {profile.skills?.length || 0} skills · Geographic screening rules set for {profile.country ? `${profile.country} (${profile.countryCode || ""})` : "All Regions"}
               </p>
             </div>
           </div>

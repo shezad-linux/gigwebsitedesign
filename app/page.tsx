@@ -44,7 +44,7 @@ export default function LandingPage() {
           </h2>
 
           <p className="text-base sm:text-lg text-neutral-400 max-w-2xl mx-auto">
-            Take 2 minutes to create your profile or test a mock resume upload. Match with 15+ verified, paying platforms with zero spam.
+            Take 2 minutes to customize your profile and skills. Match with 15+ verified, paying platforms with zero spam.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
@@ -67,7 +67,7 @@ export default function LandingPage() {
 
           <p className="text-xs text-neutral-500 pt-2 flex items-center justify-center gap-2">
             <ShieldCheck className="w-4 h-4" />
-            100% Client-Side Prototype · No Login Required · Instant Match Results
+            Verified Opportunities · Zero Middlemen · Instant Deterministic Match Results
           </p>
         </div>
       </section>

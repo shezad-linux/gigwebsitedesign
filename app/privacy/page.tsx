@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy & Data Protection | GigMatcher",
+  title: "Privacy Policy & Data Protection | Remotasks.si",
   description:
-    "Learn how GigMatcher protects your privacy, safely processes resume uploads, enforces local-first data isolation, and guarantees instant data deletion.",
+    "Learn how Remotasks.si protects your privacy, safely processes resume uploads, enforces local-first data isolation, and guarantees instant data deletion.",
   alternates: {
-    canonical: "https://gigmatcher.io/privacy",
+    canonical: "https://remotasks.si/privacy",
   },
 };
 
@@ -125,7 +125,7 @@ export default function PrivacyPolicyPage() {
               For inquiries regarding data protection, CCPA disclosures, or manual deletion requests, contact our privacy team at:
             </p>
             <p className="font-semibold text-brand-600 text-sm">
-              privacy@gigmatcher.io
+              privacy@remotasks.si
             </p>
           </section>
         </div>

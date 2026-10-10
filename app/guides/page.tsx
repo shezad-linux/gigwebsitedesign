@@ -15,11 +15,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
-  title: "AI Gig Qualification Guides & Onboarding Preparation | GigMatcher",
+  title: "AI Gig Qualification Guides & Onboarding Preparation | Remotasks.si",
   description:
     "Free practical guides to passing baseline evaluation assessments on Outlier AI, DataAnnotation, Alignerr, Mindrift, and Testlio.",
   alternates: {
-    canonical: "https://gigmatcher.io/guides",
+    canonical: "https://remotasks.si/guides",
   },
 };
 
