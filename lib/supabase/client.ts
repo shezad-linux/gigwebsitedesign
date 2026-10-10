@@ -12,7 +12,8 @@ export function isSupabaseConfigured(): boolean {
   return (
     url.length > 0 &&
     anonKey.length > 0 &&
-    !url.includes("your-project-id")
+    !url.includes("your-project-id") &&
+    !anonKey.includes("your-supabase-anon-key")
   );
 }
 

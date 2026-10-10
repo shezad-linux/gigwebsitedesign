@@ -23,7 +23,8 @@ export const isSupabaseConfigured = (): boolean => {
     supabaseUrl.trim().length > 0 &&
     typeof supabaseAnonKey === "string" &&
     supabaseAnonKey.trim().length > 0 &&
-    !supabaseUrl.includes("your-project-id")
+    !supabaseUrl.includes("your-project-id") &&
+    !supabaseAnonKey.includes("your-supabase-anon-key")
   );
 };
 
@@ -78,7 +79,9 @@ export async function signUpWithSupabase(email: string, password: string, fullNa
 
 export async function signInWithGoogleOAuth() {
   if (!supabase) throw new Error("Supabase is not configured yet. Please configure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.");
-  const redirectUrl = typeof window !== "undefined" ? window.location.origin : undefined;
+  const redirectUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/auth/callback`
+    : undefined;
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {

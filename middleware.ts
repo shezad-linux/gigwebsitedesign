@@ -16,7 +16,8 @@ export async function middleware(request: NextRequest) {
     if (
       !supabaseUrl ||
       !supabaseAnonKey ||
-      supabaseUrl.includes("your-project-id")
+      supabaseUrl.includes("your-project-id") ||
+      supabaseAnonKey.includes("your-supabase-anon-key")
     ) {
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = "/admin/login";
@@ -29,7 +30,8 @@ export async function middleware(request: NextRequest) {
   if (
     !supabaseUrl ||
     !supabaseAnonKey ||
-    supabaseUrl.includes("your-project-id")
+    supabaseUrl.includes("your-project-id") ||
+    supabaseAnonKey.includes("your-supabase-anon-key")
   ) {
     return supabaseResponse;
   }
