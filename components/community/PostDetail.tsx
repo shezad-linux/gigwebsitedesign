@@ -14,7 +14,6 @@ import { ReplyList } from "./ReplyList";
 import { ReplyForm } from "./ReplyForm";
 import { ReportDialog } from "./ReportDialog";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 
 interface PostDetailProps {
   post: CommunityPost;
@@ -25,6 +24,14 @@ export const PostDetail: React.FC<PostDetailProps> = ({ post, replies }) => {
   const [showReportDialog, setShowReportDialog] = useState<{ type: "post" | "reply"; id: string } | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<{ type: "post" | "reply"; id: string } | null>(null);
   const router = useRouter();
+
+  React.useEffect(() => {
+    const handleReplyCreated = () => {
+      router.refresh();
+    };
+    window.addEventListener("reply-created", handleReplyCreated);
+    return () => window.removeEventListener("reply-created", handleReplyCreated);
+  }, [router]);
 
   const timeAgo = formatDistanceToNow(new Date(post.created_at), { addSuffix: true });
   const hasAffiliateLink = post.link_url && post.affiliate_disclosure;

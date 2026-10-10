@@ -59,5 +59,5 @@ if (errors > 0) {
   console.error(`\n❌ Migration verification failed with ${errors} error(s).`);
   process.exit(1);
 } else {
-  console.log("\n🎉 All 11 Supabase SQL migrations verified successfully.");
+  console.log(`\n🎉 All ${REQUIRED_MIGRATIONS.length} Supabase SQL migrations verified successfully.`);
 }

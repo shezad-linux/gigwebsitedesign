@@ -68,7 +68,13 @@ export const CommunityPostCard: React.FC<CommunityPostCardProps> = ({ post }) =>
             <div className="flex items-center gap-2 text-sm">
               <ExternalLink className="w-4 h-4 text-neutral-500 flex-shrink-0" />
               <span className="text-neutral-700 truncate font-mono text-xs">
-                {new URL(post.link_url).hostname}
+                {(() => {
+                  try {
+                    return new URL(post.link_url).hostname;
+                  } catch {
+                    return post.link_url;
+                  }
+                })()}
               </span>
               {hasAffiliateLink && (
                 <span className="text-xs text-amber-700 px-2 py-0.5 bg-amber-100 rounded-full">

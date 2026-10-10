@@ -77,10 +77,10 @@ export async function signUpWithSupabase(email: string, password: string, fullNa
   return data;
 }
 
-export async function signInWithGoogleOAuth() {
+export async function signInWithGoogleOAuth(redirectToPath?: string) {
   if (!supabase) throw new Error("Supabase is not configured yet. Please configure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.");
   const redirectUrl = typeof window !== "undefined"
-    ? `${window.location.origin}/auth/callback`
+    ? `${window.location.origin}/auth/callback${redirectToPath ? `?next=${encodeURIComponent(redirectToPath)}` : ""}`
     : undefined;
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",

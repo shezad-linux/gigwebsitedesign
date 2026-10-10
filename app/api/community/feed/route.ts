@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { fetchCommunityFeed } from "@/lib/community/queries";
 import { feedQuerySchema } from "@/lib/community/validation";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);

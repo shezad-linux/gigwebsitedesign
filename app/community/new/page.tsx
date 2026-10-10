@@ -1,8 +1,8 @@
 import { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getServerAuthUser } from "@/lib/supabase/server";
 import { CreatePostForm } from "@/components/community/CreatePostForm";
+import { CommunityAuthPrompt } from "@/components/community/CommunityAuthPrompt";
 
 export const metadata: Metadata = {
   title: "Create Post — Community — Remotasks.si",
@@ -11,10 +11,13 @@ export const metadata: Metadata = {
 
 export default async function NewPostPage() {
   const supabase = createClient();
-  const user = supabase ? await getServerAuthUser() : null;
-
-  if (!user) {
-    redirect("/auth/callback?next=/community/new");
+  let user = null;
+  if (supabase) {
+    try {
+      user = await getServerAuthUser();
+    } catch {
+      user = null;
+    }
   }
 
   return (
@@ -27,7 +30,15 @@ export default async function NewPostPage() {
           </p>
         </header>
 
-        <CreatePostForm />
+        {user ? (
+          <CreatePostForm />
+        ) : (
+          <CommunityAuthPrompt
+            redirectTo="/community/new"
+            title="Sign in with Google to post"
+            description="To keep discussions helpful and protect the community from spam and scams, please sign in with Google before publishing."
+          />
+        )}
       </div>
     </div>
   );

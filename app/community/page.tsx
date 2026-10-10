@@ -22,7 +22,11 @@ export default async function CommunityPage({ searchParams }: CommunityPageProps
   let feedData: CommunityFeedResult = { posts: [], total: 0, page: 1, limit: 20, hasMore: false };
 
   if (supabase) {
-    feedData = await fetchCommunityFeed(supabase, { page, search, limit: 20 });
+    try {
+      feedData = await fetchCommunityFeed(supabase, { page, search, limit: 20 });
+    } catch (err) {
+      console.error("Failed to load community feed:", err);
+    }
   }
 
   return (

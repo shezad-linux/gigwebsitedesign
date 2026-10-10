@@ -39,7 +39,12 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
     notFound();
   }
 
-  const result = await fetchPostWithReplies(supabase, postId, false);
+  let result = null;
+  try {
+    result = await fetchPostWithReplies(supabase, postId, false);
+  } catch (err) {
+    console.error("Failed to load post:", err);
+  }
 
   if (!result) {
     notFound();

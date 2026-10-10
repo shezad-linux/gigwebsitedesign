@@ -17,6 +17,7 @@ import {
   LogOut,
   ChevronDown,
   Tag,
+  MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthModal } from "@/components/auth/AuthModal";
@@ -134,6 +135,7 @@ export const Navbar: React.FC = () => {
 
   const navLinks = [
     { label: "Find Gigs", href: "/dashboard", icon: Compass },
+    { label: "Community", href: "/community", icon: MessageSquare },
     { label: "Pricing", href: "/pricing", icon: Tag },
     { label: "Categories", href: "/#categories", icon: Layers },
     { label: "How It Works", href: "/#how-it-works", icon: Sparkles },

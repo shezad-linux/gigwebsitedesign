@@ -39,15 +39,20 @@ export const ReportDialog: React.FC<ReportDialogProps> = ({ targetType, targetId
     defaultValues: {
       reason: "other",
       details: "",
+      post_id: targetType === "post" ? targetId : undefined,
+      reply_id: targetType === "reply" ? targetId : undefined,
     },
   });
 
-  // Set the target ID based on type
-  if (targetType === "post") {
-    setValue("post_id", targetId, { shouldValidate: true });
-  } else {
-    setValue("reply_id", targetId, { shouldValidate: true });
-  }
+  React.useEffect(() => {
+    if (targetType === "post") {
+      setValue("post_id", targetId);
+      setValue("reply_id", undefined);
+    } else {
+      setValue("reply_id", targetId);
+      setValue("post_id", undefined);
+    }
+  }, [targetType, targetId, setValue]);
 
   const onSubmit = async (data: ReportInput) => {
     setIsSubmitting(true);

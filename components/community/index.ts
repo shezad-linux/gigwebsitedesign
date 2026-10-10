@@ -10,3 +10,4 @@ export { ReplyList } from "./ReplyList";
 export { ReplyForm } from "./ReplyForm";
 export { ReportDialog } from "./ReportDialog";
 export { ModerationActions } from "./ModerationActions";
+export { CommunityAuthPrompt } from "./CommunityAuthPrompt";
