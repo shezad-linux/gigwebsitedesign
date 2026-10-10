@@ -23,6 +23,7 @@ const REQUIRED_MIGRATIONS = [
   "setup_admin.sql",
   "coupons_schema.sql",
   "coupons_seed.sql",
+  "community_schema.sql",
 ];
 
 console.log("🔍 Verifying Supabase SQL Migrations...");
@@ -58,5 +59,5 @@ if (errors > 0) {
   console.error(`\n❌ Migration verification failed with ${errors} error(s).`);
   process.exit(1);
 } else {
-  console.log("\n🎉 All 10 Supabase SQL migrations verified successfully.");
+  console.log("\n🎉 All 11 Supabase SQL migrations verified successfully.");
 }

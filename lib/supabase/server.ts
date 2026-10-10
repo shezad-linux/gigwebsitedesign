@@ -134,6 +134,48 @@ export interface AdminVerificationResult {
   isDemoMode?: boolean;
 }
 
+export interface CommunityAuthResult {
+  authorized: boolean;
+  user: User | null;
+  reason?: string;
+}
+
+/**
+ * Server-enforced authentication for community operations (create post, reply, report).
+ * Requires any authenticated user.
+ */
+export async function verifyCommunityAuth(): Promise<CommunityAuthResult> {
+  if (!isSupabaseConfigured()) {
+    return {
+      authorized: false,
+      user: null,
+      reason: "Supabase authentication backend not configured. Access denied.",
+    };
+  }
+
+  const user = await getServerAuthUser();
+  if (!user) {
+    return {
+      authorized: false,
+      user: null,
+      reason: "No active session found. Please sign in.",
+    };
+  }
+
+  return {
+    authorized: true,
+    user,
+  };
+}
+
+/**
+ * Server-enforced role verification for community moderation operations.
+ * Requires admin or reviewer role.
+ */
+export async function verifyModeratorSession(): Promise<AdminVerificationResult> {
+  return verifyAdminSession(["admin", "reviewer"]);
+}
+
 /**
  * Server-enforced role verification for administrative operations.
  * Validates:
