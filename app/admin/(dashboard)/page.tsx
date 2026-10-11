@@ -74,11 +74,13 @@ import { apiClient } from "@/lib/api";
 import { adminSignOutAction, getAdminSessionStatusAction } from "@/lib/supabase/auth-actions";
 import { CouponsManagementTab } from "@/components/admin/CouponsManagementTab";
 import { DomainHealthCard } from "@/components/admin/DomainHealthCard";
+import { CommunityModerationTab } from "@/components/admin/CommunityModerationTab";
 
 type ActiveTab =
   | "listings"
   | "queue"
   | "evidence"
+  | "community"
   | "reports"
   | "monetization"
   | "coupons"
@@ -1055,6 +1057,18 @@ export default function AdminPage() {
           </button>
 
           <button
+            onClick={() => setActiveTab("community")}
+            className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
+              activeTab === "community"
+                ? "border-black text-black"
+                : "border-transparent text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <ShieldAlert className="w-4 h-4 text-red-500" />
+            Community Moderation
+          </button>
+
+          <button
             onClick={() => setActiveTab("reports")}
             className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
               activeTab === "reports"
@@ -1926,6 +1940,11 @@ export default function AdminPage() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* TAB: COMMUNITY EXCEPTION MODERATION */}
+        {activeTab === "community" && (
+          <CommunityModerationTab />
         )}
 
         {/* TAB: COUPONS & PRICING MANAGEMENT */}

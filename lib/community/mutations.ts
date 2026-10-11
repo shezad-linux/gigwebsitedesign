@@ -16,21 +16,32 @@ export interface CreatePostInput {
   body: string;
   link_url?: string | null;
   affiliate_disclosure?: string | null;
+  status?: "published" | "hidden" | "removed";
+  risk_level?: "low" | "medium" | "high";
+  flag_reason?: string | null;
+  review_status?: "none" | "needs_review" | "urgent" | "resolved";
 }
 
 export async function createPost(
   supabase: SupabaseClient,
   input: CreatePostInput
 ): Promise<CommunityPost | null> {
-  const { data, error } = await supabase
+  const payload: Record<string, any> = {
+    author_id: input.author_id,
+    title: input.title,
+    body: input.body,
+    link_url: input.link_url || null,
+    affiliate_disclosure: input.affiliate_disclosure || null,
+  };
+
+  if (input.status) payload.status = input.status;
+  if (input.risk_level) payload.risk_level = input.risk_level;
+  if (input.flag_reason) payload.flag_reason = input.flag_reason;
+  if (input.review_status) payload.review_status = input.review_status;
+
+  let result = await supabase
     .from("community_posts")
-    .insert({
-      author_id: input.author_id,
-      title: input.title,
-      body: input.body,
-      link_url: input.link_url || null,
-      affiliate_disclosure: input.affiliate_disclosure || null,
-    })
+    .insert(payload)
     .select(
       `
       id,
@@ -45,6 +56,36 @@ export async function createPost(
     `
     )
     .single();
+
+  // If column doesn't exist yet in Supabase, retry with base columns
+  if (result.error && (result.error.message?.includes("column") || result.error.code === "42703")) {
+    const basePayload = {
+      author_id: input.author_id,
+      title: input.title,
+      body: input.body,
+      link_url: input.link_url || null,
+      affiliate_disclosure: input.affiliate_disclosure || null,
+    };
+    result = await supabase
+      .from("community_posts")
+      .insert(basePayload)
+      .select(
+        `
+        id,
+        author_id,
+        title,
+        body,
+        link_url,
+        affiliate_disclosure,
+        status,
+        created_at,
+        updated_at
+      `
+      )
+      .single();
+  }
+
+  const { data, error } = result;
 
   if (error) {
     console.error("Error creating post:", error);
@@ -168,19 +209,30 @@ export interface CreateReplyInput {
   post_id: string;
   author_id: string;
   body: string;
+  status?: "published" | "hidden" | "removed";
+  risk_level?: "low" | "medium" | "high";
+  flag_reason?: string | null;
+  review_status?: "none" | "needs_review" | "urgent" | "resolved";
 }
 
 export async function createReply(
   supabase: SupabaseClient,
   input: CreateReplyInput
 ): Promise<CommunityReply | null> {
-  const { data, error } = await supabase
+  const payload: Record<string, any> = {
+    post_id: input.post_id,
+    author_id: input.author_id,
+    body: input.body,
+  };
+
+  if (input.status) payload.status = input.status;
+  if (input.risk_level) payload.risk_level = input.risk_level;
+  if (input.flag_reason) payload.flag_reason = input.flag_reason;
+  if (input.review_status) payload.review_status = input.review_status;
+
+  let result = await supabase
     .from("community_replies")
-    .insert({
-      post_id: input.post_id,
-      author_id: input.author_id,
-      body: input.body,
-    })
+    .insert(payload)
     .select(
       `
       id,
@@ -193,6 +245,31 @@ export async function createReply(
     `
     )
     .single();
+
+  // Retry with basic columns if migration columns not yet applied
+  if (result.error && (result.error.message?.includes("column") || result.error.code === "42703")) {
+    result = await supabase
+      .from("community_replies")
+      .insert({
+        post_id: input.post_id,
+        author_id: input.author_id,
+        body: input.body,
+      })
+      .select(
+        `
+        id,
+        post_id,
+        author_id,
+        body,
+        status,
+        created_at,
+        updated_at
+      `
+      )
+      .single();
+  }
+
+  const { data, error } = result;
 
   if (error) {
     console.error("Error creating reply:", error);
@@ -406,4 +483,187 @@ export async function batchModerateReplies(
   }
 
   return count || 0;
+}
+
+/* ==============================================================================
+   Moderation Metadata & Exception State Mutations
+   ============================================================================== */
+
+export async function updatePostModerationMetadata(
+  supabase: SupabaseClient,
+  postId: string,
+  updates: {
+    status?: "published" | "hidden" | "removed";
+    risk_level?: "low" | "medium" | "high";
+    flag_reason?: string | null;
+    review_status?: "none" | "needs_review" | "urgent" | "resolved";
+    report_count?: number;
+    report_score?: number;
+  }
+): Promise<CommunityPost | null> {
+  const payload: Record<string, any> = {
+    ...updates,
+    updated_at: new Date().toISOString(),
+  };
+
+  const { data, error } = await supabase
+    .from("community_posts")
+    .update(payload)
+    .eq("id", postId)
+    .select(
+      `
+      id,
+      author_id,
+      title,
+      body,
+      link_url,
+      affiliate_disclosure,
+      status,
+      created_at,
+      updated_at
+    `
+    )
+    .single();
+
+  if (error) {
+    console.error("Error updating post moderation metadata:", error);
+    // Graceful fallback if specific migration columns don't exist
+    if (updates.status) {
+      const fallback = await supabase
+        .from("community_posts")
+        .update({ status: updates.status, updated_at: new Date().toISOString() })
+        .eq("id", postId)
+        .select()
+        .single();
+      return fallback.data;
+    }
+    return null;
+  }
+
+  return data;
+}
+
+export async function updateReplyModerationMetadata(
+  supabase: SupabaseClient,
+  replyId: string,
+  updates: {
+    status?: "published" | "hidden" | "removed";
+    risk_level?: "low" | "medium" | "high";
+    flag_reason?: string | null;
+    review_status?: "none" | "needs_review" | "urgent" | "resolved";
+    report_count?: number;
+    report_score?: number;
+  }
+): Promise<CommunityReply | null> {
+  const payload: Record<string, any> = {
+    ...updates,
+    updated_at: new Date().toISOString(),
+  };
+
+  const { data, error } = await supabase
+    .from("community_replies")
+    .update(payload)
+    .eq("id", replyId)
+    .select(
+      `
+      id,
+      post_id,
+      author_id,
+      body,
+      status,
+      created_at,
+      updated_at
+    `
+    )
+    .single();
+
+  if (error) {
+    console.error("Error updating reply moderation metadata:", error);
+    if (updates.status) {
+      const fallback = await supabase
+        .from("community_replies")
+        .update({ status: updates.status, updated_at: new Date().toISOString() })
+        .eq("id", replyId)
+        .select()
+        .single();
+      return fallback.data;
+    }
+    return null;
+  }
+
+  return data;
+}
+
+/* ==============================================================================
+   User Restriction Mutations (Suspensions, Warnings, Restorations)
+   ============================================================================== */
+
+export async function setUserRestriction(
+  supabase: SupabaseClient,
+  userId: string,
+  status: "active" | "warned" | "restricted" | "suspended",
+  reason?: string,
+  restrictedUntil?: string | null
+): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from("community_user_restrictions")
+      .upsert({
+        user_id: userId,
+        status,
+        reason: reason || null,
+        restricted_until: restrictedUntil || null,
+        updated_at: new Date().toISOString(),
+      });
+
+    if (error) {
+      console.warn("Could not upsert into community_user_restrictions table:", error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn("Exception updating user restriction:", err);
+    return false;
+  }
+}
+
+/* ==============================================================================
+   Moderation Audit Logging
+   ============================================================================== */
+
+export async function recordModerationAuditLog(
+  supabase: SupabaseClient,
+  event: {
+    targetType: "post" | "reply" | "user" | "report";
+    targetId: string;
+    actorType: "system" | "admin" | "moderator";
+    actorId: string;
+    action: string;
+    riskLevel?: string;
+    reason?: string;
+    metadata?: Record<string, any>;
+  }
+): Promise<boolean> {
+  try {
+    const { error } = await supabase.from("community_moderation_audit").insert({
+      target_type: event.targetType,
+      target_id: event.targetId,
+      actor_type: event.actorType,
+      actor_id: event.actorId,
+      action: event.action,
+      risk_level: event.riskLevel || null,
+      reason: event.reason || null,
+      metadata: event.metadata || {},
+    });
+
+    if (error) {
+      // Fallback: also log to console
+      console.info("Moderation audit recorded to fallback log:", event);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn("Exception recording moderation audit:", err);
+    return false;
+  }
 }

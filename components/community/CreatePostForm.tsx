@@ -14,6 +14,7 @@ import { CreatePostInput } from "@/lib/community/types";
 export const CreatePostForm: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
 
   const {
     register,
@@ -36,6 +37,7 @@ export const CreatePostForm: React.FC = () => {
   const onSubmit = async (data: CreatePostInput) => {
     setIsSubmitting(true);
     setError(null);
+    setWarning(null);
     const formData = new FormData();
     formData.append("title", data.title);
     formData.append("body", data.body);
@@ -45,12 +47,19 @@ export const CreatePostForm: React.FC = () => {
     try {
       const result = await createPostAction(formData);
       if (result.success) {
+        if (result.warning) {
+          setWarning(result.warning);
+          setTimeout(() => {
+            window.location.href = "/community";
+          }, 2500);
+          return;
+        }
         reset();
         window.location.href = "/community";
       } else {
         setError(result.error || "Failed to create post");
       }
-    } catch (err) {
+    } catch {
       setError("An unexpected error occurred");
     } finally {
       setIsSubmitting(false);
@@ -59,6 +68,13 @@ export const CreatePostForm: React.FC = () => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
+      {warning && (
+        <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-sm flex items-start gap-2.5">
+          <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600" />
+          <div>{warning}</div>
+        </div>
+      )}
+
       {error && (
         <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-start gap-2.5">
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />

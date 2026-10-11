@@ -596,6 +596,252 @@ export async function sendTestEmail(to: string): Promise<EmailResult> {
   });
 }
 
+export interface UrgentModerationAlertParams {
+  incidentType: "high_risk_auto_hidden" | "report_threshold_exceeded" | "malware_phishing" | "credential_leak";
+  targetType: "post" | "reply";
+  targetId: string;
+  targetTitle: string;
+  authorId: string;
+  authorEmail?: string;
+  riskLevel: string;
+  reasons: string[];
+  reportCount?: number;
+  reportScore?: number;
+  adminUrl?: string;
+  recipient?: string;
+}
+
+/**
+ * Renders an Obsidian Monochrome HTML email template for urgent moderation alerts
+ */
+export function renderModerationUrgentAlertEmail(params: UrgentModerationAlertParams): {
+  html: string;
+  text: string;
+  subject: string;
+} {
+  const config = getEmailConfig();
+  const adminUrl = params.adminUrl || `${config.appUrl}/admin?tab=community`;
+  const subject = `🚨 [URGENT MODERATION] ${params.riskLevel.toUpperCase()} Risk Incident: ${params.targetTitle.slice(0, 50)}`;
+
+  const reasonsList = params.reasons.map((r) => `<li>${escapeHtml(r)}</li>`).join("");
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escapeHtml(subject)}</title>
+  <style>
+    body { margin: 0; padding: 0; background-color: #000000; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #ffffff; }
+    .wrapper { width: 100%; table-layout: fixed; background-color: #000000; padding: 40px 16px; }
+    .card { max-width: 580px; margin: 0 auto; background-color: #09090b; border: 1px solid #27272a; border-radius: 16px; padding: 36px 32px; text-align: left; }
+    .badge { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; background-color: #ef4444; color: #ffffff; padding: 4px 10px; border-radius: 9999px; margin-bottom: 20px; }
+    h1 { font-size: 22px; font-weight: 800; color: #ffffff; margin: 0 0 10px 0; letter-spacing: -0.02em; }
+    p { font-size: 14px; line-height: 1.6; color: #a1a1aa; margin: 0 0 16px 0; }
+    .box { background-color: #18181b; border: 1px solid #27272a; border-radius: 12px; padding: 18px; margin: 20px 0; }
+    .item-title { font-size: 15px; font-weight: 700; color: #ffffff; margin-bottom: 8px; }
+    .meta { font-size: 12px; color: #71717a; font-family: monospace; }
+    ul { margin: 8px 0 0 0; padding-left: 20px; color: #fca5a5; font-size: 13px; line-height: 1.5; }
+    .btn { display: inline-block; background-color: #ffffff; color: #000000; text-decoration: none; font-weight: 700; font-size: 13px; padding: 12px 24px; border-radius: 8px; margin-top: 20px; }
+    .footer { max-width: 580px; margin: 24px auto 0 auto; text-align: center; font-size: 12px; color: #52525b; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="card">
+      <span class="badge">Immediate Exception Action Required</span>
+      <h1>Urgent Security & Moderation Alert</h1>
+      <p>
+        The automated exception engine has intercepted high-risk content or an escalated community report threshold.
+      </p>
+
+      <div class="box">
+        <div class="item-title">${escapeHtml(params.targetTitle)}</div>
+        <div class="meta">Target: ${escapeHtml(params.targetType.toUpperCase())} #${escapeHtml(params.targetId.slice(0, 8))} | Author: ${escapeHtml(params.authorEmail || params.authorId)}</div>
+        ${params.reportCount !== undefined ? `<div class="meta" style="margin-top: 4px; color: #fbbf24;">Reports: ${params.reportCount} | Score: ${params.reportScore}</div>` : ""}
+        <div style="margin-top: 12px; font-size: 12px; font-weight: 700; color: #ffffff; text-transform: uppercase;">Detection Reasons:</div>
+        <ul>${reasonsList}</ul>
+      </div>
+
+      <p style="font-size: 13px; color: #d4d4d8;">
+        <strong>Automated Action Taken:</strong> Content has been temporarily isolated / auto-hidden. Please verify or take permanent administrative action in the admin console.
+      </p>
+
+      <a href="${adminUrl}" class="btn">Open Moderation Console →</a>
+    </div>
+    <div class="footer">
+      © 2026 Remotasks.si · Automated Exception-Based Moderation Service<br>
+      Automated Threat Protection
+    </div>
+  </div>
+</body>
+</html>`;
+
+  const text = `URGENT MODERATION INCIDENT: ${params.riskLevel.toUpperCase()}
+Title: ${params.targetTitle}
+Target ID: ${params.targetId} (${params.targetType})
+Author: ${params.authorEmail || params.authorId}
+Reports: ${params.reportCount || 0} (Score: ${params.reportScore || 0})
+
+Detection Reasons:
+${params.reasons.map((r) => `- ${r}`).join("\n")}
+
+Action: Content isolated. Review in Admin Console:
+${adminUrl}
+`;
+
+  return { html, text, subject };
+}
+
+/**
+ * Dispatches an urgent moderation alert email to the platform administrator
+ */
+export async function sendModerationUrgentAlert(params: UrgentModerationAlertParams): Promise<EmailResult> {
+  const config = getEmailConfig();
+  const adminEmail = params.recipient || process.env.ADMIN_ALERT_EMAIL || process.env.SUPPORT_EMAIL || "admin@remotasks.si";
+  const { html, text, subject } = renderModerationUrgentAlertEmail(params);
+
+  return sendEmail({
+    to: adminEmail,
+    subject,
+    html,
+    text,
+  });
+}
+
+export interface DailyModerationSummaryParams {
+  summaryDate: string;
+  totalPosts: number;
+  autoHiddenCount: number;
+  flaggedCount: number;
+  openReports: number;
+  resolvedReports: number;
+  activeSuspensions: number;
+  falsePositiveCount: number;
+  averageTurnaroundMinutes: number;
+  adminUrl?: string;
+  recipient?: string;
+}
+
+/**
+ * Renders an Obsidian Monochrome HTML email template for daily moderation summaries
+ */
+export function renderDailyModerationSummaryEmail(params: DailyModerationSummaryParams): {
+  html: string;
+  text: string;
+  subject: string;
+} {
+  const config = getEmailConfig();
+  const adminUrl = params.adminUrl || `${config.appUrl}/admin?tab=community`;
+  const subject = `📊 Daily Moderation Summary — ${params.summaryDate}`;
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escapeHtml(subject)}</title>
+  <style>
+    body { margin: 0; padding: 0; background-color: #fafafa; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #09090b; }
+    .wrapper { width: 100%; table-layout: fixed; background-color: #fafafa; padding: 40px 16px; }
+    .card { max-width: 580px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e4e4e7; border-radius: 16px; padding: 36px 32px; text-align: left; }
+    .badge { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; background-color: #000000; color: #ffffff; padding: 4px 10px; border-radius: 9999px; margin-bottom: 20px; }
+    h1 { font-size: 22px; font-weight: 800; color: #000000; margin: 0 0 6px 0; letter-spacing: -0.02em; }
+    .date { font-size: 13px; color: #71717a; margin-bottom: 20px; }
+    .grid { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    .grid td { padding: 12px; border: 1px solid #e4e4e7; font-size: 13px; }
+    .grid td.label { color: #71717a; width: 60%; }
+    .grid td.val { font-weight: 700; color: #000000; text-align: right; }
+    .btn { display: inline-block; background-color: #000000; color: #ffffff; text-decoration: none; font-weight: 700; font-size: 13px; padding: 12px 24px; border-radius: 8px; margin-top: 16px; }
+    .footer { max-width: 580px; margin: 24px auto 0 auto; text-align: center; font-size: 12px; color: #a1a1aa; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="card">
+      <span class="badge">Daily Exception Digest</span>
+      <h1>Community Moderation Summary</h1>
+      <div class="date">${escapeHtml(params.summaryDate)}</div>
+
+      <p style="font-size: 14px; color: #52525b; line-height: 1.6;">
+        Overview of automated actions, incoming community reports, and queue turnaround performance for the last 24 hours.
+      </p>
+
+      <table class="grid">
+        <tr>
+          <td class="label">Total New Posts Processed</td>
+          <td class="val">${params.totalPosts}</td>
+        </tr>
+        <tr>
+          <td class="label">Auto-Hidden High Risk Threats</td>
+          <td class="val" style="color: #ef4444;">${params.autoHiddenCount}</td>
+        </tr>
+        <tr>
+          <td class="label">Needs Review (Medium Risk Flags)</td>
+          <td class="val" style="color: #f59e0b;">${params.flaggedCount}</td>
+        </tr>
+        <tr>
+          <td class="label">Open Reports Awaiting Triage</td>
+          <td class="val">${params.openReports}</td>
+        </tr>
+        <tr>
+          <td class="label">Reports Resolved</td>
+          <td class="val">${params.resolvedReports}</td>
+        </tr>
+        <tr>
+          <td class="label">Active Account Suspensions</td>
+          <td class="val">${params.activeSuspensions}</td>
+        </tr>
+        <tr>
+          <td class="label">Tracked False Positives</td>
+          <td class="val">${params.falsePositiveCount}</td>
+        </tr>
+        <tr>
+          <td class="label">Average Turnaround Time</td>
+          <td class="val">${params.averageTurnaroundMinutes} mins</td>
+        </tr>
+      </table>
+
+      <a href="${adminUrl}" class="btn">View Admin Exception Queue →</a>
+    </div>
+    <div class="footer">
+      © 2026 Remotasks.si · Exception-Based Community Moderation
+    </div>
+  </div>
+</body>
+</html>`;
+
+  const text = `DAILY COMMUNITY MODERATION SUMMARY — ${params.summaryDate}
+Total Posts: ${params.totalPosts}
+Auto-Hidden Threats: ${params.autoHiddenCount}
+Needs Review Flags: ${params.flaggedCount}
+Open Reports: ${params.openReports}
+Resolved Reports: ${params.resolvedReports}
+Active Suspensions: ${params.activeSuspensions}
+False Positives: ${params.falsePositiveCount}
+Average Turnaround Time: ${params.averageTurnaroundMinutes} mins
+
+Review in Admin Console: ${adminUrl}
+`;
+
+  return { html, text, subject };
+}
+
+/**
+ * Dispatches a daily moderation summary email to the platform administrator
+ */
+export async function sendDailyModerationSummary(params: DailyModerationSummaryParams): Promise<EmailResult> {
+  const adminEmail = params.recipient || process.env.ADMIN_ALERT_EMAIL || process.env.SUPPORT_EMAIL || "admin@remotasks.si";
+  const { html, text, subject } = renderDailyModerationSummaryEmail(params);
+
+  return sendEmail({
+    to: adminEmail,
+    subject,
+    html,
+    text,
+  });
+}
+
 function escapeHtml(str: string): string {
   if (!str) return "";
   return str

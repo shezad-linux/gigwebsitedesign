@@ -40,6 +40,11 @@ export interface CommunityPost {
   link_url: string | null;
   affiliate_disclosure: string | null;
   status: CommunityPostStatus;
+  risk_level?: "low" | "medium" | "high";
+  flag_reason?: string | null;
+  review_status?: "none" | "needs_review" | "urgent" | "resolved";
+  report_count?: number;
+  report_score?: number;
   created_at: string;
   updated_at: string;
   reply_count?: number;
@@ -53,6 +58,11 @@ export interface CommunityReply {
   author_country?: string;
   body: string;
   status: CommunityReplyStatus;
+  risk_level?: "low" | "medium" | "high";
+  flag_reason?: string | null;
+  review_status?: "none" | "needs_review" | "urgent" | "resolved";
+  report_count?: number;
+  report_score?: number;
   created_at: string;
   updated_at: string;
 }
@@ -68,6 +78,72 @@ export interface CommunityReport {
   created_at: string;
   post_title?: string;
   reply_body?: string;
+  target_author_id?: string;
+}
+
+export interface CommunityUserRestriction {
+  user_id: string;
+  status: "active" | "warned" | "restricted" | "suspended";
+  reason: string | null;
+  restricted_until: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CommunityModerationAuditRecord {
+  id: string;
+  target_type: "post" | "reply" | "user" | "report";
+  target_id: string;
+  actor_type: "system" | "admin" | "moderator";
+  actor_id: string;
+  action: string;
+  risk_level?: string;
+  reason?: string;
+  metadata?: Record<string, any>;
+  created_at: string;
+}
+
+export interface CommunityModerationDashboardOverview {
+  urgentQueue: Array<{
+    id: string;
+    targetType: "post" | "reply" | "report";
+    title: string;
+    excerpt: string;
+    authorId: string;
+    authorName?: string;
+    riskLevel: "high" | "medium";
+    flagReason: string;
+    reportCount: number;
+    reportScore: number;
+    status: string;
+    createdAt: string;
+  }>;
+  needsReviewQueue: Array<{
+    id: string;
+    targetType: "post" | "reply" | "report";
+    title: string;
+    excerpt: string;
+    authorId: string;
+    authorName?: string;
+    riskLevel: "medium";
+    flagReason: string;
+    reportCount: number;
+    reportScore: number;
+    status: string;
+    createdAt: string;
+  }>;
+  dailyMetrics: {
+    totalPostsToday: number;
+    autoHiddenThreats: number;
+    needsReviewCount: number;
+    openReportsCount: number;
+    resolvedReportsCount: number;
+    activeSuspensionsCount: number;
+    falsePositivesCount: number;
+    repeatOffendersCount: number;
+    averageTurnaroundMinutes: number;
+  };
+  auditLog: CommunityModerationAuditRecord[];
 }
 
 export interface PostWithReplies {
