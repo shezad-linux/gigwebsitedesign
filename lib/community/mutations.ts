@@ -30,7 +30,6 @@ export async function createPost(
       body: input.body,
       link_url: input.link_url || null,
       affiliate_disclosure: input.affiliate_disclosure || null,
-      status: "published",
     })
     .select(
       `
@@ -49,7 +48,12 @@ export async function createPost(
 
   if (error) {
     console.error("Error creating post:", error);
-    throw new Error("Failed to create post");
+    if (error.code === "42P01" || error.message?.includes("does not exist")) {
+      throw new Error(
+        "Community tables not found in Supabase. Please run supabase/community_schema.sql in your Supabase SQL Editor."
+      );
+    }
+    throw new Error(error.message || "Failed to create post");
   }
 
   return data;
@@ -176,7 +180,6 @@ export async function createReply(
       post_id: input.post_id,
       author_id: input.author_id,
       body: input.body,
-      status: "published",
     })
     .select(
       `
@@ -193,7 +196,12 @@ export async function createReply(
 
   if (error) {
     console.error("Error creating reply:", error);
-    throw new Error("Failed to create reply");
+    if (error.code === "42P01" || error.message?.includes("does not exist")) {
+      throw new Error(
+        "Community tables not found in Supabase. Please run supabase/community_schema.sql in your Supabase SQL Editor."
+      );
+    }
+    throw new Error(error.message || "Failed to create reply");
   }
 
   return data;
@@ -274,7 +282,6 @@ export async function submitReport(
       reply_id: input.reply_id || null,
       reason: input.reason,
       details: input.details || null,
-      status: "open",
     })
     .select(
       `
@@ -296,7 +303,12 @@ export async function submitReport(
       throw new Error("You have already reported this content");
     }
     console.error("Error submitting report:", error);
-    throw new Error("Failed to submit report");
+    if (error.code === "42P01" || error.message?.includes("does not exist")) {
+      throw new Error(
+        "Community tables not found in Supabase. Please run supabase/community_schema.sql in your Supabase SQL Editor."
+      );
+    }
+    throw new Error(error.message || "Failed to submit report");
   }
 
   return data;

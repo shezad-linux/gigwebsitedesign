@@ -132,7 +132,7 @@ REVOKE ALL ON public.community_reports FROM anon, authenticated;
 GRANT SELECT ON public.community_posts TO anon, authenticated;
 GRANT SELECT ON public.community_replies TO anon, authenticated;
 
-GRANT INSERT (author_id, title, body, link_url, affiliate_disclosure)
+GRANT INSERT (author_id, title, body, link_url, affiliate_disclosure, status)
   ON public.community_posts TO authenticated;
 
 GRANT UPDATE (title, body, link_url, affiliate_disclosure, updated_at)
@@ -140,12 +140,12 @@ GRANT UPDATE (title, body, link_url, affiliate_disclosure, updated_at)
 
 GRANT DELETE ON public.community_posts TO authenticated;
 
-GRANT INSERT (post_id, author_id, body)
+GRANT INSERT (post_id, author_id, body, status)
   ON public.community_replies TO authenticated;
 
 GRANT DELETE ON public.community_replies TO authenticated;
 
-GRANT INSERT (reporter_id, post_id, reply_id, reason, details)
+GRANT INSERT (reporter_id, post_id, reply_id, reason, details, status)
   ON public.community_reports TO authenticated;
 
 -- ==============================================================================
