@@ -12,6 +12,7 @@ import {
   getAdminClient,
   verifyCommunityAuth,
   verifyModeratorSession,
+  getServerUserRole,
 } from "@/lib/supabase/server";
 import {
   createPostSchema,
@@ -335,7 +336,43 @@ export async function deletePostAction(postId: string) {
       return { success: false, error: "Database not configured" };
     }
 
-    await deletePost(supabase, postId, auth.user.id);
+    const effectiveClient = getAdminClient() || supabase;
+
+    // Check user role to determine if caller is moderator/admin
+    const role = await getServerUserRole(auth.user.id);
+    const isModerator = role === "admin" || role === "reviewer";
+
+    // Query existing post to verify existence and authorship
+    const { data: existingPost, error: fetchError } = await effectiveClient
+      .from("community_posts")
+      .select("id, author_id, title")
+      .eq("id", postId)
+      .maybeSingle();
+
+    if (fetchError || !existingPost) {
+      return { success: false, error: "Post not found or already deleted" };
+    }
+
+    const isAuthor = existingPost.author_id === auth.user.id;
+
+    if (!isAuthor && !isModerator) {
+      return { success: false, error: "Unauthorized: You can only delete your own posts" };
+    }
+
+    await deletePost(effectiveClient, postId, auth.user.id, isModerator);
+
+    // Record moderation/audit log
+    await recordModerationAuditLog(effectiveClient, {
+      targetType: "post",
+      targetId: postId,
+      actorType: isModerator ? (role === "admin" ? "admin" : "moderator") : ("admin" as any),
+      actorId: auth.user.email || auth.user.id,
+      action: isModerator ? "admin_delete_post" : "author_delete_post",
+      reason: isModerator
+        ? "Permanently deleted by administrator/moderator"
+        : "Self-deletion by post author",
+      metadata: { postTitle: existingPost.title, authorId: existingPost.author_id },
+    });
 
     return { success: true };
   } catch (error: any) {
@@ -454,7 +491,43 @@ export async function deleteReplyAction(replyId: string) {
       return { success: false, error: "Database not configured" };
     }
 
-    await deleteReply(supabase, replyId, auth.user.id);
+    const effectiveClient = getAdminClient() || supabase;
+
+    // Check user role to determine if caller is moderator/admin
+    const role = await getServerUserRole(auth.user.id);
+    const isModerator = role === "admin" || role === "reviewer";
+
+    // Query existing reply to verify existence and authorship
+    const { data: existingReply, error: fetchError } = await effectiveClient
+      .from("community_replies")
+      .select("id, author_id, post_id")
+      .eq("id", replyId)
+      .maybeSingle();
+
+    if (fetchError || !existingReply) {
+      return { success: false, error: "Reply not found or already deleted" };
+    }
+
+    const isAuthor = existingReply.author_id === auth.user.id;
+
+    if (!isAuthor && !isModerator) {
+      return { success: false, error: "Unauthorized: You can only delete your own replies" };
+    }
+
+    await deleteReply(effectiveClient, replyId, auth.user.id, isModerator);
+
+    // Record moderation/audit log
+    await recordModerationAuditLog(effectiveClient, {
+      targetType: "reply",
+      targetId: replyId,
+      actorType: isModerator ? (role === "admin" ? "admin" : "moderator") : ("admin" as any),
+      actorId: auth.user.email || auth.user.id,
+      action: isModerator ? "admin_delete_reply" : "author_delete_reply",
+      reason: isModerator
+        ? "Permanently deleted by administrator/moderator"
+        : "Self-deletion by reply author",
+      metadata: { postId: existingReply.post_id, authorId: existingReply.author_id },
+    });
 
     return { success: true };
   } catch (error: any) {

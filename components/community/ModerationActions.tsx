@@ -7,7 +7,13 @@
 
 import React, { useState } from "react";
 import { MoreVertical, Eye, EyeOff, Shield, Flag, Trash2, CheckCircle2, XCircle } from "lucide-react";
-import { moderatePostAction, moderateReplyAction, resolveReportAction } from "@/app/actions/community";
+import {
+  moderatePostAction,
+  moderateReplyAction,
+  resolveReportAction,
+  deletePostAction,
+  deleteReplyAction,
+} from "@/app/actions/community";
 
 interface ModerationActionsProps {
   type: "post" | "reply" | "report";
@@ -32,7 +38,13 @@ export const ModerationActions: React.FC<ModerationActionsProps> = ({
 
     try {
       let result;
-      if (type === "post") {
+      if (action === "delete") {
+        if (type === "post") {
+          result = await deletePostAction(id);
+        } else if (type === "reply") {
+          result = await deleteReplyAction(id);
+        }
+      } else if (type === "post") {
         result = await moderatePostAction(id, action as "hide" | "restore", reason);
       } else if (type === "reply") {
         result = await moderateReplyAction(id, action as "hide" | "restore", reason);
@@ -155,7 +167,11 @@ export const ModerationActions: React.FC<ModerationActionsProps> = ({
                 <hr className="my-1 border-neutral-200" />
 
                 <button
-                  onClick={() => handleConfirmAction("hide", true)}
+                  onClick={() => {
+                    if (confirm(`Are you sure you want to permanently delete this ${type}? This action cannot be undone.`)) {
+                      handleAction("delete");
+                    }
+                  }}
                   disabled={isLoading || isRemoved}
                   className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-700 hover:bg-red-50"
                 >

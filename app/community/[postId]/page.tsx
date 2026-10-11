@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getServerAuthUser, getServerUserRole } from "@/lib/supabase/server";
 import { fetchPostWithReplies } from "@/lib/community/queries";
 import { PostDetail } from "@/components/community/PostDetail";
 
@@ -50,10 +50,19 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
     notFound();
   }
 
+  const user = await getServerAuthUser();
+  const role = user ? await getServerUserRole(user.id) : null;
+  const isModerator = role === "admin" || role === "reviewer";
+
   return (
     <div className="min-h-screen bg-canvas-bg">
       <div className="max-w-3xl mx-auto px-4 py-8">
-        <PostDetail post={result.post} replies={result.replies} />
+        <PostDetail
+          post={result.post}
+          replies={result.replies}
+          currentUserId={user?.id}
+          isModerator={isModerator}
+        />
       </div>
     </div>
   );

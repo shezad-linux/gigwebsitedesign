@@ -31,6 +31,7 @@ import {
   Flame,
   BarChart3,
   ListFilter,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -41,6 +42,8 @@ import {
   resolveCommunityReportAction,
   restrictCommunityUserAction,
   sendDailySummaryEmailAction,
+  deletePostAction,
+  deleteReplyAction,
 } from "@/app/actions/community";
 
 interface ModerationItem {
@@ -139,6 +142,27 @@ export function CommunityModerationTab() {
       }
     } catch {
       showToast("Error updating user restriction", "error");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Delete Content Permanently
+  const handleDeleteContent = async (targetType: "post" | "reply", id: string) => {
+    if (!confirm(`Are you sure you want to permanently delete this ${targetType}? This action cannot be undone.`)) {
+      return;
+    }
+    setActionLoading(`delete-${id}`);
+    try {
+      const res = targetType === "post" ? await deletePostAction(id) : await deleteReplyAction(id);
+      if (res.success) {
+        showToast(`${targetType === "post" ? "Post" : "Reply"} deleted permanently`);
+        await loadOverview();
+      } else {
+        showToast(res.error || "Failed to delete content", "error");
+      }
+    } catch {
+      showToast("Error executing delete action", "error");
     } finally {
       setActionLoading(null);
     }
@@ -421,6 +445,17 @@ export function CommunityModerationTab() {
                             <UserX className="w-3.5 h-3.5" />
                             Suspend Author (48h)
                           </Button>
+
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDeleteContent("post", item.id)}
+                            disabled={actionLoading === `delete-${item.id}`}
+                            className="text-xs gap-1 border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            Delete Post
+                          </Button>
                         </>
                       )}
 
@@ -555,6 +590,17 @@ export function CommunityModerationTab() {
                       >
                         <UserX className="w-3.5 h-3.5" />
                         Warn / Restrict (24h)
+                      </Button>
+
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDeleteContent("post", item.id)}
+                        disabled={actionLoading === `delete-${item.id}`}
+                        className="text-xs gap-1 border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Delete Post
                       </Button>
                     </div>
                   </CardContent>

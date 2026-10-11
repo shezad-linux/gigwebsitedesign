@@ -18,9 +18,16 @@ import { useRouter } from "next/navigation";
 interface PostDetailProps {
   post: CommunityPost;
   replies: CommunityReply[];
+  currentUserId?: string;
+  isModerator?: boolean;
 }
 
-export const PostDetail: React.FC<PostDetailProps> = ({ post, replies }) => {
+export const PostDetail: React.FC<PostDetailProps> = ({
+  post,
+  replies,
+  currentUserId,
+  isModerator = false,
+}) => {
   const [showReportDialog, setShowReportDialog] = useState<{ type: "post" | "reply"; id: string } | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<{ type: "post" | "reply"; id: string } | null>(null);
   const router = useRouter();
@@ -35,7 +42,8 @@ export const PostDetail: React.FC<PostDetailProps> = ({ post, replies }) => {
 
   const timeAgo = formatDistanceToNow(new Date(post.created_at), { addSuffix: true });
   const hasAffiliateLink = post.link_url && post.affiliate_disclosure;
-  const isOwner = false; // Will be determined by server component
+  const isOwner = !!(currentUserId && currentUserId === post.author_id);
+  const canDeletePost = isOwner || isModerator;
 
   const handleReport = (type: "post" | "reply", id: string) => {
     setShowReportDialog({ type, id });
@@ -140,13 +148,15 @@ export const PostDetail: React.FC<PostDetailProps> = ({ post, replies }) => {
           <Flag className="w-4 h-4" />
           Report
         </button>
-        <button
-          onClick={() => setShowDeleteConfirm({ type: "post", id: post.id })}
-          className="flex items-center gap-1.5 px-3 py-2 text-sm text-neutral-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-        >
-          <MoreVertical className="w-4 h-4" />
-          Delete
-        </button>
+        {canDeletePost && (
+          <button
+            onClick={() => setShowDeleteConfirm({ type: "post", id: post.id })}
+            className="flex items-center gap-1.5 px-3 py-2 text-sm text-neutral-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+          >
+            <MoreVertical className="w-4 h-4" />
+            Delete
+          </button>
+        )}
       </div>
 
       {/* Replies Section */}
@@ -160,6 +170,8 @@ export const PostDetail: React.FC<PostDetailProps> = ({ post, replies }) => {
           postId={post.id}
           onReport={handleReport}
           onDelete={handleDelete}
+          currentUserId={currentUserId}
+          isModerator={isModerator}
         />
 
         <ReplyForm postId={post.id} />

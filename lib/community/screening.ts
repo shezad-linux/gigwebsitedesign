@@ -41,7 +41,7 @@ export interface ScreeningResult {
 
 // 1. High-risk patterns: Credential leaks, Malware, Phishing
 const CREDENTIAL_PATTERNS = [
-  { name: "Stripe API Key", regex: /sk_live_[0-9a-zA-Z]{24,}/i },
+  { name: "Stripe API Key", regex: /sk_live_[0-9a-zA-Z_]{20,}/i },
   { name: "AWS Access Key", regex: /AKIA[0-9A-Z]{16}/ },
   { name: "GitHub Personal Token", regex: /ghp_[0-9a-zA-Z]{36}/ },
   { name: "JWT Bearer Token", regex: /bearer\s+ey[a-zA-Z0-9_\-]{25,}\.[a-zA-Z0-9_\-]{25,}/i },

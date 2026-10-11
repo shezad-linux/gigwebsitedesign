@@ -15,9 +15,17 @@ interface ReplyListProps {
   postId: string;
   onReport: (type: "post" | "reply", id: string) => void;
   onDelete: (type: "post" | "reply", id: string) => void;
+  currentUserId?: string;
+  isModerator?: boolean;
 }
 
-export const ReplyList: React.FC<ReplyListProps> = ({ replies, onReport, onDelete }) => {
+export const ReplyList: React.FC<ReplyListProps> = ({
+  replies,
+  onReport,
+  onDelete,
+  currentUserId,
+  isModerator,
+}) => {
   if (replies.length === 0) {
     return (
       <div className="text-center py-8 text-neutral-500">
@@ -34,6 +42,8 @@ export const ReplyList: React.FC<ReplyListProps> = ({ replies, onReport, onDelet
           reply={reply}
           onReport={onReport}
           onDelete={onDelete}
+          currentUserId={currentUserId}
+          isModerator={isModerator}
         />
       ))}
     </div>
@@ -44,11 +54,20 @@ interface ReplyItemProps {
   reply: CommunityReply;
   onReport: (type: "post" | "reply", id: string) => void;
   onDelete: (type: "post" | "reply", id: string) => void;
+  currentUserId?: string;
+  isModerator?: boolean;
 }
 
-const ReplyItem: React.FC<ReplyItemProps> = ({ reply, onReport, onDelete }) => {
+const ReplyItem: React.FC<ReplyItemProps> = ({
+  reply,
+  onReport,
+  onDelete,
+  currentUserId,
+  isModerator,
+}) => {
   const timeAgo = formatDistanceToNow(new Date(reply.created_at), { addSuffix: true });
-  const isOwner = false; // Determined by server
+  const isOwner = !!(currentUserId && currentUserId === reply.author_id);
+  const canDelete = isOwner || !!isModerator;
 
   return (
     <article className="bg-white border border-neutral-200 rounded-xl p-4">
@@ -83,7 +102,7 @@ const ReplyItem: React.FC<ReplyItemProps> = ({ reply, onReport, onDelete }) => {
               <Flag className="w-3.5 h-3.5" />
               Report
             </button>
-            {isOwner && (
+            {canDelete && (
               <button
                 onClick={() => onDelete("reply", reply.id)}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-neutral-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"

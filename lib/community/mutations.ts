@@ -151,17 +151,19 @@ export async function updatePost(
 export async function deletePost(
   supabase: SupabaseClient,
   postId: string,
-  userId: string
+  userId: string,
+  isAdmin = false
 ): Promise<boolean> {
-  const { error } = await supabase
-    .from("community_posts")
-    .delete()
-    .eq("id", postId)
-    .eq("author_id", userId);
+  let query = supabase.from("community_posts").delete().eq("id", postId);
+  if (!isAdmin) {
+    query = query.eq("author_id", userId);
+  }
+
+  const { error } = await query;
 
   if (error) {
     console.error("Error deleting post:", error);
-    throw new Error("Failed to delete post");
+    throw new Error(error.message || "Failed to delete post");
   }
 
   return true;
@@ -287,17 +289,19 @@ export async function createReply(
 export async function deleteReply(
   supabase: SupabaseClient,
   replyId: string,
-  userId: string
+  userId: string,
+  isAdmin = false
 ): Promise<boolean> {
-  const { error } = await supabase
-    .from("community_replies")
-    .delete()
-    .eq("id", replyId)
-    .eq("author_id", userId);
+  let query = supabase.from("community_replies").delete().eq("id", replyId);
+  if (!isAdmin) {
+    query = query.eq("author_id", userId);
+  }
+
+  const { error } = await query;
 
   if (error) {
     console.error("Error deleting reply:", error);
-    throw new Error("Failed to delete reply");
+    throw new Error(error.message || "Failed to delete reply");
   }
 
   return true;

@@ -210,6 +210,8 @@ GRANT DELETE ON public.community_replies TO authenticated;
 GRANT INSERT (reporter_id, post_id, reply_id, reason, details, status)
   ON public.community_reports TO authenticated;
 
+GRANT SELECT, UPDATE, DELETE ON public.community_reports TO authenticated;
+
 -- User can check own restrictions
 GRANT SELECT ON public.community_user_restrictions TO authenticated;
 
@@ -251,6 +253,11 @@ CREATE POLICY "Authors can delete their posts"
 ON public.community_posts FOR DELETE
 TO authenticated
 USING (author_id = auth.uid());
+
+CREATE POLICY "Moderators can delete posts"
+ON public.community_posts FOR DELETE
+TO authenticated
+USING (public.can_moderate_community());
 
 CREATE POLICY "Moderators can view all posts"
 ON public.community_posts FOR SELECT
@@ -300,6 +307,11 @@ ON public.community_replies FOR DELETE
 TO authenticated
 USING (author_id = auth.uid());
 
+CREATE POLICY "Moderators can delete replies"
+ON public.community_replies FOR DELETE
+TO authenticated
+USING (public.can_moderate_community());
+
 CREATE POLICY "Moderators can view all replies"
 ON public.community_replies FOR SELECT
 TO authenticated
@@ -335,6 +347,30 @@ ON public.community_reports FOR UPDATE
 TO authenticated
 USING (public.can_moderate_community())
 WITH CHECK (public.can_moderate_community());
+
+CREATE POLICY "Moderators can delete reports"
+ON public.community_reports FOR DELETE
+TO authenticated
+USING (public.can_moderate_community());
+
+CREATE POLICY "Reporters can delete own reports"
+ON public.community_reports FOR DELETE
+TO authenticated
+USING (reporter_id = auth.uid());
+
+CREATE POLICY "Cascade delete reports on post or reply deletion"
+ON public.community_reports FOR DELETE
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM public.community_posts p
+    WHERE p.id = post_id AND (p.author_id = auth.uid() OR public.can_moderate_community())
+  )
+  OR EXISTS (
+    SELECT 1 FROM public.community_replies r
+    WHERE r.id = reply_id AND (r.author_id = auth.uid() OR public.can_moderate_community())
+  )
+);
 
 -- ==============================================================================
 -- 11. RLS Policies: community_user_restrictions

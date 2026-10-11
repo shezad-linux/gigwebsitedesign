@@ -62,6 +62,15 @@ describe("Community RLS & Access Control Suite", () => {
       ) {
         return true;
       }
+      // Moderators can delete posts, replies, and reports
+      if (
+        (table === TABLES.COMMUNITY_POSTS ||
+          table === TABLES.COMMUNITY_REPLIES ||
+          table === TABLES.COMMUNITY_REPORTS) &&
+        action === "DELETE"
+      ) {
+        return true;
+      }
       // Moderators can update report status
       if (table === TABLES.COMMUNITY_REPORTS && action === "UPDATE") {
         return true;
@@ -687,6 +696,32 @@ describe("Community RLS & Access Control Suite", () => {
         action: "UPDATE",
         session: moderatorSession,
         targetRow: openReport,
+        isModerator: true,
+      }),
+      true
+    );
+  });
+
+  test("moderators can delete any post", () => {
+    assert.equal(
+      evaluateRlsPolicy({
+        table: TABLES.COMMUNITY_POSTS,
+        action: "DELETE",
+        session: moderatorSession,
+        targetRow: bobsPost,
+        isModerator: true,
+      }),
+      true
+    );
+  });
+
+  test("moderators can delete any reply", () => {
+    assert.equal(
+      evaluateRlsPolicy({
+        table: TABLES.COMMUNITY_REPLIES,
+        action: "DELETE",
+        session: moderatorSession,
+        targetRow: bobsReply,
         isModerator: true,
       }),
       true

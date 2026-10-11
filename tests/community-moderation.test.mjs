@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 describe("Automated Community Moderation & 3-Tier Risk Model Suite", () => {
   // Mirroring the rules engine in lib/community/screening.ts
   const CREDENTIAL_PATTERNS = [
-    { name: "Stripe API Key", regex: /sk_live_[0-9a-zA-Z]{24,}/i },
+    { name: "Stripe API Key", regex: /sk_live_[0-9a-zA-Z_]{20,}/i },
     { name: "AWS Access Key", regex: /AKIA[0-9A-Z]{16}/ },
     { name: "GitHub Personal Token", regex: /ghp_[0-9a-zA-Z]{36}/ },
   ];
