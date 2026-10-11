@@ -11,6 +11,9 @@ import {
   HireProposal,
   HireActivityLog,
   HireServiceCategory,
+  HireProject,
+  HireMilestone,
+  HireTimeEntry,
 } from "./types";
 
 // Curated fallback talent profiles for instant render when database tables are empty
@@ -495,3 +498,71 @@ export async function fetchTalentInvitations(
     return [];
   }
 }
+
+/* ==============================================================================
+   Confirmed Projects Queries
+   ============================================================================== */
+
+export async function fetchHireProjectById(
+  supabase: SupabaseClient,
+  projectId: string
+): Promise<HireProject | null> {
+  try {
+    const { data, error } = await supabase
+      .from("hire_projects")
+      .select(`
+        *,
+        request:hire_requests(*),
+        talent:talent_profiles(*),
+        milestones:hire_milestones(*),
+        time_entries:hire_time_entries(*)
+      `)
+      .eq("id", projectId)
+      .single();
+
+    if (error || !data) {
+      return null;
+    }
+
+    return data as HireProject;
+  } catch (err) {
+    console.error("fetchHireProjectById exception:", err);
+    return null;
+  }
+}
+
+export async function fetchHireProjectsForUser(
+  supabase: SupabaseClient,
+  userId: string,
+  role?: "client" | "talent"
+): Promise<HireProject[]> {
+  try {
+    let query = supabase.from("hire_projects").select(`
+      *,
+      request:hire_requests(title, hiring_model, category),
+      talent:talent_profiles(full_name, headline, avatar_url),
+      milestones:hire_milestones(id, title, amount, status)
+    `);
+
+    if (role === "client") {
+      query = query.eq("client_id", userId);
+    } else if (role === "talent") {
+      query = query.eq("talent_id", userId);
+    } else {
+      query = query.or(`client_id.eq.${userId},talent_id.eq.${userId}`);
+    }
+
+    query = query.order("created_at", { ascending: false });
+
+    const { data, error } = await query;
+    if (error || !data) {
+      return [];
+    }
+
+    return data as HireProject[];
+  } catch (err) {
+    console.error("fetchHireProjectsForUser exception:", err);
+    return [];
+  }
+}
+

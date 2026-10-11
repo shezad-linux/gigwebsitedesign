@@ -119,19 +119,22 @@ export function evaluateTalentMatch(
   // 3. Budget Compatibility (0 - 15 points)
   // -------------------------------------------------------------
   let budgetScore = 15;
+  const currency = request.currency || "USD";
+
   if (request.hiring_model === "hourly") {
     const talentRate = talent.hourly_rate;
     const maxBudget = request.budget_max || request.budget_min || 100;
 
     if (talentRate <= maxBudget) {
       budgetScore = 15;
-      explanations.push(`Hourly rate ($${talentRate}/hr) fits within project budget ($${maxBudget}/hr max)`);
+      explanations.push(`Hourly rate (${currency} ${talentRate}/hr) fits within client budget (${currency} ${maxBudget}/hr max)`);
     } else if (talentRate <= maxBudget * 1.25) {
       budgetScore = 9;
-      explanations.push(`Hourly rate ($${talentRate}/hr) slightly above budget target ($${maxBudget}/hr)`);
+      explanations.push(`Hourly rate (${currency} ${talentRate}/hr) slightly above budget target (${currency} ${maxBudget}/hr)`);
     } else {
-      budgetScore = 3;
-      explanations.push(`Hourly rate ($${talentRate}/hr) exceeds proposed budget range`);
+      const budgetRatio = maxBudget / talentRate;
+      budgetScore = Math.max(0, Math.round(budgetRatio * 15));
+      explanations.push(`Hourly rate (${currency} ${talentRate}/hr) exceeds proposed client budget range`);
     }
   } else {
     // Fixed project price
@@ -140,10 +143,11 @@ export function evaluateTalentMatch(
 
     if (minProject <= projectBudget) {
       budgetScore = 15;
-      explanations.push("Fixed project budget aligns with talent minimum engagement size");
+      explanations.push(`Fixed project budget (${currency} ${projectBudget.toLocaleString()}) meets talent minimum requirement (${currency} ${minProject.toLocaleString()})`);
     } else {
-      budgetScore = 6;
-      explanations.push("Project budget is below typical minimum engagement size");
+      const ratio = projectBudget / minProject;
+      budgetScore = Math.max(2, Math.round(ratio * 15));
+      explanations.push(`Project budget (${currency} ${projectBudget.toLocaleString()}) is below talent minimum engagement size (${currency} ${minProject.toLocaleString()})`);
     }
   }
 

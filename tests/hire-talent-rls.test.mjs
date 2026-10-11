@@ -15,6 +15,9 @@ describe("Hire Talent RLS & Access Control Suite", () => {
     HIRE_MATCHES: "hire_matches",
     HIRE_PROPOSALS: "hire_proposals",
     HIRE_ACTIVITY_LOG: "hire_activity_log",
+    HIRE_PROJECTS: "hire_projects",
+    HIRE_MILESTONES: "hire_milestones",
+    HIRE_TIME_ENTRIES: "hire_time_entries",
   };
 
   function evaluateHireTalentRls({
@@ -110,6 +113,39 @@ describe("Hire Talent RLS & Access Control Suite", () => {
         // Client can accept/decline; Talent can update their pending proposal
         if (requestOwnerId === uid) return true;
         return row.talent_id === uid && row.status === "submitted";
+      }
+      return false;
+    }
+
+    // 7. Hire Projects Policies
+    if (table === TABLES.HIRE_PROJECTS) {
+      if (action === "SELECT") {
+        return row.client_id === uid || row.talent_id === uid;
+      }
+      if (action === "INSERT") {
+        return row.client_id === uid;
+      }
+      if (action === "UPDATE") {
+        return row.client_id === uid || row.talent_id === uid;
+      }
+      return false;
+    }
+
+    // 8. Hire Milestones Policies
+    if (table === TABLES.HIRE_MILESTONES) {
+      return row.client_id === uid || row.talent_id === uid;
+    }
+
+    // 9. Hire Time Entries Policies
+    if (table === TABLES.HIRE_TIME_ENTRIES) {
+      if (action === "SELECT") {
+        return row.client_id === uid || row.talent_id === uid;
+      }
+      if (action === "INSERT") {
+        return row.talent_id === uid;
+      }
+      if (action === "UPDATE") {
+        return row.talent_id === uid || row.client_id === uid;
       }
       return false;
     }
@@ -349,5 +385,182 @@ describe("Hire Talent RLS & Access Control Suite", () => {
     });
 
     assert.equal(canOrdinaryUserMatch, false, "Standard users cannot forge admin match recommendations");
+  });
+
+  /* -------------------------------------------------------------------------- */
+  /* Confirmed Projects, Milestones & Time Entries Isolation (Contracts)       */
+  /* -------------------------------------------------------------------------- */
+
+  test("confirmed projects are visible only to client, assigned talent, or admins", () => {
+    const project = {
+      id: "proj_101",
+      client_id: "client_alice",
+      talent_id: "talent_bob",
+      title: "Full-Stack Web App",
+      status: "active",
+    };
+
+    const clientSession = { uid: "client_alice", role: "user" };
+    const talentSession = { uid: "talent_bob", role: "user" };
+    const strangerSession = { uid: "user_stranger", role: "user" };
+    const adminSession = { uid: "admin_1", role: "admin" };
+
+    assert.equal(
+      evaluateHireTalentRls({
+        table: TABLES.HIRE_PROJECTS,
+        action: "SELECT",
+        session: clientSession,
+        row: project,
+      }),
+      true
+    );
+
+    assert.equal(
+      evaluateHireTalentRls({
+        table: TABLES.HIRE_PROJECTS,
+        action: "SELECT",
+        session: talentSession,
+        row: project,
+      }),
+      true
+    );
+
+    assert.equal(
+      evaluateHireTalentRls({
+        table: TABLES.HIRE_PROJECTS,
+        action: "SELECT",
+        session: strangerSession,
+        row: project,
+      }),
+      false,
+      "Strangers must not view private client-talent contracts"
+    );
+
+    assert.equal(
+      evaluateHireTalentRls({
+        table: TABLES.HIRE_PROJECTS,
+        action: "SELECT",
+        session: adminSession,
+        row: project,
+      }),
+      true
+    );
+  });
+
+  test("time entries can only be logged by the assigned talent for themselves", () => {
+    const talentBob = { uid: "talent_bob", role: "user" };
+    const stranger = { uid: "user_stranger", role: "user" };
+
+    const ownEntry = {
+      id: "entry_1",
+      project_id: "proj_101",
+      talent_id: "talent_bob",
+      hours: 4,
+    };
+
+    const forgedEntry = {
+      id: "entry_2",
+      project_id: "proj_101",
+      talent_id: "talent_bob",
+      hours: 8,
+    };
+
+    assert.equal(
+      evaluateHireTalentRls({
+        table: TABLES.HIRE_TIME_ENTRIES,
+        action: "INSERT",
+        session: talentBob,
+        row: ownEntry,
+      }),
+      true
+    );
+
+    assert.equal(
+      evaluateHireTalentRls({
+        table: TABLES.HIRE_TIME_ENTRIES,
+        action: "INSERT",
+        session: stranger,
+        row: forgedEntry,
+      }),
+      false,
+      "Strangers cannot log time entries on another talent's contract"
+    );
+  });
+
+  /* -------------------------------------------------------------------------- */
+  /* Column-Level & Trigger Field Security                                     */
+  /* -------------------------------------------------------------------------- */
+
+  function simulateProtectTalentVerificationStatus(oldRow, newRow, session) {
+    const hasAdminRole = session && (session.role === "admin" || session.role === "reviewer");
+    if (oldRow.verification_status !== newRow.verification_status) {
+      if (!hasAdminRole) {
+        throw new Error("Unauthorized: Only platform administrators can modify talent verification status");
+      }
+    }
+    return newRow;
+  }
+
+  function simulateProtectHireRequestAdminFields(oldRow, newRow, session) {
+    const hasAdminRole = session && (session.role === "admin" || session.role === "reviewer");
+    const result = { ...newRow };
+    if (oldRow.internal_notes !== newRow.internal_notes || oldRow.assigned_admin_id !== newRow.assigned_admin_id) {
+      if (!hasAdminRole) {
+        result.internal_notes = oldRow.internal_notes;
+        result.assigned_admin_id = oldRow.assigned_admin_id;
+      }
+    }
+    return result;
+  }
+
+  test("triggers prevent non-admin talent from self-verifying verification_status", () => {
+    const talentSession = { uid: "talent_alice", role: "user" };
+    const adminSession = { uid: "admin_boss", role: "admin" };
+
+    const oldTalent = { id: "talent_alice", verification_status: "pending_review" };
+    const tamperedTalent = { id: "talent_alice", verification_status: "verified" };
+
+    // Standard user attempt throws unauthorized error
+    assert.throws(
+      () => simulateProtectTalentVerificationStatus(oldTalent, tamperedTalent, talentSession),
+      /Unauthorized: Only platform administrators can modify talent verification status/
+    );
+
+    // Admin attempt succeeds
+    const approved = simulateProtectTalentVerificationStatus(oldTalent, tamperedTalent, adminSession);
+    assert.equal(approved.verification_status, "verified");
+  });
+
+  test("triggers revert non-admin changes to internal_notes and assigned_admin_id", () => {
+    const clientSession = { uid: "client_1", role: "user" };
+    const adminSession = { uid: "admin_1", role: "admin" };
+
+    const oldReq = {
+      id: "req_1",
+      internal_notes: "Admin risk rating: low",
+      assigned_admin_id: "admin_1",
+      title: "My Project",
+    };
+
+    const clientTampered = {
+      id: "req_1",
+      internal_notes: "Client wiped admin notes!",
+      assigned_admin_id: "admin_fake",
+      title: "My Project Updated",
+    };
+
+    // Client update reverts admin fields silently
+    const clientResult = simulateProtectHireRequestAdminFields(oldReq, clientTampered, clientSession);
+    assert.equal(clientResult.internal_notes, "Admin risk rating: low");
+    assert.equal(clientResult.assigned_admin_id, "admin_1");
+    assert.equal(clientResult.title, "My Project Updated");
+
+    // Admin update preserves new notes
+    const adminResult = simulateProtectHireRequestAdminFields(
+      oldReq,
+      { ...oldReq, internal_notes: "Reviewed and approved" },
+      adminSession
+    );
+    assert.equal(adminResult.internal_notes, "Reviewed and approved");
   });
 });

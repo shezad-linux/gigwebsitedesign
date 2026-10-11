@@ -165,6 +165,17 @@ export const hireProposalSchema = z.object({
   proposed_rate: z
     .number()
     .positive("Proposed rate must be greater than 0"),
+  proposed_hourly_rate: z
+    .number()
+    .positive("Proposed hourly rate must be positive")
+    .optional()
+    .nullable(),
+  fixed_price_quote: z
+    .number()
+    .positive("Fixed price quote must be positive")
+    .optional()
+    .nullable(),
+  currency: z.string().default("USD"),
   estimated_hours: z
     .number()
     .positive("Estimated hours must be greater than 0")
@@ -188,6 +199,43 @@ export const hireProposalSchema = z.object({
 });
 
 export type HireProposalInput = z.infer<typeof hireProposalSchema>;
+
+/* ==============================================================================
+   Confirmed Project & Milestone Validation
+   ============================================================================== */
+
+export const hireProjectCreateSchema = z.object({
+  request_id: z.string().uuid("Invalid request identifier"),
+  proposal_id: z.string().uuid("Invalid proposal identifier"),
+  talent_id: z.string().uuid("Invalid talent identifier"),
+  title: z.string().trim().min(5).max(160),
+  hiring_model: z.enum(["hourly", "fixed"]),
+  agreed_rate: z.number().positive().optional().nullable(),
+  agreed_budget: z.number().positive().optional().nullable(),
+  currency: z.string().default("USD"),
+});
+
+export type HireProjectCreateInput = z.infer<typeof hireProjectCreateSchema>;
+
+export const hireMilestoneCreateSchema = z.object({
+  project_id: z.string().uuid("Invalid project identifier"),
+  title: z.string().trim().min(3, "Title must be at least 3 characters").max(160),
+  description: z.string().trim().max(1000).optional().nullable(),
+  amount: z.number().positive("Milestone amount must be positive"),
+  currency: z.string().default("USD"),
+  due_date: z.string().optional().nullable(),
+});
+
+export type HireMilestoneCreateInput = z.infer<typeof hireMilestoneCreateSchema>;
+
+export const hireTimeEntryCreateSchema = z.object({
+  project_id: z.string().uuid("Invalid project identifier"),
+  hours: z.number().min(0.25, "Minimum 15 minutes (0.25h)").max(24, "Maximum 24 hours per entry"),
+  entry_date: z.string().min(1, "Entry date is required"),
+  description: z.string().trim().min(5, "Please provide description of work performed").max(1000),
+});
+
+export type HireTimeEntryCreateInput = z.infer<typeof hireTimeEntryCreateSchema>;
 
 /* ==============================================================================
    Admin Matching & Status Actions Validation

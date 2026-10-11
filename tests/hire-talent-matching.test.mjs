@@ -66,22 +66,33 @@ describe("Hire Talent Matching Engine & AI Scope Suite", () => {
     }
 
     // 3. Budget Fit (15%)
+    const currency = request.currency || "USD";
     if (request.hiring_model === "hourly") {
       const budgetMax = request.budget_max || request.budget_min || 0;
       if (budgetMax > 0) {
         if (talent.hourly_rate <= budgetMax) {
           details.budgetScore = weights.budget;
-          details.rationaleNotes.push(`Rate of $${talent.hourly_rate}/hr aligns with client budget`);
+          details.rationaleNotes.push(`Rate of ${currency} ${talent.hourly_rate}/hr aligns with client budget`);
         } else {
           const ratio = budgetMax / talent.hourly_rate;
           details.budgetScore = Math.max(0, Math.round(ratio * weights.budget));
-          details.rationaleNotes.push(`Rate ($${talent.hourly_rate}/hr) slightly above client max ($${budgetMax}/hr)`);
+          details.rationaleNotes.push(`Rate (${currency} ${talent.hourly_rate}/hr) slightly above client max (${currency} ${budgetMax}/hr)`);
         }
       } else {
         details.budgetScore = weights.budget;
       }
     } else {
-      details.budgetScore = weights.budget;
+      // Fixed price
+      const minProject = talent.min_project_budget || 200;
+      const projectBudget = request.budget_max || request.budget_min || 1000;
+      if (minProject <= projectBudget) {
+        details.budgetScore = weights.budget;
+        details.rationaleNotes.push(`Fixed project budget (${currency} ${projectBudget}) meets talent minimum requirement (${currency} ${minProject})`);
+      } else {
+        const ratio = projectBudget / minProject;
+        details.budgetScore = Math.max(2, Math.round(ratio * weights.budget));
+        details.rationaleNotes.push(`Project budget (${currency} ${projectBudget}) is below talent minimum (${currency} ${minProject})`);
+      }
     }
 
     // 4. Experience Fit (15%)
@@ -268,6 +279,43 @@ describe("Hire Talent Matching Engine & AI Scope Suite", () => {
     assert.equal(resWithin.details.budgetScore, 15);
     assert.ok(resOver.details.budgetScore < 10, "Expected lower budget score for over-budget talent");
     assert.ok(resWithin.score > resOver.score);
+  });
+
+  test("scores fixed-price projects by comparing project budget against talent min_project_budget", () => {
+    const fixedRequest = {
+      category: "software-web",
+      hiring_model: "fixed",
+      budget_min: 3000,
+      budget_max: 5000,
+      currency: "EUR",
+      required_skills: ["Next.js"],
+      experience_level: "intermediate",
+    };
+
+    const talentFits = {
+      preferred_categories: ["software-web"],
+      hourly_rate: 80,
+      min_project_budget: 2500, // fits within 5000
+      skills: ["Next.js"],
+      experience_years: 4,
+      availability_status: "available_now",
+    };
+
+    const talentExceeds = {
+      preferred_categories: ["software-web"],
+      hourly_rate: 150,
+      min_project_budget: 10000, // requires min 10k, client budget only 5k
+      skills: ["Next.js"],
+      experience_years: 4,
+      availability_status: "available_now",
+    };
+
+    const resFits = evaluateTalentMatch(fixedRequest, talentFits);
+    const resExceeds = evaluateTalentMatch(fixedRequest, talentExceeds);
+
+    assert.equal(resFits.details.budgetScore, 15);
+    assert.ok(resExceeds.details.budgetScore < 10);
+    assert.ok(resFits.rationale.includes("EUR"));
   });
 
   test("reduces category score when talent preferred categories do not match", () => {

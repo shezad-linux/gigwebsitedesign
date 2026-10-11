@@ -18,6 +18,8 @@ import {
   hireProposalSchema,
   adminMatchTalentSchema,
   updateRequestStatusSchema,
+  hireTimeEntryCreateSchema,
+  hireMilestoneCreateSchema,
 } from "@/lib/hire-talent/validation";
 import {
   createHireRequest,
@@ -28,16 +30,31 @@ import {
   submitHireProposal,
   updateHireProposalStatus,
   recordHireActivityLog,
+  createHireProject,
+  updateHireProjectStatus,
+  createHireMilestone,
+  updateHireMilestoneStatus,
+  logHireTimeEntry,
+  updateHireTimeEntryStatus,
+  acceptProposalAndCreateProject,
 } from "@/lib/hire-talent/mutations";
 import {
   fetchHireRequestById,
   fetchTalentProfileById,
   fetchTalentProfiles,
   fetchAllHireRequestsForAdmin,
+  fetchHireProjectById,
+  fetchHireProjectsForUser,
 } from "@/lib/hire-talent/queries";
 import { analyzeProjectScope } from "@/lib/hire-talent/ai-scope";
 import { evaluateTalentMatch } from "@/lib/hire-talent/matching";
-import { HireRequestStatus, ProposalStatus } from "@/lib/hire-talent/types";
+import {
+  HireRequestStatus,
+  ProposalStatus,
+  HireProject,
+  HireMilestone,
+  HireTimeEntry,
+} from "@/lib/hire-talent/types";
 
 /* ==============================================================================
    Helper: Extract JSON or FormData
@@ -110,16 +127,16 @@ export async function createHireRequestAction(inputData: FormData | Record<strin
       return { success: false, error: firstError || "Invalid project details" };
     }
 
-    const effectiveClient = getAdminClient() || createClient();
-    if (!effectiveClient) {
+    const supabase = createClient();
+    if (!supabase) {
       return { success: false, error: "Database not configured" };
     }
 
     const isDraft = raw.is_draft === true || raw.is_draft === "true";
-    const request = await createHireRequest(effectiveClient, auth.user.id, validated.data, isDraft);
+    const request = await createHireRequest(supabase, auth.user.id, validated.data, isDraft);
 
     if (request) {
-      await recordHireActivityLog(effectiveClient, {
+      await recordHireActivityLog(supabase, {
         requestId: request.id,
         actorId: auth.user.id,
         actorRole: "client",
@@ -182,12 +199,12 @@ export async function saveTalentProfileAction(inputData: FormData | Record<strin
       return { success: false, error: firstError || "Invalid talent profile information" };
     }
 
-    const effectiveClient = getAdminClient() || createClient();
-    if (!effectiveClient) {
+    const supabase = createClient();
+    if (!supabase) {
       return { success: false, error: "Database not configured" };
     }
 
-    const profile = await upsertTalentProfile(effectiveClient, auth.user.id, validated.data);
+    const profile = await upsertTalentProfile(supabase, auth.user.id, validated.data);
 
     return { success: true, data: profile };
   } catch (err: any) {
@@ -266,15 +283,15 @@ export async function respondToMatchAction(matchId: string, response: "accepted"
       return { success: false, error: auth.reason || "Authentication required" };
     }
 
-    const effectiveClient = getAdminClient() || createClient();
-    if (!effectiveClient) {
+    const supabase = createClient();
+    if (!supabase) {
       return { success: false, error: "Database not configured" };
     }
 
-    const match = await respondToMatch(effectiveClient, matchId, auth.user.id, response);
+    const match = await respondToMatch(supabase, matchId, auth.user.id, response);
 
     if (match) {
-      await recordHireActivityLog(effectiveClient, {
+      await recordHireActivityLog(supabase, {
         requestId: match.request_id,
         actorId: auth.user.id,
         actorRole: "talent",
@@ -314,15 +331,15 @@ export async function submitHireProposalAction(inputData: FormData | Record<stri
       return { success: false, error: firstError || "Invalid proposal details" };
     }
 
-    const effectiveClient = getAdminClient() || createClient();
-    if (!effectiveClient) {
+    const supabase = createClient();
+    if (!supabase) {
       return { success: false, error: "Database not configured" };
     }
 
-    const proposal = await submitHireProposal(effectiveClient, auth.user.id, validated.data);
+    const proposal = await submitHireProposal(supabase, auth.user.id, validated.data);
 
     if (proposal) {
-      await recordHireActivityLog(effectiveClient, {
+      await recordHireActivityLog(supabase, {
         requestId: proposal.request_id,
         actorId: auth.user.id,
         actorRole: "talent",
@@ -348,16 +365,30 @@ export async function updateProposalDecisionAction(
       return { success: false, error: auth.reason || "Authentication required" };
     }
 
-    const effectiveClient = getAdminClient() || createClient();
-    if (!effectiveClient) {
+    const supabase = createClient();
+    if (!supabase) {
       return { success: false, error: "Database not configured" };
+    }
+
+    // If accepted, invoke the full contract instantiation workflow
+    if (decision === "accepted") {
+      const result = await acceptProposalAndCreateProject(supabase, proposalId, auth.user.id);
+      await recordHireActivityLog(supabase, {
+        requestId: result.proposal.request_id,
+        actorId: auth.user.id,
+        actorRole: "client",
+        action: "client_accepted_proposal",
+        notes: `Proposal accepted; confirmed project #${result.project.id.slice(0, 8)} instantiated`,
+        metadata: { projectId: result.project.id },
+      });
+      return { success: true, data: result };
     }
 
     // Role check: must be admin or client who owns the request
     const role = await getServerUserRole(auth.user.id);
     const isAdmin = role === "admin" || role === "reviewer";
 
-    const { data: proposal } = await effectiveClient
+    const { data: proposal } = await supabase
       .from("hire_proposals")
       .select("id, request_id, talent_id")
       .eq("id", proposalId)
@@ -368,20 +399,20 @@ export async function updateProposalDecisionAction(
     }
 
     if (!isAdmin) {
-      const { data: req } = await effectiveClient
+      const { data: req } = await supabase
         .from("hire_requests")
         .select("client_id")
         .eq("id", proposal.request_id)
         .single();
 
       if (!req || req.client_id !== auth.user.id) {
-        return { success: false, error: "Unauthorized: Only the project owner can accept or decline proposals" };
+        return { success: false, error: "Unauthorized: Only the project owner can update proposal decisions" };
       }
     }
 
-    const updated = await updateHireProposalStatus(effectiveClient, proposalId, decision);
+    const updated = await updateHireProposalStatus(supabase, proposalId, decision);
 
-    await recordHireActivityLog(effectiveClient, {
+    await recordHireActivityLog(supabase, {
       requestId: proposal.request_id,
       actorId: auth.user.id,
       actorRole: isAdmin ? "admin" : "client",
@@ -393,6 +424,65 @@ export async function updateProposalDecisionAction(
   } catch (err: any) {
     console.error("updateProposalDecisionAction error:", err);
     return { success: false, error: err.message || "Failed to update proposal" };
+  }
+}
+
+export async function acceptProposalAndCreateProjectAction(proposalId: string) {
+  try {
+    const auth = await verifyCommunityAuth();
+    if (!auth.authorized || !auth.user) {
+      return { success: false, error: auth.reason || "Authentication required" };
+    }
+
+    const supabase = createClient();
+    if (!supabase) {
+      return { success: false, error: "Database not configured" };
+    }
+
+    const result = await acceptProposalAndCreateProject(supabase, proposalId, auth.user.id);
+
+    await recordHireActivityLog(supabase, {
+      requestId: result.proposal.request_id,
+      actorId: auth.user.id,
+      actorRole: "client",
+      action: "client_accepted_proposal_created_project",
+      notes: `Project #${result.project.id.slice(0, 8)} created from proposal`,
+      metadata: { projectId: result.project.id },
+    });
+
+    return { success: true, data: result };
+  } catch (err: any) {
+    console.error("acceptProposalAndCreateProjectAction error:", err);
+    return { success: false, error: err.message || "Failed to accept proposal and create project" };
+  }
+}
+
+export async function logHireTimeEntryAction(inputData: FormData | Record<string, any>) {
+  try {
+    const auth = await verifyCommunityAuth();
+    if (!auth.authorized || !auth.user) {
+      return { success: false, error: auth.reason || "Authentication required" };
+    }
+
+    const raw = parseInputData(inputData);
+    if (raw.hours) raw.hours = Number(raw.hours);
+
+    const validated = hireTimeEntryCreateSchema.safeParse(raw);
+    if (!validated.success) {
+      const firstError = Object.values(validated.error.flatten().fieldErrors)[0]?.[0];
+      return { success: false, error: firstError || "Invalid time entry" };
+    }
+
+    const supabase = createClient();
+    if (!supabase) {
+      return { success: false, error: "Database not configured" };
+    }
+
+    const entry = await logHireTimeEntry(supabase, auth.user.id, validated.data);
+    return { success: true, data: entry };
+  } catch (err: any) {
+    console.error("logHireTimeEntryAction error:", err);
+    return { success: false, error: err.message || "Failed to log time entry" };
   }
 }
 

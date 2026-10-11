@@ -217,7 +217,10 @@ export interface HireProposal {
   id: string;
   request_id: string;
   talent_id: string;
-  proposed_rate: number; // Hourly USD or Fixed total USD
+  proposed_rate: number; // General rate figure for legacy/compat
+  proposed_hourly_rate?: number; // Specific to hourly projects
+  fixed_price_quote?: number; // Specific to fixed projects
+  currency?: string;
   estimated_hours?: number;
   cover_letter: string;
   approach: string;
@@ -228,6 +231,79 @@ export interface HireProposal {
   // Populated relations
   talent?: TalentProfile;
   request?: HireRequest;
+}
+
+/* ==============================================================================
+   Confirmed Project & Engagement Lifecycle (Separate from Request)
+   ============================================================================== */
+
+export type HireProjectStatus =
+  | "active"
+  | "paused"
+  | "completed"
+  | "disputed"
+  | "cancelled";
+
+export interface HireProject {
+  id: string;
+  request_id: string;
+  client_id: string;
+  talent_id: string;
+  proposal_id: string;
+  title: string;
+  hiring_model: HiringModel;
+  currency: string;
+  agreed_rate?: number; // Agreed hourly rate (USD)
+  agreed_budget?: number; // Agreed fixed budget (USD)
+  status: HireProjectStatus;
+  started_at: string;
+  completed_at?: string;
+  created_at: string;
+  updated_at: string;
+  // Populated relations
+  talent?: TalentProfile;
+  request?: HireRequest;
+  milestones?: HireMilestone[];
+  time_entries?: HireTimeEntry[];
+}
+
+export type MilestoneStatus =
+  | "pending"
+  | "in_progress"
+  | "submitted"
+  | "approved"
+  | "paid";
+
+export interface HireMilestone {
+  id: string;
+  project_id: string;
+  title: string;
+  description?: string;
+  amount: number;
+  currency: string;
+  due_date?: string;
+  status: MilestoneStatus;
+  approved_at?: string;
+  paid_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type TimeEntryStatus =
+  | "logged"
+  | "submitted"
+  | "approved"
+  | "invoiced";
+
+export interface HireTimeEntry {
+  id: string;
+  project_id: string;
+  talent_id: string;
+  hours: number;
+  entry_date: string;
+  description: string;
+  status: TimeEntryStatus;
+  created_at: string;
 }
 
 export interface HireActivityLog {
