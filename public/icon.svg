@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="16" fill="#000000"/>
+  <!-- Primary Sparkle Star -->
+  <path d="M30 13 C30 25.5 37.5 33 50 33 C37.5 33 30 40.5 30 53 C30 40.5 22.5 33 10 33 C22.5 33 30 25.5 30 13 Z" fill="#FFFFFF"/>
+  <!-- Secondary Companion Star -->
+  <path d="M49 13 C49 16.5 51.5 19 55 19 C51.5 19 49 21.5 49 25 C49 21.5 46.5 19 43 19 C46.5 19 49 16.5 49 13 Z" fill="#FFFFFF"/>
+  <!-- Micro Accent Sparkle Dot -->
+  <circle cx="16" cy="47" r="1.75" fill="#FFFFFF"/>
+</svg>
