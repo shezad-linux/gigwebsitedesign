@@ -40,6 +40,7 @@ import {
   Tag,
   Globe,
   Mail,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -75,12 +76,14 @@ import { adminSignOutAction, getAdminSessionStatusAction } from "@/lib/supabase/
 import { CouponsManagementTab } from "@/components/admin/CouponsManagementTab";
 import { DomainHealthCard } from "@/components/admin/DomainHealthCard";
 import { CommunityModerationTab } from "@/components/admin/CommunityModerationTab";
+import { HireRequestsTab } from "@/components/admin/HireRequestsTab";
 
 type ActiveTab =
   | "listings"
   | "queue"
   | "evidence"
   | "community"
+  | "hire-requests"
   | "reports"
   | "monetization"
   | "coupons"
@@ -1069,6 +1072,18 @@ export default function AdminPage() {
           </button>
 
           <button
+            onClick={() => setActiveTab("hire-requests")}
+            className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
+              activeTab === "hire-requests"
+                ? "border-black text-black"
+                : "border-transparent text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <Users className="w-4 h-4 text-black" />
+            Hire Requests (Managed)
+          </button>
+
+          <button
             onClick={() => setActiveTab("reports")}
             className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
               activeTab === "reports"
@@ -1945,6 +1960,11 @@ export default function AdminPage() {
         {/* TAB: COMMUNITY EXCEPTION MODERATION */}
         {activeTab === "community" && (
           <CommunityModerationTab />
+        )}
+
+        {/* TAB: HIRE REQUESTS MANAGED MATCHING */}
+        {activeTab === "hire-requests" && (
+          <HireRequestsTab showToast={showToast} />
         )}
 
         {/* TAB: COUPONS & PRICING MANAGEMENT */}

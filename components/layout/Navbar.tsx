@@ -18,6 +18,7 @@ import {
   ChevronDown,
   Tag,
   MessageSquare,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthModal } from "@/components/auth/AuthModal";
@@ -135,6 +136,7 @@ export const Navbar: React.FC = () => {
 
   const navLinks = [
     { label: "Find Gigs", href: "/dashboard", icon: Compass },
+    { label: "Hire Talent", href: "/hire-talent", icon: Users },
     { label: "Community", href: "/community", icon: MessageSquare },
     { label: "Pricing", href: "/pricing", icon: Tag },
     { label: "Categories", href: "/#categories", icon: Layers },
@@ -243,6 +245,24 @@ export const Navbar: React.FC = () => {
                       >
                         <Briefcase className="w-4 h-4 text-black" />
                         Tracked Applications
+                      </Link>
+
+                      <Link
+                        href="/hire-talent/requests"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-neutral-700 hover:bg-neutral-100 transition-colors"
+                      >
+                        <Users className="w-4 h-4 text-black" />
+                        Hire Talent Requests
+                      </Link>
+
+                      <Link
+                        href="/hire-talent/profile"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-neutral-700 hover:bg-neutral-100 transition-colors"
+                      >
+                        <User className="w-4 h-4 text-black" />
+                        Talent Profile & Rates
                       </Link>
 
                       <div className="border-t border-neutral-100 mt-1 pt-1">

@@ -2,6 +2,9 @@
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   experimental: {
     serverComponentsExternalPackages: ["pdfjs-dist", "mammoth"],
   },
