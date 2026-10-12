@@ -4,16 +4,116 @@ import {
   CouponValidationResult,
   ServiceOrder,
   CouponUsageReportItem,
+  PricingRegionCode,
+  PricingRegion,
 } from "@/types/services";
 
+export type { PricingRegionCode, PricingRegion };
+
+export const PRICING_REGIONS: Record<PricingRegionCode, PricingRegion> = {
+  US: {
+    code: "US",
+    name: "United States / Global",
+    currency: "USD",
+    currencySymbol: "$",
+    flag: "🇺🇸",
+    formatLocale: "en-US",
+  },
+  EU: {
+    code: "EU",
+    name: "Europe",
+    currency: "EUR",
+    currencySymbol: "€",
+    flag: "🇪🇺",
+    formatLocale: "de-DE",
+  },
+  GB: {
+    code: "GB",
+    name: "United Kingdom",
+    currency: "GBP",
+    currencySymbol: "£",
+    flag: "🇬🇧",
+    formatLocale: "en-GB",
+  },
+  CA: {
+    code: "CA",
+    name: "Canada",
+    currency: "CAD",
+    currencySymbol: "CA$",
+    flag: "🇨🇦",
+    formatLocale: "en-CA",
+  },
+  AU: {
+    code: "AU",
+    name: "Australia",
+    currency: "AUD",
+    currencySymbol: "A$",
+    flag: "🇦🇺",
+    formatLocale: "en-AU",
+  },
+  IN: {
+    code: "IN",
+    name: "India & South Asia",
+    currency: "INR",
+    currencySymbol: "₹",
+    flag: "🇮🇳",
+    formatLocale: "en-IN",
+  },
+};
+
+export const DEFAULT_PRICING_REGION: PricingRegionCode = "US";
+
+export const REGIONAL_SERVICE_PRICES: Record<
+  PricingRegionCode,
+  Record<string, number>
+> = {
+  US: {
+    "expert-resume-review": 29,
+    "expert-resume-creation": 59,
+    "career-guidance": 49,
+    "career-accelerator": 119,
+  },
+  EU: {
+    "expert-resume-review": 27,
+    "expert-resume-creation": 55,
+    "career-guidance": 45,
+    "career-accelerator": 110,
+  },
+  GB: {
+    "expert-resume-review": 24,
+    "expert-resume-creation": 49,
+    "career-guidance": 39,
+    "career-accelerator": 95,
+  },
+  CA: {
+    "expert-resume-review": 39,
+    "expert-resume-creation": 79,
+    "career-guidance": 65,
+    "career-accelerator": 159,
+  },
+  AU: {
+    "expert-resume-review": 45,
+    "expert-resume-creation": 89,
+    "career-guidance": 75,
+    "career-accelerator": 179,
+  },
+  IN: {
+    "expert-resume-review": 799,
+    "expert-resume-creation": 1499,
+    "career-guidance": 1199,
+    "career-accelerator": 3499,
+  },
+};
+
+// Default pricing in Dollars ($ USD)
 export const EXPERT_SERVICES: ExpertService[] = [
   {
     id: "expert-resume-review",
     title: "Expert Resume Review",
     subtitle: "Manual review by an industry expert",
-    price: 799,
-    currency: "INR",
-    currencySymbol: "₹",
+    price: 29,
+    currency: "USD",
+    currencySymbol: "$",
     billingUnit: "per review",
     features: [
       "Detailed feedback on resume structure, skills, and achievements.",
@@ -27,9 +127,9 @@ export const EXPERT_SERVICES: ExpertService[] = [
     id: "expert-resume-creation",
     title: "Expert Resume Creation",
     subtitle: "A new, professionally written resume",
-    price: 1499,
-    currency: "INR",
-    currencySymbol: "₹",
+    price: 59,
+    currency: "USD",
+    currencySymbol: "$",
     billingUnit: "per resume",
     features: [
       "Personalized information collection.",
@@ -43,9 +143,9 @@ export const EXPERT_SERVICES: ExpertService[] = [
     id: "career-guidance",
     title: "Expert Career Guidance",
     subtitle: "Personalized mentoring session",
-    price: 1199,
-    currency: "INR",
-    currencySymbol: "₹",
+    price: 49,
+    currency: "USD",
+    currencySymbol: "$",
     billingUnit: "per session",
     features: [
       "One-to-one industry expert consultation.",
@@ -59,9 +159,9 @@ export const EXPERT_SERVICES: ExpertService[] = [
     id: "career-accelerator",
     title: "Career Accelerator",
     subtitle: "Combined premium support package",
-    price: 3499,
-    currency: "INR",
-    currencySymbol: "₹",
+    price: 119,
+    currency: "USD",
+    currencySymbol: "$",
     billingUnit: "per package",
     popularBadge: "Recommended · Best Value",
     features: [
@@ -75,13 +175,70 @@ export const EXPERT_SERVICES: ExpertService[] = [
   },
 ];
 
+/**
+ * Returns localized services for a specific region.
+ */
+export function getServicesForRegion(
+  regionCode: PricingRegionCode = "US"
+): ExpertService[] {
+  const region = PRICING_REGIONS[regionCode] || PRICING_REGIONS.US;
+  const priceMap =
+    REGIONAL_SERVICE_PRICES[region.code] || REGIONAL_SERVICE_PRICES.US;
+
+  return EXPERT_SERVICES.map((service) => ({
+    ...service,
+    price: priceMap[service.id] ?? service.price,
+    currency: region.currency,
+    currencySymbol: region.currencySymbol,
+  }));
+}
+
+/**
+ * Returns a specific service configured for the given region.
+ */
+export function getServiceForRegion(
+  serviceId: string,
+  regionCode: PricingRegionCode = "US"
+): ExpertService | null {
+  const services = getServicesForRegion(regionCode);
+  return services.find((s) => s.id === serviceId) || null;
+}
+
+/**
+ * Formats a monetary amount with currency symbol.
+ */
+export function formatPrice(
+  amount: number,
+  currency: string = "USD",
+  symbol?: string
+): string {
+  const s =
+    symbol ||
+    (currency === "INR"
+      ? "₹"
+      : currency === "EUR"
+      ? "€"
+      : currency === "GBP"
+      ? "£"
+      : currency === "CAD"
+      ? "CA$"
+      : currency === "AUD"
+      ? "A$"
+      : "$");
+
+  if (currency === "INR") {
+    return `${s}${amount.toLocaleString("en-IN")}`;
+  }
+  return `${s}${amount.toLocaleString("en-US")}`;
+}
+
 export const INITIAL_COUPONS: Coupon[] = [
   {
     id: "cpn_welcome10",
     code: "WELCOME10",
     discountType: "percentage",
     discountValue: 10,
-    maxDiscountCap: 500,
+    maxDiscountCap: 20, // $20 in USD
     minOrderAmount: 0,
     startsAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
     expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
@@ -101,7 +258,7 @@ export const INITIAL_COUPONS: Coupon[] = [
     code: "LAUNCH15",
     discountType: "percentage",
     discountValue: 15,
-    maxDiscountCap: 600,
+    maxDiscountCap: 30, // $30 in USD
     minOrderAmount: 0,
     startsAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
     expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
@@ -117,11 +274,11 @@ export const INITIAL_COUPONS: Coupon[] = [
     updatedAt: new Date().toISOString(),
   },
   {
-    id: "cpn_student200",
-    code: "STUDENT200",
+    id: "cpn_student10",
+    code: "STUDENT10",
     discountType: "fixed",
-    discountValue: 200,
-    minOrderAmount: 700,
+    discountValue: 10, // $10 in USD
+    minOrderAmount: 25,
     startsAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
     expiresAt: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(),
     maxRedemptions: 2000,
@@ -130,7 +287,26 @@ export const INITIAL_COUPONS: Coupon[] = [
     applicableServices: [],
     firstPurchaseOnly: false,
     isActive: true,
-    description: "₹200 discount for verified students.",
+    description: "$10 discount for verified students.",
+    restrictionNote: "Verified students",
+    createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: "cpn_student200",
+    code: "STUDENT200",
+    discountType: "fixed",
+    discountValue: 10, // $10 in USD (or ₹200 in INR)
+    minOrderAmount: 25,
+    startsAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+    expiresAt: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(),
+    maxRedemptions: 2000,
+    redemptionsCount: 215,
+    perUserLimit: 1,
+    applicableServices: [],
+    firstPurchaseOnly: false,
+    isActive: true,
+    description: "Flat student discount on qualifying orders.",
     restrictionNote: "Verified students",
     createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date().toISOString(),
@@ -140,8 +316,8 @@ export const INITIAL_COUPONS: Coupon[] = [
     code: "CAREER20",
     discountType: "percentage",
     discountValue: 20,
-    maxDiscountCap: 1000,
-    minOrderAmount: 3000,
+    maxDiscountCap: 40, // $40 in USD
+    minOrderAmount: 80,
     startsAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
     expiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
     maxRedemptions: 300,
@@ -160,7 +336,7 @@ export const INITIAL_COUPONS: Coupon[] = [
     code: "RETURN10",
     discountType: "percentage",
     discountValue: 10,
-    maxDiscountCap: 400,
+    maxDiscountCap: 20,
     minOrderAmount: 0,
     startsAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
     expiresAt: new Date(Date.now() + 120 * 24 * 60 * 60 * 1000).toISOString(),
@@ -181,60 +357,60 @@ export const INITIAL_ORDERS: ServiceOrder[] = [
   {
     id: "ord_101",
     orderNumber: "GM-ORD-2025-0101",
-    customerName: "Rohan Sharma",
-    customerEmail: "rohan.sharma@example.com",
+    customerName: "Alex Turner",
+    customerEmail: "alex.turner@example.com",
     serviceId: "expert-resume-review",
     serviceName: "Expert Resume Review",
-    originalPrice: 799,
+    originalPrice: 29,
     couponCode: "WELCOME10",
-    discountAmount: 80,
-    finalPrice: 719,
-    currency: "INR",
+    discountAmount: 3,
+    finalPrice: 26,
+    currency: "USD",
     status: "completed",
     createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
   },
   {
     id: "ord_102",
     orderNumber: "GM-ORD-2025-0102",
-    customerName: "Priya Nair",
-    customerEmail: "priya.nair@example.com",
+    customerName: "Elena Rostova",
+    customerEmail: "elena.rostova@example.com",
     serviceId: "career-guidance",
     serviceName: "Expert Career Guidance",
-    originalPrice: 1199,
+    originalPrice: 49,
     couponCode: "LAUNCH15",
-    discountAmount: 180,
-    finalPrice: 1019,
-    currency: "INR",
+    discountAmount: 7,
+    finalPrice: 42,
+    currency: "USD",
     status: "completed",
     createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
   },
   {
     id: "ord_103",
     orderNumber: "GM-ORD-2025-0103",
-    customerName: "Aman Verma",
-    customerEmail: "aman.v@example.com",
+    customerName: "Marcus Vance",
+    customerEmail: "marcus.v@example.com",
     serviceId: "career-accelerator",
     serviceName: "Career Accelerator",
-    originalPrice: 3499,
+    originalPrice: 119,
     couponCode: "CAREER20",
-    discountAmount: 700,
-    finalPrice: 2799,
-    currency: "INR",
+    discountAmount: 24,
+    finalPrice: 95,
+    currency: "USD",
     status: "completed",
     createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
   },
   {
     id: "ord_104",
     orderNumber: "GM-ORD-2025-0104",
-    customerName: "Sneha Patel",
-    customerEmail: "sneha.p@example.com",
+    customerName: "Priya Sharma",
+    customerEmail: "priya.s@example.com",
     serviceId: "expert-resume-creation",
     serviceName: "Expert Resume Creation",
-    originalPrice: 1499,
-    couponCode: "STUDENT200",
-    discountAmount: 200,
-    finalPrice: 1299,
-    currency: "INR",
+    originalPrice: 59,
+    couponCode: "STUDENT10",
+    discountAmount: 10,
+    finalPrice: 49,
+    currency: "USD",
     status: "completed",
     createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
   },
@@ -255,9 +431,24 @@ export function calculateCouponDiscount(
   context?: {
     isFirstPurchase?: boolean;
     now?: Date;
+    region?: PricingRegionCode;
   }
 ): CouponValidationResult {
   const originalPrice = service.price;
+  const currency = service.currency || "USD";
+  const currencySymbol =
+    service.currencySymbol ||
+    (currency === "INR"
+      ? "₹"
+      : currency === "EUR"
+      ? "€"
+      : currency === "GBP"
+      ? "£"
+      : currency === "CAD"
+      ? "CA$"
+      : currency === "AUD"
+      ? "A$"
+      : "$");
   const now = context?.now || new Date();
 
   // Baseline no coupon
@@ -273,8 +464,8 @@ export function calculateCouponDiscount(
       originalPrice,
       discountAmount: 0,
       finalPrice: originalPrice,
-      currency: service.currency,
-      currencySymbol: service.currencySymbol,
+      currency,
+      currencySymbol,
       savingsText: "No discount applied",
     };
   }
@@ -288,8 +479,8 @@ export function calculateCouponDiscount(
       originalPrice,
       discountAmount: 0,
       finalPrice: originalPrice,
-      currency: service.currency,
-      currencySymbol: service.currencySymbol,
+      currency,
+      currencySymbol,
       savingsText: "Coupon inactive",
     };
   }
@@ -303,8 +494,8 @@ export function calculateCouponDiscount(
       originalPrice,
       discountAmount: 0,
       finalPrice: originalPrice,
-      currency: service.currency,
-      currencySymbol: service.currencySymbol,
+      currency,
+      currencySymbol,
       savingsText: "Coupon not started",
     };
   }
@@ -318,8 +509,8 @@ export function calculateCouponDiscount(
       originalPrice,
       discountAmount: 0,
       finalPrice: originalPrice,
-      currency: service.currency,
-      currencySymbol: service.currencySymbol,
+      currency,
+      currencySymbol,
       savingsText: "Coupon expired",
     };
   }
@@ -336,23 +527,44 @@ export function calculateCouponDiscount(
       originalPrice,
       discountAmount: 0,
       finalPrice: originalPrice,
-      currency: service.currency,
-      currencySymbol: service.currencySymbol,
+      currency,
+      currencySymbol,
       savingsText: "Redemption limit reached",
     };
   }
 
   // 5. Minimum order amount check
-  if (coupon.minOrderAmount && originalPrice < coupon.minOrderAmount) {
+  let effectiveMinOrder = coupon.minOrderAmount || 0;
+  if (coupon.minOrderAmount) {
+    if (currency === "INR") {
+      if (coupon.code.toUpperCase().startsWith("STUDENT")) {
+        effectiveMinOrder = 700;
+      } else if (coupon.code.toUpperCase() === "CAREER20") {
+        effectiveMinOrder = 3000;
+      } else if (coupon.minOrderAmount < 100) {
+        effectiveMinOrder = coupon.minOrderAmount * 80;
+      }
+    } else {
+      if (coupon.code.toUpperCase().startsWith("STUDENT")) {
+        effectiveMinOrder = 25;
+      } else if (coupon.code.toUpperCase() === "CAREER20") {
+        effectiveMinOrder = 80;
+      } else if (coupon.minOrderAmount >= 500) {
+        effectiveMinOrder = Math.round(coupon.minOrderAmount / 35);
+      }
+    }
+  }
+
+  if (effectiveMinOrder > 0 && originalPrice < effectiveMinOrder) {
     return {
       valid: false,
-      error: `Coupon "${coupon.code}" requires a minimum order value of ₹${coupon.minOrderAmount}.`,
+      error: `Coupon "${coupon.code}" requires a minimum order value of ${currencySymbol}${effectiveMinOrder}.`,
       service: { id: service.id, title: service.title, originalPrice },
       originalPrice,
       discountAmount: 0,
       finalPrice: originalPrice,
-      currency: service.currency,
-      currencySymbol: service.currencySymbol,
+      currency,
+      currencySymbol,
       savingsText: "Below minimum order amount",
     };
   }
@@ -370,8 +582,8 @@ export function calculateCouponDiscount(
       originalPrice,
       discountAmount: 0,
       finalPrice: originalPrice,
-      currency: service.currency,
-      currencySymbol: service.currencySymbol,
+      currency,
+      currencySymbol,
       savingsText: "Service not eligible",
     };
   }
@@ -385,8 +597,8 @@ export function calculateCouponDiscount(
       originalPrice,
       discountAmount: 0,
       finalPrice: originalPrice,
-      currency: service.currency,
-      currencySymbol: service.currencySymbol,
+      currency,
+      currencySymbol,
       savingsText: "First-purchase only",
     };
   }
@@ -397,17 +609,50 @@ export function calculateCouponDiscount(
 
   if (coupon.discountType === "percentage") {
     rawDiscount = Math.round((originalPrice * coupon.discountValue) / 100);
-    // Apply cap if present
-    if (coupon.maxDiscountCap && rawDiscount > coupon.maxDiscountCap) {
-      rawDiscount = coupon.maxDiscountCap;
-      savingsText = `${coupon.discountValue}% off (capped at ₹${coupon.maxDiscountCap})`;
+
+    // Apply cap if present (scaled to currency)
+    let effectiveCap = coupon.maxDiscountCap;
+    if (coupon.maxDiscountCap) {
+      if (currency === "INR") {
+        effectiveCap =
+          coupon.maxDiscountCap < 100
+            ? coupon.maxDiscountCap * 30
+            : coupon.maxDiscountCap;
+      } else {
+        effectiveCap =
+          coupon.maxDiscountCap > 100
+            ? Math.round(coupon.maxDiscountCap / 30)
+            : coupon.maxDiscountCap;
+      }
+
+      if (rawDiscount > effectiveCap) {
+        rawDiscount = effectiveCap;
+        savingsText = `${coupon.discountValue}% off (capped at ${currencySymbol}${effectiveCap})`;
+      } else {
+        savingsText = `${coupon.discountValue}% off`;
+      }
     } else {
       savingsText = `${coupon.discountValue}% off`;
     }
   } else {
-    // Fixed amount discount in INR
-    rawDiscount = Math.min(originalPrice, Math.round(coupon.discountValue));
-    savingsText = `₹${rawDiscount} off`;
+    // Fixed amount discount
+    let effectiveFixed = coupon.discountValue;
+    if (currency === "INR") {
+      effectiveFixed = coupon.code.toUpperCase().startsWith("STUDENT")
+        ? 200
+        : coupon.discountValue <= 50
+        ? coupon.discountValue * 20
+        : coupon.discountValue;
+    } else {
+      effectiveFixed = coupon.code.toUpperCase().startsWith("STUDENT")
+        ? 10
+        : coupon.discountValue >= 100
+        ? Math.round(coupon.discountValue / 20)
+        : coupon.discountValue;
+    }
+
+    rawDiscount = Math.min(originalPrice, Math.round(effectiveFixed));
+    savingsText = `${currencySymbol}${rawDiscount} off`;
   }
 
   const discountAmount = Math.max(0, Math.min(rawDiscount, originalPrice));
@@ -430,8 +675,8 @@ export function calculateCouponDiscount(
     originalPrice,
     discountAmount,
     finalPrice,
-    currency: service.currency,
-    currencySymbol: service.currencySymbol,
+    currency,
+    currencySymbol,
     savingsText,
   };
 }

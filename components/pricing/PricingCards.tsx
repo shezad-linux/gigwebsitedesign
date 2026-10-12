@@ -3,18 +3,29 @@
 import React from "react";
 import { Check, Sparkles, ArrowRight, ShieldCheck, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { EXPERT_SERVICES } from "@/lib/services-pricing";
+import { EXPERT_SERVICES, getServicesForRegion, PricingRegionCode } from "@/lib/services-pricing";
 import { ExpertService } from "@/types/services";
 
 interface PricingCardsProps {
   onSelectService: (service: ExpertService) => void;
+  currentRegion?: PricingRegionCode;
 }
 
-export const PricingCards: React.FC<PricingCardsProps> = ({ onSelectService }) => {
+export const PricingCards: React.FC<PricingCardsProps> = ({
+  onSelectService,
+  currentRegion = "US",
+}) => {
+  const services = getServicesForRegion(currentRegion);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {EXPERT_SERVICES.map((service) => {
+      {services.map((service) => {
         const isFeatured = service.id === "career-accelerator";
+        const symbol = service.currencySymbol || "$";
+        const formattedPrice =
+          currentRegion === "IN"
+            ? service.price.toLocaleString("en-IN")
+            : service.price.toLocaleString("en-US");
 
         return (
           <div
@@ -44,7 +55,7 @@ export const PricingCards: React.FC<PricingCardsProps> = ({ onSelectService }) =
               <div className="mt-5 mb-6 pb-5 border-b border-neutral-100">
                 <div className="flex items-baseline gap-1">
                   <span className="text-3xl font-extrabold text-black tracking-tight">
-                    ₹{service.price.toLocaleString("en-IN")}
+                    {symbol}{formattedPrice}
                   </span>
                   <span className="text-xs font-medium text-neutral-600">
                     /{service.billingUnit.replace("per ", "")}

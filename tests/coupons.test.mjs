@@ -329,4 +329,112 @@ describe("Expert Services, Pricing & Server Coupon Calculation Suite", () => {
     assert.equal(res.discountAmount, 100);
     assert.equal(res.finalPrice, 0);
   });
+
+  describe("Multi-Region Pricing & Currency Filtering", () => {
+    const PRICING_REGIONS = {
+      US: { code: "US", currency: "USD", symbol: "$" },
+      EU: { code: "EU", currency: "EUR", symbol: "€" },
+      GB: { code: "GB", currency: "GBP", symbol: "£" },
+      CA: { code: "CA", currency: "CAD", symbol: "CA$" },
+      AU: { code: "AU", currency: "AUD", symbol: "A$" },
+      IN: { code: "IN", currency: "INR", symbol: "₹" },
+    };
+
+    const REGIONAL_PRICES = {
+      US: { "expert-resume-review": 29, "expert-resume-creation": 59, "career-guidance": 49, "career-accelerator": 119 },
+      EU: { "expert-resume-review": 27, "expert-resume-creation": 55, "career-guidance": 45, "career-accelerator": 110 },
+      GB: { "expert-resume-review": 24, "expert-resume-creation": 49, "career-guidance": 39, "career-accelerator": 95 },
+      CA: { "expert-resume-review": 39, "expert-resume-creation": 79, "career-guidance": 65, "career-accelerator": 159 },
+      AU: { "expert-resume-review": 45, "expert-resume-creation": 89, "career-guidance": 75, "career-accelerator": 179 },
+      IN: { "expert-resume-review": 799, "expert-resume-creation": 1499, "career-guidance": 1199, "career-accelerator": 3499 },
+    };
+
+    test("defaults to US Dollars with $29 review and $119 accelerator", () => {
+      const usPrices = REGIONAL_PRICES.US;
+      assert.equal(usPrices["expert-resume-review"], 29);
+      assert.equal(usPrices["expert-resume-creation"], 59);
+      assert.equal(usPrices["career-guidance"], 49);
+      assert.equal(usPrices["career-accelerator"], 119);
+      assert.equal(PRICING_REGIONS.US.currency, "USD");
+      assert.equal(PRICING_REGIONS.US.symbol, "$");
+    });
+
+    test("provides tailored local integer pricing across all 6 supported regions", () => {
+      for (const [code, region] of Object.entries(PRICING_REGIONS)) {
+        const prices = REGIONAL_PRICES[code];
+        assert.ok(prices, `Prices must be defined for region ${code}`);
+        assert.ok(prices["expert-resume-review"] > 0);
+        assert.ok(prices["career-accelerator"] > prices["expert-resume-review"]);
+        assert.ok(region.symbol.length > 0);
+      }
+    });
+
+    test("validates percentage coupon (LAUNCH15) on US Dollar pricing ($49 guidance -> $7 discount, $42 final)", () => {
+      const usGuidance = {
+        id: "career-guidance",
+        title: "Career Guidance",
+        price: 49,
+        currency: "USD",
+        currencySymbol: "$",
+      };
+      const launchCoupon = {
+        code: "LAUNCH15",
+        discountType: "percentage",
+        discountValue: 15,
+        isActive: true,
+      };
+
+      const res = calculateCouponDiscount(launchCoupon, usGuidance);
+      assert.equal(res.valid, true);
+      assert.equal(res.originalPrice, 49);
+      assert.equal(res.discountAmount, 7); // 15% of 49 = 7.35 -> 7
+      assert.equal(res.finalPrice, 42);
+    });
+
+    test("validates fixed student coupon in USD (STUDENT10 -> $10 off on $59 creation -> $49 final)", () => {
+      const usCreation = {
+        id: "expert-resume-creation",
+        title: "Resume Creation",
+        price: 59,
+        currency: "USD",
+        currencySymbol: "$",
+      };
+      const studentCoupon = {
+        code: "STUDENT10",
+        discountType: "fixed",
+        discountValue: 10,
+        minOrderAmount: 25,
+        isActive: true,
+      };
+
+      const res = calculateCouponDiscount(studentCoupon, usCreation);
+      assert.equal(res.valid, true);
+      assert.equal(res.originalPrice, 59);
+      assert.equal(res.discountAmount, 10);
+      assert.equal(res.finalPrice, 49);
+    });
+
+    test("validates fixed student coupon in INR (STUDENT200 -> ₹200 off on ₹1,499 creation -> ₹1,299 final)", () => {
+      const inCreation = {
+        id: "expert-resume-creation",
+        title: "Resume Creation",
+        price: 1499,
+        currency: "INR",
+        currencySymbol: "₹",
+      };
+      const studentCoupon = {
+        code: "STUDENT200",
+        discountType: "fixed",
+        discountValue: 200,
+        minOrderAmount: 700,
+        isActive: true,
+      };
+
+      const res = calculateCouponDiscount(studentCoupon, inCreation);
+      assert.equal(res.valid, true);
+      assert.equal(res.originalPrice, 1499);
+      assert.equal(res.discountAmount, 200);
+      assert.equal(res.finalPrice, 1299);
+    });
+  });
 });

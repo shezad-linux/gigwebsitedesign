@@ -1,12 +1,23 @@
 export type CouponDiscountType = "percentage" | "fixed";
 
+export type PricingRegionCode = "US" | "EU" | "GB" | "IN" | "CA" | "AU";
+
+export interface PricingRegion {
+  code: PricingRegionCode;
+  name: string;
+  currency: string;
+  currencySymbol: string;
+  flag: string;
+  formatLocale: string;
+}
+
 export interface ExpertService {
   id: string;
   title: string;
   subtitle: string;
-  price: number; // in INR
-  currency: string; // "INR"
-  currencySymbol: string; // "₹"
+  price: number; // in regional currency (default USD)
+  currency: string; // "USD" by default
+  currencySymbol: string; // "$" by default
   billingUnit: string; // "per review", "per resume", "per session", "per package"
   features: string[];
   popularBadge?: string;
@@ -17,9 +28,9 @@ export interface Coupon {
   id: string;
   code: string;
   discountType: CouponDiscountType;
-  discountValue: number; // e.g. 15 for 15% or 200 for ₹200
-  maxDiscountCap?: number; // optional max discount in INR for percentage
-  minOrderAmount?: number; // optional min order amount in INR
+  discountValue: number; // e.g. 15 for 15% or 10 for $10
+  maxDiscountCap?: number; // optional max discount in currency for percentage
+  minOrderAmount?: number; // optional min order amount in currency
   startsAt?: string; // ISO date string
   expiresAt?: string; // ISO date string
   maxRedemptions?: number;
@@ -39,6 +50,7 @@ export interface CouponValidationRequest {
   serviceId: string;
   userEmail?: string;
   isFirstPurchase?: boolean;
+  region?: PricingRegionCode;
 }
 
 export interface CouponValidationResult {

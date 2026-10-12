@@ -4,6 +4,9 @@ import {
   INITIAL_COUPONS,
   calculateCouponDiscount,
   getStoredCoupons,
+  getServiceForRegion,
+  PRICING_REGIONS,
+  PricingRegionCode,
 } from "@/lib/services-pricing";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
@@ -33,7 +36,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { code, serviceId, isFirstPurchase } = body;
+    const { code, serviceId, isFirstPurchase, region = "US" } = body;
 
     if (!serviceId) {
       return NextResponse.json(
@@ -42,7 +45,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const service = EXPERT_SERVICES.find((s) => s.id === serviceId);
+    const selectedRegion = (PRICING_REGIONS[region as PricingRegionCode]
+      ? region
+      : "US") as PricingRegionCode;
+
+    const service = getServiceForRegion(serviceId, selectedRegion);
     if (!service) {
       return NextResponse.json(
         { error: `Unknown service "${serviceId}".` },
@@ -103,6 +110,7 @@ export async function POST(req: NextRequest) {
     const calculation = calculateCouponDiscount(matchedCoupon, service, {
       isFirstPurchase: isFirstPurchase !== false,
       now: new Date(),
+      region: selectedRegion,
     });
 
     return NextResponse.json(calculation, { status: 200 });

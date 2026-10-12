@@ -1,19 +1,26 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Copy, Check, Calculator, Sparkles, Tag, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { EXPERT_SERVICES } from "@/lib/services-pricing";
+import {
+  EXPERT_SERVICES,
+  getServicesForRegion,
+  PRICING_REGIONS,
+  PricingRegionCode,
+} from "@/lib/services-pricing";
 import { CouponDiscountType, ExpertService } from "@/types/services";
 
 interface CouponSimulatorProps {
   onApplyToCheckout?: (service: ExpertService, couponCode: string) => void;
   initialCode?: string;
+  currentRegion?: PricingRegionCode;
 }
 
 export const CouponSimulator: React.FC<CouponSimulatorProps> = ({
   onApplyToCheckout,
   initialCode = "LAUNCH15",
+  currentRegion = "US",
 }) => {
   const [couponCode, setCouponCode] = useState(initialCode);
   const [selectedServiceId, setSelectedServiceId] = useState<string>("career-guidance");
@@ -21,13 +28,29 @@ export const CouponSimulator: React.FC<CouponSimulatorProps> = ({
   const [discountValue, setDiscountValue] = useState<number>(15);
   const [copied, setCopied] = useState(false);
 
+  const services = useMemo(() => getServicesForRegion(currentRegion), [currentRegion]);
+  const activeRegion = PRICING_REGIONS[currentRegion] || PRICING_REGIONS.US;
+  const isIndia = currentRegion === "IN";
+  const currencySymbol = activeRegion.currencySymbol;
+
+  // Auto-adjust fixed discount value when switching region
+  useEffect(() => {
+    if (discountType === "fixed") {
+      if (isIndia && discountValue < 50) {
+        setDiscountValue(200);
+      } else if (!isIndia && discountValue > 50) {
+        setDiscountValue(10);
+      }
+    }
+  }, [currentRegion, isIndia, discountType]);
+
   // Selected Service
   const selectedService = useMemo(() => {
     return (
-      EXPERT_SERVICES.find((s) => s.id === selectedServiceId) ||
-      EXPERT_SERVICES[0]
+      services.find((s) => s.id === selectedServiceId) ||
+      services[0]
     );
-  }, [selectedServiceId]);
+  }, [services, selectedServiceId]);
 
   // Original Price
   const originalPrice = selectedService.price;
@@ -42,7 +65,7 @@ export const CouponSimulator: React.FC<CouponSimulatorProps> = ({
       display = `${discountValue}%`;
     } else {
       discount = Math.min(originalPrice, Math.round(discountValue));
-      display = `₹${discountValue.toLocaleString("en-IN")}`;
+      display = `${currencySymbol}${discountValue.toLocaleString(isIndia ? "en-IN" : "en-US")}`;
     }
 
     const pays = Math.max(0, originalPrice - discount);
@@ -52,7 +75,7 @@ export const CouponSimulator: React.FC<CouponSimulatorProps> = ({
       customerPays: pays,
       displayDiscountValue: display,
     };
-  }, [originalPrice, discountType, discountValue]);
+  }, [originalPrice, discountType, discountValue, currencySymbol, isIndia]);
 
   const handleCopy = () => {
     if (!couponCode) return;
@@ -79,7 +102,7 @@ export const CouponSimulator: React.FC<CouponSimulatorProps> = ({
           </div>
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-medium text-neutral-500 bg-white border border-neutral-200 px-3 py-1.5 rounded-lg shadow-2xs">
-              Live Interactive Simulator
+              Live Interactive Simulator ({activeRegion.name})
             </span>
           </div>
         </div>
@@ -111,8 +134,10 @@ export const CouponSimulator: React.FC<CouponSimulatorProps> = ({
               Service
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {EXPERT_SERVICES.map((s) => {
+              {services.map((s) => {
                 const isSelected = s.id === selectedServiceId;
+                const sym = s.currencySymbol || currencySymbol;
+                const formatted = s.price.toLocaleString(isIndia ? "en-IN" : "en-US");
                 return (
                   <button
                     key={s.id}
@@ -131,7 +156,7 @@ export const CouponSimulator: React.FC<CouponSimulatorProps> = ({
                           isSelected ? "text-white" : "text-black"
                         }`}
                       >
-                        ₹{s.price.toLocaleString("en-IN")}
+                        {sym}{formatted}
                       </span>
                     </div>
                     <span
@@ -171,7 +196,11 @@ export const CouponSimulator: React.FC<CouponSimulatorProps> = ({
                 type="button"
                 onClick={() => {
                   setDiscountType("fixed");
-                  if (discountValue <= 100) setDiscountValue(200);
+                  if (isIndia) {
+                    if (discountValue < 50 || discountValue > 1000) setDiscountValue(200);
+                  } else {
+                    if (discountValue < 5 || discountValue > 50) setDiscountValue(10);
+                  }
                 }}
                 className={`h-9 rounded-lg text-xs font-bold transition-all ${
                   discountType === "fixed"
@@ -179,7 +208,7 @@ export const CouponSimulator: React.FC<CouponSimulatorProps> = ({
                     : "text-neutral-600 hover:text-black"
                 }`}
               >
-                Fixed amount (₹)
+                Fixed amount ({currencySymbol})
               </button>
             </div>
           </div>
@@ -213,7 +242,7 @@ export const CouponSimulator: React.FC<CouponSimulatorProps> = ({
                   <span>50%</span>
                 </div>
               </div>
-            ) : (
+            ) : isIndia ? (
               <div className="space-y-2">
                 <input
                   type="range"
@@ -229,6 +258,24 @@ export const CouponSimulator: React.FC<CouponSimulatorProps> = ({
                   <span>₹200</span>
                   <span>₹500</span>
                   <span>₹1,000</span>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <input
+                  type="range"
+                  min="5"
+                  max="50"
+                  step="5"
+                  value={discountValue}
+                  onChange={(e) => setDiscountValue(Number(e.target.value))}
+                  className="w-full accent-black cursor-pointer"
+                />
+                <div className="flex justify-between text-[10px] text-neutral-400 font-mono">
+                  <span>{currencySymbol}5</span>
+                  <span>{currencySymbol}10</span>
+                  <span>{currencySymbol}25</span>
+                  <span>{currencySymbol}50</span>
                 </div>
               </div>
             )}
@@ -252,7 +299,7 @@ export const CouponSimulator: React.FC<CouponSimulatorProps> = ({
               <div className="flex items-center justify-between">
                 <span className="text-neutral-600">Original price</span>
                 <span className="font-semibold text-black font-mono text-sm">
-                  ₹{originalPrice.toLocaleString("en-IN")}
+                  {currencySymbol}{originalPrice.toLocaleString(isIndia ? "en-IN" : "en-US")}
                 </span>
               </div>
 
@@ -262,7 +309,7 @@ export const CouponSimulator: React.FC<CouponSimulatorProps> = ({
                   Discount ({displayDiscountValue})
                 </span>
                 <span className="font-bold text-black font-mono text-sm">
-                  −₹{discountAmount.toLocaleString("en-IN")}
+                  −{currencySymbol}{discountAmount.toLocaleString(isIndia ? "en-IN" : "en-US")}
                 </span>
               </div>
 
@@ -271,7 +318,7 @@ export const CouponSimulator: React.FC<CouponSimulatorProps> = ({
                   Customer pays
                 </span>
                 <div className="text-3xl font-extrabold text-black font-mono tracking-tight">
-                  ₹{customerPays.toLocaleString("en-IN")}
+                  {currencySymbol}{customerPays.toLocaleString(isIndia ? "en-IN" : "en-US")}
                 </div>
               </div>
             </div>

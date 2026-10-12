@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Sparkles,
@@ -12,17 +12,52 @@ import {
   FileCheck,
   Award,
 } from "lucide-react";
+import { RegionFilter } from "@/components/pricing/RegionFilter";
 import { PricingCards } from "@/components/pricing/PricingCards";
 import { CouponSimulator } from "@/components/pricing/CouponSimulator";
 import { LaunchCouponsTable } from "@/components/pricing/LaunchCouponsTable";
 import { CheckoutModal } from "@/components/pricing/CheckoutModal";
-import { EXPERT_SERVICES } from "@/lib/services-pricing";
+import {
+  EXPERT_SERVICES,
+  getServicesForRegion,
+  getServiceForRegion,
+  PricingRegionCode,
+} from "@/lib/services-pricing";
 import { ExpertService } from "@/types/services";
 
 export default function PricingPage() {
+  const [currentRegion, setCurrentRegion] = useState<PricingRegionCode>("US");
   const [selectedService, setSelectedService] = useState<ExpertService | null>(null);
   const [appliedCouponCode, setAppliedCouponCode] = useState<string>("LAUNCH15");
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+
+  // Restore saved region preference on client mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("remotasks_pricing_region") as PricingRegionCode | null;
+      if (saved && ["US", "EU", "GB", "CA", "AU", "IN"].includes(saved)) {
+        setCurrentRegion(saved);
+      }
+    } catch {
+      // Ignore localStorage access failures
+    }
+  }, []);
+
+  const handleSelectRegion = (region: PricingRegionCode) => {
+    setCurrentRegion(region);
+    try {
+      localStorage.setItem("remotasks_pricing_region", region);
+    } catch {
+      // Ignore
+    }
+    // If a service is currently selected, refresh its pricing for the selected region
+    if (selectedService) {
+      const refreshed = getServiceForRegion(selectedService.id, region);
+      if (refreshed) {
+        setSelectedService(refreshed);
+      }
+    }
+  };
 
   const handleSelectService = (service: ExpertService) => {
     setSelectedService(service);
@@ -37,7 +72,8 @@ export default function PricingPage() {
 
   const handleSelectCouponFromTable = (code: string) => {
     setAppliedCouponCode(code);
-    setSelectedService(EXPERT_SERVICES[0]);
+    const services = getServicesForRegion(currentRegion);
+    setSelectedService(services[0]);
     setIsCheckoutOpen(true);
   };
 
@@ -81,7 +117,7 @@ export default function PricingPage() {
         {/* Pricing Cards Section */}
         <section className="py-16 md:py-20 border-b border-neutral-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center max-w-2xl mx-auto mb-12">
+            <div className="text-center max-w-2xl mx-auto mb-8">
               <h2 className="text-2xl sm:text-3xl font-extrabold text-black tracking-tight">
                 Choose Your Support Package
               </h2>
@@ -91,7 +127,16 @@ export default function PricingPage() {
               </p>
             </div>
 
-            <PricingCards onSelectService={handleSelectService} />
+            {/* Region & Currency Filter */}
+            <RegionFilter
+              currentRegion={currentRegion}
+              onSelectRegion={handleSelectRegion}
+            />
+
+            <PricingCards
+              currentRegion={currentRegion}
+              onSelectService={handleSelectService}
+            />
           </div>
         </section>
 
@@ -109,6 +154,7 @@ export default function PricingPage() {
             </div>
 
             <CouponSimulator
+              currentRegion={currentRegion}
               initialCode={appliedCouponCode}
               onApplyToCheckout={handleApplyToCheckout}
             />
@@ -127,7 +173,10 @@ export default function PricingPage() {
               </p>
             </div>
 
-            <LaunchCouponsTable onSelectCoupon={handleSelectCouponFromTable} />
+            <LaunchCouponsTable
+              currentRegion={currentRegion}
+              onSelectCoupon={handleSelectCouponFromTable}
+            />
           </div>
         </section>
 
@@ -210,8 +259,8 @@ export default function PricingPage() {
                   How do I apply launch and student coupons?
                 </h3>
                 <p className="text-xs text-neutral-600 mt-2 leading-relaxed">
-                  Enter any active promotional code (such as <code className="bg-neutral-100 px-1 py-0.5 rounded font-mono">LAUNCH15</code> or <code className="bg-neutral-100 px-1 py-0.5 rounded font-mono">STUDENT200</code>) in the checkout modal.
-                  Our server verifies coupon validity and recalculates the final payable amount instantly.
+                  Enter any active promotional code (such as <code className="bg-neutral-100 px-1 py-0.5 rounded font-mono">LAUNCH15</code>, <code className="bg-neutral-100 px-1 py-0.5 rounded font-mono">STUDENT10</code> or <code className="bg-neutral-100 px-1 py-0.5 rounded font-mono">STUDENT200</code>) in the checkout modal.
+                  Our server verifies coupon validity and recalculates the final payable amount instantly in your selected currency.
                 </p>
               </div>
 
@@ -235,6 +284,7 @@ export default function PricingPage() {
         onClose={() => setIsCheckoutOpen(false)}
         service={selectedService}
         initialCouponCode={appliedCouponCode}
+        currentRegion={currentRegion}
       />
     </div>
   );

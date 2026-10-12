@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Copy, Check, Tag, Sparkles, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PRICING_REGIONS, PricingRegionCode } from "@/lib/services-pricing";
 
 interface LaunchCouponItem {
   code: string;
@@ -12,48 +13,61 @@ interface LaunchCouponItem {
   recommendedService?: string;
 }
 
-const LAUNCH_COUPONS: LaunchCouponItem[] = [
-  {
-    code: "WELCOME10",
-    offer: "10% off",
-    restriction: "First purchase",
-    description: "Applies to any service for new users.",
-  },
-  {
-    code: "LAUNCH15",
-    offer: "15% off",
-    restriction: "Limited launch period",
-    description: "Universal launch promotion during early rollout.",
-  },
-  {
-    code: "STUDENT200",
-    offer: "₹200 off",
-    restriction: "Verified students",
-    description: "Flat fee reduction on orders of ₹700 or more.",
-  },
-  {
-    code: "CAREER20",
-    offer: "20% off",
-    restriction: "Career Accelerator only",
-    description: "Maximum discount on our complete combined premium package.",
-    recommendedService: "career-accelerator",
-  },
-  {
-    code: "RETURN10",
-    offer: "10% off",
-    restriction: "Eligible returning customers",
-    description: "Loyalty voucher for follow-up mentoring or second reviews.",
-  },
-];
-
 interface LaunchCouponsTableProps {
   onSelectCoupon?: (code: string) => void;
+  currentRegion?: PricingRegionCode;
 }
 
 export const LaunchCouponsTable: React.FC<LaunchCouponsTableProps> = ({
   onSelectCoupon,
+  currentRegion = "US",
 }) => {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+
+  const activeRegion = PRICING_REGIONS[currentRegion] || PRICING_REGIONS.US;
+  const isIndia = currentRegion === "IN";
+  const sym = activeRegion.currencySymbol;
+
+  const coupons: LaunchCouponItem[] = [
+    {
+      code: "WELCOME10",
+      offer: "10% off",
+      restriction: "First purchase",
+      description: "Applies to any service for new users.",
+    },
+    {
+      code: "LAUNCH15",
+      offer: "15% off",
+      restriction: "Limited launch period",
+      description: "Universal launch promotion during early rollout.",
+    },
+    isIndia
+      ? {
+          code: "STUDENT200",
+          offer: "₹200 off",
+          restriction: "Verified students",
+          description: "Flat fee reduction on orders of ₹700 or more.",
+        }
+      : {
+          code: "STUDENT10",
+          offer: `${sym}10 off`,
+          restriction: "Verified students",
+          description: `Flat fee reduction on orders of ${sym}25 or more.`,
+        },
+    {
+      code: "CAREER20",
+      offer: "20% off",
+      restriction: "Career Accelerator only",
+      description: "Maximum discount on our complete combined premium package.",
+      recommendedService: "career-accelerator",
+    },
+    {
+      code: "RETURN10",
+      offer: "10% off",
+      restriction: "Eligible returning customers",
+      description: "Loyalty voucher for follow-up mentoring or second reviews.",
+    },
+  ];
 
   const handleCopy = (code: string) => {
     navigator.clipboard.writeText(code);
@@ -90,7 +104,7 @@ export const LaunchCouponsTable: React.FC<LaunchCouponsTableProps> = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-neutral-100 text-xs">
-            {LAUNCH_COUPONS.map((coupon) => {
+            {coupons.map((coupon) => {
               const isCopied = copiedCode === coupon.code;
 
               return (

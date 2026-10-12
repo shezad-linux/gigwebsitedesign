@@ -14,12 +14,14 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ExpertService, CouponValidationResult, ServiceOrder } from "@/types/services";
+import { PricingRegionCode } from "@/lib/services-pricing";
 
 interface CheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
   service: ExpertService | null;
   initialCouponCode?: string;
+  currentRegion?: PricingRegionCode;
 }
 
 export const CheckoutModal: React.FC<CheckoutModalProps> = ({
@@ -27,6 +29,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   onClose,
   service,
   initialCouponCode = "",
+  currentRegion = "US",
 }) => {
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
@@ -71,6 +74,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           code: codeToTest.trim(),
           serviceId,
           isFirstPurchase: true,
+          region: currentRegion,
         }),
       });
 
@@ -123,6 +127,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           customerPhone: customerPhone.trim() || undefined,
           customerNotes: customerNotes.trim() || undefined,
           couponCode: couponResult?.coupon?.code || undefined,
+          region: currentRegion,
         }),
       });
 
@@ -139,9 +144,26 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     }
   };
 
+  const symbol = service.currencySymbol || "$";
+  const isIndia = (service.currency || "USD") === "INR";
   const originalPrice = service.price;
   const discountAmount = couponResult ? couponResult.discountAmount : 0;
   const finalPrice = Math.max(0, originalPrice - discountAmount);
+
+  const orderSymbol = completedOrder
+    ? completedOrder.currency === "INR"
+      ? "₹"
+      : completedOrder.currency === "EUR"
+      ? "€"
+      : completedOrder.currency === "GBP"
+      ? "£"
+      : completedOrder.currency === "CAD"
+      ? "CA$"
+      : completedOrder.currency === "AUD"
+      ? "A$"
+      : "$"
+    : symbol;
+  const orderIsIndia = completedOrder?.currency === "INR";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
@@ -201,12 +223,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 {completedOrder.couponCode && (
                   <div className="flex justify-between text-neutral-800">
                     <span>Coupon Applied:</span>
-                    <span>{completedOrder.couponCode} (−₹{completedOrder.discountAmount})</span>
+                    <span>{completedOrder.couponCode} (−{orderSymbol}{completedOrder.discountAmount})</span>
                   </div>
                 )}
                 <div className="flex justify-between border-t border-neutral-200 pt-2 text-sm font-extrabold text-black">
                   <span>Total Paid:</span>
-                  <span>₹{completedOrder.finalPrice.toLocaleString("en-IN")}</span>
+                  <span>{orderSymbol}{completedOrder.finalPrice.toLocaleString(orderIsIndia ? "en-IN" : "en-US")}</span>
                 </div>
               </div>
 
@@ -237,7 +259,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </div>
                 <div className="text-right">
                   <span className="text-base font-extrabold text-black font-mono">
-                    ₹{service.price.toLocaleString("en-IN")}
+                    {symbol}{service.price.toLocaleString(isIndia ? "en-IN" : "en-US")}
                   </span>
                   <span className="text-[10px] block text-neutral-600">{service.billingUnit}</span>
                 </div>
@@ -366,7 +388,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 <div className="flex justify-between text-neutral-600">
                   <span>Original Price</span>
                   <span className="font-mono font-semibold text-black">
-                    ₹{originalPrice.toLocaleString("en-IN")}
+                    {symbol}{originalPrice.toLocaleString(isIndia ? "en-IN" : "en-US")}
                   </span>
                 </div>
                 {discountAmount > 0 && (
@@ -376,14 +398,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                       Discount Applied
                     </span>
                     <span className="font-mono font-bold">
-                      −₹{discountAmount.toLocaleString("en-IN")}
+                      −{symbol}{discountAmount.toLocaleString(isIndia ? "en-IN" : "en-US")}
                     </span>
                   </div>
                 )}
                 <div className="border-t border-neutral-200 pt-2 flex justify-between text-sm font-bold text-black">
                   <span>Customer Pays</span>
                   <span className="text-base font-extrabold font-mono">
-                    ₹{finalPrice.toLocaleString("en-IN")}
+                    {symbol}{finalPrice.toLocaleString(isIndia ? "en-IN" : "en-US")}
                   </span>
                 </div>
               </div>
@@ -403,7 +425,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   ) : (
                     <>
                       <Lock className="w-3.5 h-3.5" />
-                      <span>Confirm & Book for ₹{finalPrice.toLocaleString("en-IN")}</span>
+                      <span>Confirm & Book for {symbol}{finalPrice.toLocaleString(isIndia ? "en-IN" : "en-US")}</span>
                     </>
                   )}
                 </Button>

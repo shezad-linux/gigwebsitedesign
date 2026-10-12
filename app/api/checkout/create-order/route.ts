@@ -4,6 +4,9 @@ import {
   getStoredCoupons,
   calculateCouponDiscount,
   recordNewOrder,
+  getServiceForRegion,
+  PRICING_REGIONS,
+  PricingRegionCode,
 } from "@/lib/services-pricing";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { sendOrderConfirmation } from "@/lib/email";
@@ -34,6 +37,7 @@ export async function POST(req: NextRequest) {
       customerPhone,
       customerNotes,
       couponCode,
+      region = "US",
     } = body;
 
     // Validation
@@ -44,7 +48,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const service = EXPERT_SERVICES.find((s) => s.id === serviceId);
+    const selectedRegion = (PRICING_REGIONS[region as PricingRegionCode]
+      ? region
+      : "US") as PricingRegionCode;
+
+    const service = getServiceForRegion(serviceId, selectedRegion);
     if (!service) {
       return NextResponse.json(
         { error: `Invalid service "${serviceId}".` },
@@ -81,6 +89,7 @@ export async function POST(req: NextRequest) {
         const validation = calculateCouponDiscount(matchedCoupon, service, {
           isFirstPurchase: true,
           now: new Date(),
+          region: selectedRegion,
         });
 
         if (validation.valid) {
@@ -105,7 +114,7 @@ export async function POST(req: NextRequest) {
       couponCode: validatedCouponCode,
       discountAmount,
       finalPrice,
-      currency: "INR",
+      currency: service.currency || "USD",
       status: "completed",
     });
 
