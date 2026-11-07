@@ -19,6 +19,12 @@ import {
   Tag,
   MessageSquare,
   Users,
+  Smartphone,
+  Code2,
+  GitPullRequest,
+  DollarSign,
+  Info,
+  Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthModal } from "@/components/auth/AuthModal";
@@ -135,13 +141,20 @@ export const Navbar: React.FC = () => {
   };
 
   const navLinks = [
-    { label: "Find Gigs", href: "/dashboard", icon: Compass },
+    { label: "Apps & Games", href: "/apps", icon: Smartphone },
+    { label: "Open Source Projects", href: "/open-source", icon: Code2 },
+    { label: "Contribute", href: "/contribute", icon: GitPullRequest },
+    { label: "App Acquisition", href: "/acquisition", icon: DollarSign },
+    { label: "About", href: "/about", icon: Info },
+    { label: "Contact", href: "/contact", icon: Mail },
+  ];
+
+  const platformLinks = [
+    { label: "Gig Dashboard", href: "/dashboard", icon: Compass },
     { label: "Hire Talent", href: "/hire-talent", icon: Users },
     { label: "Community", href: "/community", icon: MessageSquare },
-    { label: "Pricing", href: "/pricing", icon: Tag },
-    { label: "Categories", href: "/#categories", icon: Layers },
-    { label: "How It Works", href: "/#how-it-works", icon: Sparkles },
-    { label: "Tracker", href: "/applications", icon: Briefcase },
+    { label: "Services & Pricing", href: "/pricing", icon: Tag },
+    { label: "Tracked Gigs", href: "/applications", icon: Briefcase },
   ];
 
   const displayName =
@@ -194,6 +207,12 @@ export const Navbar: React.FC = () => {
                     </Link>
                   );
                 })}
+                <Link
+                  href="/dashboard"
+                  className="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-neutral-500 hover:text-black hover:bg-neutral-100 transition-colors ml-1 border border-neutral-200"
+                >
+                  Gig Platform
+                </Link>
               </nav>
             </div>
 
@@ -356,6 +375,32 @@ export const Navbar: React.FC = () => {
                   </Link>
                 );
               })}
+
+              <div className="pt-2 border-t border-neutral-100 mt-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 px-3">
+                  Gig Platform
+                </span>
+                {platformLinks.map((link) => {
+                  const Icon = link.icon;
+                  const isActive = pathname === link.href;
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium ${
+                        isActive
+                          ? "bg-black text-white font-semibold"
+                          : "text-neutral-600 hover:bg-neutral-100 hover:text-black"
+                      }`}
+                    >
+                      <Icon className="w-3.5 h-3.5 text-neutral-400" />
+                      {link.label}
+                    </Link>
+                  );
+                })}
+              </div>
+
               <Link
                 href="/profile"
                 onClick={() => setMobileMenuOpen(false)}

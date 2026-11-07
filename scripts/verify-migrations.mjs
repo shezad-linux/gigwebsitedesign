@@ -26,6 +26,8 @@ const REQUIRED_MIGRATIONS = [
   "community_schema.sql",
   "hire_talent_schema.sql",
   "hire_talent_seed.sql",
+  "portfolio_schema.sql",
+  "portfolio_seed.sql",
 ];
 
 console.log("🔍 Verifying Supabase SQL Migrations...");

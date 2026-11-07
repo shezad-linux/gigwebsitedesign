@@ -6,9 +6,9 @@ export const Footer: React.FC = () => {
   return (
     <footer className="border-t border-border bg-white text-ink-muted mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-8 lg:gap-10">
           {/* Brand info */}
-          <div className="md:col-span-1 space-y-4">
+          <div className="sm:col-span-2 md:col-span-1 space-y-4">
             <div className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-lg bg-black flex items-center justify-center text-white">
                 <Sparkles className="h-4 w-4" />
@@ -16,12 +16,56 @@ export const Footer: React.FC = () => {
               <span className="font-bold text-lg text-black">Remotasks</span>
             </div>
             <p className="text-xs text-neutral-500 leading-relaxed">
-              Transparent, verified discovery platform for AI evaluation, coding benchmarks, and data annotation freelance gigs.
+              Transparent, verified discovery platform for Android applications, open-source engineering, and AI benchmarks.
             </p>
             <div className="inline-flex items-center gap-1.5 text-xs text-black bg-neutral-100 px-2.5 py-1 rounded-md border border-neutral-200 font-medium">
               <ShieldCheck className="w-3.5 h-3.5 text-black" />
               <span>Verified Listings · Enterprise Security</span>
             </div>
+          </div>
+
+          {/* Apps & Engineering Portfolio */}
+          <div>
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-black mb-3">
+              Apps &amp; Engineering
+            </h4>
+            <ul className="space-y-2 text-xs">
+              <li>
+                <Link href="/apps" className="hover:text-black transition-colors font-medium text-black">
+                  Apps &amp; Games Directory
+                </Link>
+              </li>
+              <li>
+                <Link href="/open-source" className="hover:text-black transition-colors">
+                  Open Source Projects
+                </Link>
+              </li>
+              <li>
+                <Link href="/contribute" className="hover:text-black transition-colors">
+                  Contribute to Projects
+                </Link>
+              </li>
+              <li>
+                <Link href="/acquisition" className="hover:text-black transition-colors">
+                  App Acquisition Marketplace
+                </Link>
+              </li>
+              <li>
+                <Link href="/verify-certificate" className="hover:text-black transition-colors">
+                  Verify Certificate
+                </Link>
+              </li>
+              <li>
+                <Link href="/about" className="hover:text-black transition-colors">
+                  About Our Studio
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className="hover:text-black transition-colors">
+                  Contact Owner
+                </Link>
+              </li>
+            </ul>
           </div>
 
           {/* Categories */}

@@ -77,8 +77,19 @@ import { CouponsManagementTab } from "@/components/admin/CouponsManagementTab";
 import { DomainHealthCard } from "@/components/admin/DomainHealthCard";
 import { CommunityModerationTab } from "@/components/admin/CommunityModerationTab";
 import { HireRequestsTab } from "@/components/admin/HireRequestsTab";
+import { PortfolioAppsTab } from "@/components/admin/PortfolioAppsTab";
+import { PortfolioContributionsTab } from "@/components/admin/PortfolioContributionsTab";
+import { PortfolioInternshipsTab } from "@/components/admin/PortfolioInternshipsTab";
+import { PortfolioCertificatesTab } from "@/components/admin/PortfolioCertificatesTab";
+import { PortfolioAcquisitionsTab } from "@/components/admin/PortfolioAcquisitionsTab";
+import { Smartphone, GitPullRequest, GraduationCap } from "lucide-react";
 
 type ActiveTab =
+  | "portfolio-apps"
+  | "portfolio-proposals"
+  | "portfolio-internships"
+  | "portfolio-certificates"
+  | "portfolio-acquisitions"
   | "listings"
   | "queue"
   | "evidence"
@@ -1018,6 +1029,68 @@ export default function AdminPage() {
 
         {/* NAVIGATION TABS */}
         <div className="flex items-center gap-2 border-b border-border overflow-x-auto pb-px">
+          {/* Portfolio & Engineering Tabs */}
+          <button
+            onClick={() => setActiveTab("portfolio-apps")}
+            className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
+              activeTab === "portfolio-apps"
+                ? "border-black text-black font-bold"
+                : "border-transparent text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <Smartphone className="w-4 h-4 text-black" />
+            Apps &amp; Games
+          </button>
+
+          <button
+            onClick={() => setActiveTab("portfolio-proposals")}
+            className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
+              activeTab === "portfolio-proposals"
+                ? "border-black text-black font-bold"
+                : "border-transparent text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <GitPullRequest className="w-4 h-4 text-black" />
+            Proposals &amp; Contributions
+          </button>
+
+          <button
+            onClick={() => setActiveTab("portfolio-internships")}
+            className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
+              activeTab === "portfolio-internships"
+                ? "border-black text-black font-bold"
+                : "border-transparent text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <GraduationCap className="w-4 h-4 text-black" />
+            Internships
+          </button>
+
+          <button
+            onClick={() => setActiveTab("portfolio-certificates")}
+            className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
+              activeTab === "portfolio-certificates"
+                ? "border-black text-black font-bold"
+                : "border-transparent text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <Award className="w-4 h-4 text-black" />
+            Certificates
+          </button>
+
+          <button
+            onClick={() => setActiveTab("portfolio-acquisitions")}
+            className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
+              activeTab === "portfolio-acquisitions"
+                ? "border-black text-black font-bold"
+                : "border-transparent text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <DollarSign className="w-4 h-4 text-black" />
+            App Acquisitions
+          </button>
+
+          {/* Existing Gig Platform Tabs */}
           <button
             onClick={() => setActiveTab("listings")}
             className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
@@ -1163,6 +1236,13 @@ export default function AdminPage() {
             Audit History ({auditEvents.length})
           </button>
         </div>
+
+        {/* PORTFOLIO MANAGEMENT TABS */}
+        {activeTab === "portfolio-apps" && <PortfolioAppsTab />}
+        {activeTab === "portfolio-proposals" && <PortfolioContributionsTab />}
+        {activeTab === "portfolio-internships" && <PortfolioInternshipsTab />}
+        {activeTab === "portfolio-certificates" && <PortfolioCertificatesTab />}
+        {activeTab === "portfolio-acquisitions" && <PortfolioAcquisitionsTab />}
 
         {/* TAB 1: LISTING CATALOG */}
         {activeTab === "listings" && (
