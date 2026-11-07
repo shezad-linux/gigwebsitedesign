@@ -1,6 +1,5 @@
 import React from "react";
 import Link from "next/link";
-import Image from "next/image";
 import {
   Sparkles,
   ArrowRight,
@@ -76,12 +75,12 @@ export const StudioShowcaseSections: React.FC<StudioShowcaseSectionsProps> = ({
                   <div className="flex items-start justify-between gap-3 mb-4">
                     <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100 shadow-xs">
                       {app.iconUrl ? (
-                        <Image
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
                           src={app.iconUrl}
                           alt={app.name}
-                          fill
-                          sizes="56px"
-                          className="object-cover"
+                          className="h-full w-full object-cover"
+                          loading="lazy"
                         />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center bg-black text-white font-bold text-lg">
@@ -279,3 +278,4 @@ export const StudioShowcaseSections: React.FC<StudioShowcaseSectionsProps> = ({
     </>
   );
 };
+

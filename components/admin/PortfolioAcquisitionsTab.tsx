@@ -155,21 +155,19 @@ export const PortfolioAcquisitionsTab: React.FC = () => {
         <div className="flex rounded-xl bg-neutral-100 p-1 text-xs">
           <button
             onClick={() => setActiveSubTab("enquiries")}
-            className={`rounded-lg px-3.5 py-1.5 font-semibold transition-all ${
-              activeSubTab === "enquiries"
+            className={`rounded-lg px-3.5 py-1.5 font-semibold transition-all ${activeSubTab === "enquiries"
                 ? "bg-white text-black shadow-sm"
                 : "text-neutral-600 hover:text-black"
-            }`}
+              }`}
           >
             Buyer Enquiries ({enquiries.length})
           </button>
           <button
             onClick={() => setActiveSubTab("pricing")}
-            className={`rounded-lg px-3.5 py-1.5 font-semibold transition-all ${
-              activeSubTab === "pricing"
+            className={`rounded-lg px-3.5 py-1.5 font-semibold transition-all ${activeSubTab === "pricing"
                 ? "bg-white text-black shadow-sm"
                 : "text-neutral-600 hover:text-black"
-            }`}
+              }`}
           >
             Catalogue Pricing ({apps.length})
           </button>

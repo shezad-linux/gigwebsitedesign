@@ -103,11 +103,10 @@ export const CreatePostForm: React.FC = () => {
               key={cat.id}
               type="button"
               onClick={() => setTopicCategory(cat.id)}
-              className={`px-3 py-1.5 rounded-xl font-semibold border transition-all ${
-                topicCategory === cat.id
+              className={`px-3 py-1.5 rounded-xl font-semibold border transition-all ${topicCategory === cat.id
                   ? "bg-black text-white border-black shadow-xs"
                   : "bg-white text-neutral-600 border-neutral-300 hover:bg-neutral-50 hover:text-black"
-              }`}
+                }`}
             >
               {cat.label}
             </button>
@@ -128,9 +127,8 @@ export const CreatePostForm: React.FC = () => {
           })}
           id="title"
           type="text"
-          className={`w-full px-4 py-3 border rounded-xl text-ink bg-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-colors ${
-            errors.title ? "border-red-500" : "border-neutral-300"
-          }`}
+          className={`w-full px-4 py-3 border rounded-xl text-ink bg-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-colors ${errors.title ? "border-red-500" : "border-neutral-300"
+            }`}
           placeholder="What's your post about? (5-160 characters)"
           aria-invalid={errors.title ? "true" : "false"}
           aria-describedby={errors.title ? "title-error" : undefined}
@@ -160,9 +158,8 @@ export const CreatePostForm: React.FC = () => {
           })}
           id="body"
           rows={10}
-          className={`w-full px-4 py-3 border rounded-xl text-ink bg-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-colors resize-y min-h-[150px] ${
-            errors.body ? "border-red-500" : "border-neutral-300"
-          }`}
+          className={`w-full px-4 py-3 border rounded-xl text-ink bg-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-colors resize-y min-h-[150px] ${errors.body ? "border-red-500" : "border-neutral-300"
+            }`}
           placeholder="Share your experience, ask a question, or start a discussion..."
           aria-invalid={errors.body ? "true" : "false"}
           aria-describedby={errors.body ? "body-error" : undefined}
@@ -197,9 +194,8 @@ export const CreatePostForm: React.FC = () => {
             })}
             id="link_url"
             type="url"
-            className={`w-full pl-10 pr-4 py-3 border rounded-xl text-ink bg-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-colors ${
-              errors.link_url ? "border-red-500" : "border-neutral-300"
-            }`}
+            className={`w-full pl-10 pr-4 py-3 border rounded-xl text-ink bg-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-colors ${errors.link_url ? "border-red-500" : "border-neutral-300"
+              }`}
             placeholder="https://example.com/resource"
             aria-invalid={errors.link_url ? "true" : "false"}
             aria-describedby={errors.link_url ? "link-error" : undefined}
@@ -234,9 +230,8 @@ export const CreatePostForm: React.FC = () => {
                   maxLength: { value: 500, message: "Disclosure must be at most 500 characters" },
                 })}
                 rows={3}
-                className={`w-full px-3 py-2 border rounded-lg text-ink bg-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-colors ${
-                  errors.affiliate_disclosure ? "border-red-500" : "border-amber-300"
-                }`}
+                className={`w-full px-3 py-2 border rounded-lg text-ink bg-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-colors ${errors.affiliate_disclosure ? "border-red-500" : "border-amber-300"
+                  }`}
                 placeholder="e.g., This post contains an affiliate link. Remotasks.si may earn a commission if you register through this link, at no additional cost to you."
                 disabled={isSubmitting}
               />

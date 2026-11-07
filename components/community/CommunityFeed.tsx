@@ -128,11 +128,10 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
                 params.set("page", "1");
                 window.location.href = `/community?${params.toString()}`;
               }}
-              className={`px-3 py-1.5 rounded-full font-semibold border transition-all whitespace-nowrap ${
-                isActive
+              className={`px-3 py-1.5 rounded-full font-semibold border transition-all whitespace-nowrap ${isActive
                   ? "bg-black text-white border-black shadow-xs"
                   : "bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50 hover:text-black"
-              }`}
+                }`}
             >
               {cat.label}
             </button>

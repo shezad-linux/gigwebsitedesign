@@ -184,12 +184,12 @@ export interface GeneralContactMessage {
   fullName: string;
   email: string;
   subjectCategory:
-    | "Business partnerships"
-    | "Technical collaboration"
-    | "App development"
-    | "Game development"
-    | "Acquisition discussions"
-    | "Other enquiries";
+  | "Business partnerships"
+  | "Technical collaboration"
+  | "App development"
+  | "Game development"
+  | "Acquisition discussions"
+  | "Other enquiries";
   message: string;
   createdAt: string;
 }

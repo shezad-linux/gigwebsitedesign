@@ -61,7 +61,7 @@ export const Navbar: React.FC = () => {
         const parsed = JSON.parse(stored);
         if (parsed?.email) setCurrentUser(parsed);
       }
-    } catch {}
+    } catch { }
 
     // 2. Query /api/auth/me endpoint to verify active cookie session
     fetch("/api/auth/me")
@@ -71,7 +71,7 @@ export const Navbar: React.FC = () => {
           setCurrentUser(data.user);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
 
     // 3. Sync with Supabase Auth if configured
     if (isSupabaseConfigured() && supabase) {
@@ -98,7 +98,7 @@ export const Navbar: React.FC = () => {
         } else {
           setCurrentUser(null);
         }
-      } catch {}
+      } catch { }
     };
     window.addEventListener("gigmatcher_profile_updated", handleUpdate);
     return () => window.removeEventListener("gigmatcher_profile_updated", handleUpdate);
@@ -121,10 +121,10 @@ export const Navbar: React.FC = () => {
   const handleSignOut = async () => {
     try {
       await fetch("/api/auth/signout", { method: "POST" });
-    } catch {}
+    } catch { }
     try {
       localStorage.removeItem("remotasks_user_session");
-    } catch {}
+    } catch { }
     if (isSupabaseConfigured()) {
       await signOutFromSupabase();
     }
@@ -237,11 +237,10 @@ export const Navbar: React.FC = () => {
                     <Link
                       key={link.href}
                       href={link.href}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                        isActive
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${isActive
                           ? "bg-black text-white font-semibold"
                           : "text-neutral-600 hover:text-black hover:bg-neutral-100"
-                      }`}
+                        }`}
                     >
                       {link.label}
                     </Link>
@@ -254,17 +253,15 @@ export const Navbar: React.FC = () => {
                     type="button"
                     onClick={() => setAppsDropdownOpen(!appsDropdownOpen)}
                     aria-expanded={appsDropdownOpen}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                      isAppsStudioActive || appsDropdownOpen
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${isAppsStudioActive || appsDropdownOpen
                         ? "bg-black text-white font-semibold"
                         : "text-neutral-600 hover:text-black hover:bg-neutral-100"
-                    }`}
+                      }`}
                   >
                     <span>Apps & Studio</span>
                     <ChevronDown
-                      className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                        appsDropdownOpen ? "rotate-180" : ""
-                      }`}
+                      className={`w-3.5 h-3.5 transition-transform duration-200 ${appsDropdownOpen ? "rotate-180" : ""
+                        }`}
                     />
                   </button>
 
@@ -285,11 +282,10 @@ export const Navbar: React.FC = () => {
                             key={item.href}
                             href={item.href}
                             onClick={() => setAppsDropdownOpen(false)}
-                            className={`flex items-start gap-2.5 px-3 py-2 rounded-xl transition-colors ${
-                              isCurrent
+                            className={`flex items-start gap-2.5 px-3 py-2 rounded-xl transition-colors ${isCurrent
                                 ? "bg-neutral-100 text-black font-semibold"
                                 : "text-neutral-700 hover:bg-neutral-50 hover:text-black"
-                            }`}
+                              }`}
                           >
                             <div className="p-1 rounded-lg bg-neutral-100 text-black mt-0.5">
                               <Icon className="w-4 h-4" />
@@ -313,11 +309,10 @@ export const Navbar: React.FC = () => {
                     <Link
                       key={link.href}
                       href={link.href}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                        isActive
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${isActive
                           ? "bg-black text-white font-semibold"
                           : "text-neutral-600 hover:text-black hover:bg-neutral-100"
-                      }`}
+                        }`}
                     >
                       {link.label}
                     </Link>
@@ -477,11 +472,10 @@ export const Navbar: React.FC = () => {
                     key={link.href}
                     href={link.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium ${
-                      isActive
+                    className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium ${isActive
                         ? "bg-black text-white font-semibold"
                         : "text-black hover:bg-neutral-100"
-                    }`}
+                      }`}
                   >
                     <Icon className="w-4 h-4 text-neutral-500" />
                     {link.label}
@@ -501,11 +495,10 @@ export const Navbar: React.FC = () => {
                       key={link.href}
                       href={link.href}
                       onClick={() => setMobileMenuOpen(false)}
-                      className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium ${
-                        isActive
+                      className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium ${isActive
                           ? "bg-black text-white font-semibold"
                           : "text-neutral-600 hover:bg-neutral-100 hover:text-black"
-                      }`}
+                        }`}
                     >
                       <Icon className="w-3.5 h-3.5 text-neutral-400" />
                       {link.label}

@@ -88,7 +88,7 @@ export function savePortfolioApp(app: PortfolioApp): PortfolioApp[] {
     try {
       localStorage.setItem(STORAGE_KEYS.APPS, JSON.stringify(updatedList));
       window.dispatchEvent(new Event("portfolio_apps_updated"));
-    } catch {}
+    } catch { }
   }
   return updatedList;
 }
@@ -99,7 +99,7 @@ export function resetPortfolioApps(): PortfolioApp[] {
     try {
       localStorage.setItem(STORAGE_KEYS.APPS, JSON.stringify(PORTFOLIO_APPS));
       window.dispatchEvent(new Event("portfolio_apps_updated"));
-    } catch {}
+    } catch { }
   }
   return PORTFOLIO_APPS;
 }
@@ -147,7 +147,7 @@ export function saveContributionProposal(
     try {
       localStorage.setItem(STORAGE_KEYS.PROPOSALS, JSON.stringify(updatedList));
       window.dispatchEvent(new Event("portfolio_proposals_updated"));
-    } catch {}
+    } catch { }
   }
   return newProposal;
 }
@@ -180,7 +180,7 @@ export function updateProposalStatus(
     try {
       localStorage.setItem(STORAGE_KEYS.PROPOSALS, JSON.stringify(current));
       window.dispatchEvent(new Event("portfolio_proposals_updated"));
-    } catch {}
+    } catch { }
   }
   return updated;
 }
@@ -243,7 +243,7 @@ export function issueCertificate(
     try {
       localStorage.setItem(STORAGE_KEYS.CERTIFICATES, JSON.stringify(updated));
       window.dispatchEvent(new Event("portfolio_certificates_updated"));
-    } catch {}
+    } catch { }
   }
   return fullCertificate;
 }
@@ -301,7 +301,7 @@ export function saveInternship(record: Omit<InternshipRecord, "id" | "createdAt"
     try {
       localStorage.setItem(STORAGE_KEYS.INTERNSHIPS, JSON.stringify(updatedList));
       window.dispatchEvent(new Event("portfolio_internships_updated"));
-    } catch {}
+    } catch { }
   }
   return savedRecord;
 }
@@ -329,7 +329,7 @@ export function updateInternshipStatus(
     try {
       localStorage.setItem(STORAGE_KEYS.INTERNSHIPS, JSON.stringify(current));
       window.dispatchEvent(new Event("portfolio_internships_updated"));
-    } catch {}
+    } catch { }
   }
   return updated;
 }
@@ -377,7 +377,7 @@ export function saveAcquisitionEnquiry(
     try {
       localStorage.setItem(STORAGE_KEYS.ACQUISITIONS, JSON.stringify(updated));
       window.dispatchEvent(new Event("portfolio_acquisitions_updated"));
-    } catch {}
+    } catch { }
   }
   return newEnquiry;
 }
@@ -405,7 +405,7 @@ export function updateAcquisitionStatus(
     try {
       localStorage.setItem(STORAGE_KEYS.ACQUISITIONS, JSON.stringify(current));
       window.dispatchEvent(new Event("portfolio_acquisitions_updated"));
-    } catch {}
+    } catch { }
   }
   return updated;
 }
@@ -430,7 +430,7 @@ export function saveGeneralContactMessage(
       const list = raw ? JSON.parse(raw) : [];
       list.push(newMsg);
       localStorage.setItem(STORAGE_KEYS.CONTACTS, JSON.stringify(list));
-    } catch {}
+    } catch { }
   }
   return newMsg;
 }
