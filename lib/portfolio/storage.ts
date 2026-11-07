@@ -18,12 +18,12 @@ import {
 } from "../../data/portfolio-seed";
 
 const STORAGE_KEYS = {
-  APPS: "remotasks_portfolio_apps_v1",
-  PROPOSALS: "remotasks_portfolio_proposals_v1",
-  CERTIFICATES: "remotasks_portfolio_certificates_v1",
-  INTERNSHIPS: "remotasks_portfolio_internships_v1",
-  ACQUISITIONS: "remotasks_portfolio_acquisitions_v1",
-  CONTACTS: "remotasks_portfolio_contacts_v1",
+  APPS: "remotasks_portfolio_apps_v2",
+  PROPOSALS: "remotasks_portfolio_proposals_v2",
+  CERTIFICATES: "remotasks_portfolio_certificates_v2",
+  INTERNSHIPS: "remotasks_portfolio_internships_v2",
+  ACQUISITIONS: "remotasks_portfolio_acquisitions_v2",
+  CONTACTS: "remotasks_portfolio_contacts_v2",
 };
 
 // In-memory server fallback cache for SSR and API routes

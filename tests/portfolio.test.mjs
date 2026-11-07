@@ -17,8 +17,8 @@ describe("Portfolio Applications, Contributions & Acquisitions Suite", () => {
       packageName: "com.moonroot.seedlight",
       category: "Games & Interactive Entertainment",
       isSuspended: false,
-      isOpenSource: true,
-      pricingType: "negotiable",
+      isOpenSource: false,
+      pricingType: "on_request",
     },
     {
       id: "emberline-odyssey",
@@ -26,8 +26,8 @@ describe("Portfolio Applications, Contributions & Acquisitions Suite", () => {
       packageName: "com.lumentrail.emberlineodyssey",
       category: "Games & Interactive Entertainment",
       isSuspended: false,
-      isOpenSource: true,
-      pricingType: "negotiable",
+      isOpenSource: false,
+      pricingType: "on_request",
     },
     {
       id: "city-cat-runner",
@@ -35,7 +35,7 @@ describe("Portfolio Applications, Contributions & Acquisitions Suite", () => {
       packageName: "com.shezadgames.citycatrunner",
       category: "Games & Interactive Entertainment",
       isSuspended: true, // Specifically suspended per instructions
-      isOpenSource: true,
+      isOpenSource: false,
       pricingType: "on_request",
     },
     {
@@ -45,7 +45,7 @@ describe("Portfolio Applications, Contributions & Acquisitions Suite", () => {
       category: "Photography, Camera & Personalization",
       isSuspended: false,
       isOpenSource: false,
-      pricingType: "negotiable",
+      pricingType: "on_request",
     },
     {
       id: "snapglow-insta-filters",
@@ -53,8 +53,8 @@ describe("Portfolio Applications, Contributions & Acquisitions Suite", () => {
       packageName: "com.snapglow.app",
       category: "Photography, Camera & Personalization",
       isSuspended: false,
-      isOpenSource: true,
-      pricingType: "fixed",
+      isOpenSource: false,
+      pricingType: "on_request",
     },
     {
       id: "ai-edge-on-device-ai",
@@ -62,8 +62,8 @@ describe("Portfolio Applications, Contributions & Acquisitions Suite", () => {
       packageName: "ai.offlinellm.assistant",
       category: "AI & Smart Utilities",
       isSuspended: false,
-      isOpenSource: true,
-      pricingType: "negotiable",
+      isOpenSource: false,
+      pricingType: "on_request",
     },
     {
       id: "speech-to-text-ai-voice",
@@ -72,7 +72,7 @@ describe("Portfolio Applications, Contributions & Acquisitions Suite", () => {
       category: "AI & Smart Utilities",
       isSuspended: false,
       isOpenSource: false,
-      pricingType: "negotiable",
+      pricingType: "on_request",
     },
     {
       id: "signflow-esign-pdf",
@@ -80,8 +80,8 @@ describe("Portfolio Applications, Contributions & Acquisitions Suite", () => {
       packageName: "com.shezad.signflow",
       category: "Productivity & Document Management",
       isSuspended: false,
-      isOpenSource: true,
-      pricingType: "negotiable",
+      isOpenSource: false,
+      pricingType: "on_request",
     },
     {
       id: "docuscan-opencv-smart-scanner",
@@ -89,8 +89,8 @@ describe("Portfolio Applications, Contributions & Acquisitions Suite", () => {
       packageName: "io.docuscan.app",
       category: "Productivity & Document Management",
       isSuspended: false,
-      isOpenSource: true,
-      pricingType: "negotiable",
+      isOpenSource: false,
+      pricingType: "on_request",
     },
     {
       id: "pdf-scanner-ocr-pageray",
@@ -99,7 +99,7 @@ describe("Portfolio Applications, Contributions & Acquisitions Suite", () => {
       category: "Productivity & Document Management",
       isSuspended: false,
       isOpenSource: false,
-      pricingType: "negotiable",
+      pricingType: "on_request",
     },
     {
       id: "insomnia-better-sleep",
@@ -107,8 +107,8 @@ describe("Portfolio Applications, Contributions & Acquisitions Suite", () => {
       packageName: "com.insomania.bettersleep",
       category: "Health & Wellness",
       isSuspended: false,
-      isOpenSource: true,
-      pricingType: "negotiable",
+      isOpenSource: false,
+      pricingType: "on_request",
     },
     {
       id: "cyclecare-period-tracker",
@@ -116,8 +116,8 @@ describe("Portfolio Applications, Contributions & Acquisitions Suite", () => {
       packageName: "com.cyclecare.tracker",
       category: "Health & Wellness",
       isSuspended: false,
-      isOpenSource: true,
-      pricingType: "negotiable",
+      isOpenSource: false,
+      pricingType: "on_request",
     },
     {
       id: "upi-alert-voice-soundbox",
@@ -126,7 +126,7 @@ describe("Portfolio Applications, Contributions & Acquisitions Suite", () => {
       category: "Finance & Payments",
       isSuspended: false,
       isOpenSource: false,
-      pricingType: "negotiable",
+      pricingType: "on_request",
     },
     {
       id: "homedesignia",
@@ -135,7 +135,7 @@ describe("Portfolio Applications, Contributions & Acquisitions Suite", () => {
       category: "Home & Lifestyle",
       isSuspended: false,
       isOpenSource: false,
-      pricingType: "negotiable",
+      pricingType: "on_request",
     },
   ];
 
@@ -210,6 +210,12 @@ describe("Portfolio Applications, Contributions & Acquisitions Suite", () => {
     assert.equal(cityCat.pricingType, "on_request");
   });
 
+  test("all baseline apps default to Price on Request with no invented valuations", () => {
+    for (const app of REQUIRED_14_APPS) {
+      assert.equal(app.pricingType, "on_request");
+    }
+  });
+
   test("validates 18-field contribution proposal with consent", () => {
     const valid = {
       fullName: "Maya Lin",
@@ -259,7 +265,7 @@ describe("Portfolio Applications, Contributions & Acquisitions Suite", () => {
       country: "India",
       appId: "gps-map-camera-geotagging",
       appName: "GPS Map Camera : Geo Tagging",
-      proposedBudget: "₹6,50,000",
+      proposedBudget: "Budget to be discussed",
       acquisitionType: "Full App Acquisition",
       message: "Interested in acquiring full IP and Play Store console transfer for field survey fleet.",
     };
@@ -296,25 +302,33 @@ describe("Portfolio Applications, Contributions & Acquisitions Suite", () => {
       "Approved",
       "In Development",
       "Under Testing",
-      "Merged / Released",
+      "Completed",
       "Rejected",
     ];
 
     const internshipStages = [
-      "Candidate",
-      "Shortlisted",
-      "Interview Invited",
-      "Interviewed",
+      "Submitted",
+      "Under Review",
+      "Interview",
       "Selected",
-      "In Progress",
-      "Completed",
-      "Declined",
+      "Not Selected",
     ];
 
-    // Ensure they have distinct dedicated lifecycle states
-    assert.ok(contributionStages.includes("Merged / Released"));
-    assert.ok(internshipStages.includes("Interview Invited"));
+    const acquisitionStages = [
+      "New",
+      "Contacted",
+      "Negotiating",
+      "Due Diligence",
+      "Agreement",
+      "Closed",
+    ];
+
+    // Ensure distinct dedicated lifecycle states per workflow
+    assert.ok(contributionStages.includes("Completed"));
+    assert.ok(internshipStages.includes("Interview"));
     assert.ok(internshipStages.includes("Selected"));
+    assert.ok(acquisitionStages.includes("Negotiating"));
+    assert.ok(acquisitionStages.includes("Due Diligence"));
   });
 
   test("verifies SQL migration and seed file contents", () => {

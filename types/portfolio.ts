@@ -64,6 +64,7 @@ export type ContributionWorkflowStage =
   | "Approved"
   | "In Development"
   | "Under Testing"
+  | "Completed"
   | "Merged / Released"
   | "Rejected";
 
@@ -98,13 +99,13 @@ export interface ContributionProposal {
 }
 
 export type InternshipStatus =
+  | "Submitted"
+  | "Under Review"
+  | "Interview"
+  | "Selected"
+  | "Not Selected"
   | "Candidate"
   | "Shortlisted"
-  | "Interview Invited"
-  | "Interviewed"
-  | "Selected"
-  | "In Progress"
-  | "Completed"
   | "Declined";
 
 export interface InternshipRecord {
@@ -152,11 +153,12 @@ export type AcquisitionType =
 
 export type AcquisitionEnquiryStatus =
   | "New"
-  | "Under Review"
-  | "NDA Sent"
+  | "Contacted"
+  | "Negotiating"
   | "Due Diligence"
-  | "Negotiation"
+  | "Agreement"
   | "Closed"
+  | "Under Review"
   | "Declined";
 
 export interface AcquisitionEnquiry {

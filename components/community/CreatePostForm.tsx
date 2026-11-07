@@ -15,6 +15,7 @@ export const CreatePostForm: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [warning, setWarning] = useState<string | null>(null);
+  const [topicCategory, setTopicCategory] = useState<string>("General");
 
   const {
     register,
@@ -39,7 +40,11 @@ export const CreatePostForm: React.FC = () => {
     setError(null);
     setWarning(null);
     const formData = new FormData();
-    formData.append("title", data.title);
+    const finalTitle =
+      topicCategory === "App Dev" && !data.title.startsWith("[App Dev]")
+        ? `[App Dev] ${data.title}`
+        : data.title;
+    formData.append("title", finalTitle);
     formData.append("body", data.body);
     if (data.link_url) formData.append("link_url", data.link_url);
     if (data.affiliate_disclosure) formData.append("affiliate_disclosure", data.affiliate_disclosure);
@@ -81,6 +86,34 @@ export const CreatePostForm: React.FC = () => {
           <div>{error}</div>
         </div>
       )}
+
+      {/* Discussion Category */}
+      <div>
+        <label className="block text-sm font-medium text-ink mb-2">
+          Discussion Category
+        </label>
+        <div className="flex flex-wrap gap-2 text-xs">
+          {[
+            { id: "General", label: "General Discussion" },
+            { id: "App Dev", label: "App Development & Open Source" },
+            { id: "AI Gigs", label: "AI Gigs & Earnings" },
+            { id: "Guides", label: "Guides & Advice" },
+          ].map((cat) => (
+            <button
+              key={cat.id}
+              type="button"
+              onClick={() => setTopicCategory(cat.id)}
+              className={`px-3 py-1.5 rounded-xl font-semibold border transition-all ${
+                topicCategory === cat.id
+                  ? "bg-black text-white border-black shadow-xs"
+                  : "bg-white text-neutral-600 border-neutral-300 hover:bg-neutral-50 hover:text-black"
+              }`}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Title */}
       <div>

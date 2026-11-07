@@ -62,8 +62,8 @@ export const SEED_PROPOSALS: ContributionProposal[] = [
       "Full TalkBack screen reader accessibility and reduced battery consumption on OLED displays.",
     estimatedCompletionTime: "10 days",
     consentReviewed: true,
-    status: "Merged / Released",
-    adminFeedback: "Merged into production v2.4. Outstanding attention to accessibility details.",
+    status: "Completed",
+    adminFeedback: "Completed and merged into production. Outstanding attention to accessibility details.",
     internshipConsideration: false,
     certificateId: "CERT-2026-ER994L",
     createdAt: "2026-09-20T08:00:00.000Z",
@@ -171,7 +171,7 @@ export const SEED_INTERNSHIPS: InternshipRecord[] = [
     candidateEmail: "arjun.sharma.dev@gmail.com",
     githubProfile: "https://github.com/arjunsharma-code",
     associatedProject: "DocuScan: OpenCv Smart Scanner",
-    status: "Interview Invited",
+    status: "Interview",
     roleTitle: "Android Computer Vision Engineering Intern",
     durationMonths: 6,
     responsibilities:
@@ -188,7 +188,7 @@ export const SEED_INTERNSHIPS: InternshipRecord[] = [
     candidateEmail: "priya.nair.ai@outlook.com",
     githubProfile: "https://github.com/priyanair-ml",
     associatedProject: "AI Edge: On-Device AI",
-    status: "Shortlisted",
+    status: "Under Review",
     roleTitle: "Edge AI / On-Device ML Intern",
     durationMonths: 3,
     responsibilities:
@@ -213,7 +213,7 @@ export const SEED_ACQUISITIONS: AcquisitionEnquiry[] = [
     acquisitionType: "Full App Acquisition",
     message:
       "We operate an enterprise field inspection SaaS and are interested in acquiring GPS Map Camera to integrate directly with our logistics tracking workforce.",
-    status: "Negotiation",
+    status: "Negotiating",
     adminNotes: "Initial introductory call completed. NDA executed. Reviewing source code package terms.",
     createdAt: "2026-10-20T14:10:00.000Z",
     updatedAt: "2026-11-02T11:00:00.000Z",
@@ -231,7 +231,7 @@ export const SEED_ACQUISITIONS: AcquisitionEnquiry[] = [
     acquisitionType: "Full App Acquisition",
     message:
       "Seeking complete IP and Google Play transfer for AI Edge. We want to publish specialized vertical offline legal and healthcare on-device assistants.",
-    status: "Under Review",
+    status: "Contacted",
     adminNotes: "Verifying corporate entity and funding background.",
     createdAt: "2026-11-04T18:45:00.000Z",
     updatedAt: "2026-11-05T09:30:00.000Z",

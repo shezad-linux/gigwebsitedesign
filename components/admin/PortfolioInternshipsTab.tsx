@@ -21,13 +21,13 @@ import { getInternships, saveInternship, updateInternshipStatus } from "@/lib/po
 import { Dialog } from "@/components/ui/dialog";
 
 const INTERNSHIP_STATUSES: InternshipStatus[] = [
+  "Submitted",
+  "Under Review",
+  "Interview",
+  "Selected",
+  "Not Selected",
   "Candidate",
   "Shortlisted",
-  "Interview Invited",
-  "Interviewed",
-  "Selected",
-  "In Progress",
-  "Completed",
   "Declined",
 ];
 

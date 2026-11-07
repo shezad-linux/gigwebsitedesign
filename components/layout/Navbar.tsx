@@ -44,7 +44,9 @@ export const Navbar: React.FC = () => {
   const [authModalMode, setAuthModalMode] = useState<"signin" | "signup">("signin");
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [appsDropdownOpen, setAppsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const appsDropdownRef = useRef<HTMLDivElement>(null);
 
   // Authenticated state
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -108,6 +110,9 @@ export const Navbar: React.FC = () => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setUserDropdownOpen(false);
       }
+      if (appsDropdownRef.current && !appsDropdownRef.current.contains(event.target as Node)) {
+        setAppsDropdownOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -140,22 +145,57 @@ export const Navbar: React.FC = () => {
     setMobileMenuOpen(false);
   };
 
-  const navLinks = [
-    { label: "Apps & Games", href: "/apps", icon: Smartphone },
-    { label: "Open Source Projects", href: "/open-source", icon: Code2 },
-    { label: "Contribute", href: "/contribute", icon: GitPullRequest },
-    { label: "App Acquisition", href: "/acquisition", icon: DollarSign },
-    { label: "About", href: "/about", icon: Info },
-    { label: "Contact", href: "/contact", icon: Mail },
-  ];
-
-  const platformLinks = [
-    { label: "Gig Dashboard", href: "/dashboard", icon: Compass },
+  const gigNavLinks = [
+    { label: "Find Gigs", href: "/dashboard", icon: Compass },
     { label: "Hire Talent", href: "/hire-talent", icon: Users },
     { label: "Community", href: "/community", icon: MessageSquare },
-    { label: "Services & Pricing", href: "/pricing", icon: Tag },
-    { label: "Tracked Gigs", href: "/applications", icon: Briefcase },
+    { label: "Pricing", href: "/pricing", icon: Tag },
   ];
+
+  const appsStudioLinks = [
+    {
+      label: "Apps & Games",
+      href: "/apps",
+      icon: Smartphone,
+      description: "Explore 14 Android applications & games",
+    },
+    {
+      label: "Open-Source Projects",
+      href: "/open-source",
+      icon: Code2,
+      description: "Repositories accepting community contributions",
+    },
+    {
+      label: "Contribute",
+      href: "/contribute",
+      icon: GitPullRequest,
+      description: "Propose new features, fix bugs & join internships",
+    },
+    {
+      label: "App Acquisition",
+      href: "/acquisition",
+      icon: DollarSign,
+      description: "Acquire published applications or source code",
+    },
+    {
+      label: "Certificate Verification",
+      href: "/verify-certificate",
+      icon: ShieldCheck,
+      description: "Verify official Contribution Certificates",
+    },
+  ];
+
+  const utilityNavLinks = [
+    { label: "Categories", href: "/#categories", icon: Layers },
+    { label: "Tracker", href: "/applications", icon: Briefcase },
+  ];
+
+  const isAppsStudioActive =
+    pathname.startsWith("/apps") ||
+    pathname.startsWith("/open-source") ||
+    pathname.startsWith("/contribute") ||
+    pathname.startsWith("/acquisition") ||
+    pathname.startsWith("/verify-certificate");
 
   const displayName =
     currentUser?.user_metadata?.full_name ||
@@ -191,7 +231,7 @@ export const Navbar: React.FC = () => {
 
               {/* Desktop Nav Links */}
               <nav className="hidden md:flex items-center gap-1 ml-4" aria-label="Main Navigation">
-                {navLinks.map((link) => {
+                {gigNavLinks.map((link) => {
                   const isActive = pathname === link.href;
                   return (
                     <Link
@@ -207,12 +247,82 @@ export const Navbar: React.FC = () => {
                     </Link>
                   );
                 })}
-                <Link
-                  href="/dashboard"
-                  className="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-neutral-500 hover:text-black hover:bg-neutral-100 transition-colors ml-1 border border-neutral-200"
-                >
-                  Gig Platform
-                </Link>
+
+                {/* Apps & Studio Dropdown */}
+                <div className="relative" ref={appsDropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => setAppsDropdownOpen(!appsDropdownOpen)}
+                    aria-expanded={appsDropdownOpen}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                      isAppsStudioActive || appsDropdownOpen
+                        ? "bg-black text-white font-semibold"
+                        : "text-neutral-600 hover:text-black hover:bg-neutral-100"
+                    }`}
+                  >
+                    <span>Apps & Studio</span>
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                        appsDropdownOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  {appsDropdownOpen && (
+                    <div className="absolute left-0 mt-2 w-72 rounded-2xl bg-white border border-neutral-200 shadow-2xl p-2 z-50 animate-in fade-in-50 zoom-in-95 duration-150">
+                      <div className="px-3 py-2 border-b border-neutral-100 mb-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                          Apps & Product Studio
+                        </span>
+                        <p className="text-xs text-neutral-600">Android apps, games & collaboration</p>
+                      </div>
+
+                      {appsStudioLinks.map((item) => {
+                        const Icon = item.icon;
+                        const isCurrent = pathname === item.href;
+                        return (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={() => setAppsDropdownOpen(false)}
+                            className={`flex items-start gap-2.5 px-3 py-2 rounded-xl transition-colors ${
+                              isCurrent
+                                ? "bg-neutral-100 text-black font-semibold"
+                                : "text-neutral-700 hover:bg-neutral-50 hover:text-black"
+                            }`}
+                          >
+                            <div className="p-1 rounded-lg bg-neutral-100 text-black mt-0.5">
+                              <Icon className="w-4 h-4" />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-xs font-semibold">{item.label}</span>
+                              <span className="text-[11px] text-neutral-400 leading-snug">
+                                {item.description}
+                              </span>
+                            </div>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {utilityNavLinks.map((link) => {
+                  const isActive = pathname === link.href;
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                        isActive
+                          ? "bg-black text-white font-semibold"
+                          : "text-neutral-600 hover:text-black hover:bg-neutral-100"
+                      }`}
+                    >
+                      {link.label}
+                    </Link>
+                  );
+                })}
               </nav>
             </div>
 
@@ -356,7 +466,10 @@ export const Navbar: React.FC = () => {
             )}
 
             <div className="space-y-1">
-              {navLinks.map((link) => {
+              <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 px-3">
+                Gig Marketplace
+              </span>
+              {[...gigNavLinks, ...utilityNavLinks].map((link) => {
                 const Icon = link.icon;
                 const isActive = pathname === link.href;
                 return (
@@ -364,7 +477,7 @@ export const Navbar: React.FC = () => {
                     key={link.href}
                     href={link.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium ${
+                    className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium ${
                       isActive
                         ? "bg-black text-white font-semibold"
                         : "text-black hover:bg-neutral-100"
@@ -378,9 +491,9 @@ export const Navbar: React.FC = () => {
 
               <div className="pt-2 border-t border-neutral-100 mt-2">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 px-3">
-                  Gig Platform
+                  Apps & Product Studio
                 </span>
-                {platformLinks.map((link) => {
+                {appsStudioLinks.map((link) => {
                   const Icon = link.icon;
                   const isActive = pathname === link.href;
                   return (
@@ -399,12 +512,28 @@ export const Navbar: React.FC = () => {
                     </Link>
                   );
                 })}
+                <Link
+                  href="/about"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-neutral-600 hover:bg-neutral-100 hover:text-black"
+                >
+                  <Info className="w-3.5 h-3.5 text-neutral-400" />
+                  About Studio
+                </Link>
+                <Link
+                  href="/contact"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-neutral-600 hover:bg-neutral-100 hover:text-black"
+                >
+                  <Mail className="w-3.5 h-3.5 text-neutral-400" />
+                  Contact
+                </Link>
               </div>
 
               <Link
                 href="/profile"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-black hover:bg-neutral-100"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-black hover:bg-neutral-100 mt-2 border-t border-neutral-100"
               >
                 <User className="w-4 h-4 text-neutral-500" />
                 Profile & Resume

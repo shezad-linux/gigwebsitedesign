@@ -38,6 +38,7 @@ const STAGES: ContributionWorkflowStage[] = [
   "Approved",
   "In Development",
   "Under Testing",
+  "Completed",
   "Merged / Released",
   "Rejected",
 ];

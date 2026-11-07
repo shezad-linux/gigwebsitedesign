@@ -30,11 +30,12 @@ import {
 
 const ENQUIRY_STATUSES: AcquisitionEnquiryStatus[] = [
   "New",
-  "Under Review",
-  "NDA Sent",
+  "Contacted",
+  "Negotiating",
   "Due Diligence",
-  "Negotiation",
+  "Agreement",
   "Closed",
+  "Under Review",
   "Declined",
 ];
 

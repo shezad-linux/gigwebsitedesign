@@ -55,9 +55,9 @@ export const PortfolioAppsTab: React.FC = () => {
     openSourceRepoUrl: "",
     techStackText: "",
     acquisitionAvailable: true,
-    askingPrice: 500000 as number | null,
+    askingPrice: null as number | null,
     currency: "INR",
-    pricingType: "negotiable" as PricingType,
+    pricingType: "on_request" as PricingType,
     privateNegotiationNotes: "",
   });
 

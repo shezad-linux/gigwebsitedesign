@@ -88,7 +88,7 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search posts..."
+            placeholder="Search discussions, topics, or apps..."
             className="w-full pl-10 pr-4 py-2 border border-neutral-300 bg-white text-ink text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
             aria-label="Search community posts"
           />
@@ -101,6 +101,43 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
           <Plus className="w-4 h-4" />
           New Post
         </Link>
+      </div>
+
+      {/* Discussion Category Filters */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+        {[
+          { label: "All Discussions", query: "" },
+          { label: "App Development & Open Source", query: "App Dev" },
+          { label: "AI Gigs & Tips", query: "gig" },
+          { label: "Platform Guides", query: "guide" },
+        ].map((cat) => {
+          const isActive =
+            (!search && cat.query === "") ||
+            (Boolean(search) && Boolean(cat.query) && search.toLowerCase().includes(cat.query.toLowerCase()));
+          return (
+            <button
+              key={cat.label}
+              type="button"
+              onClick={() => {
+                const params = new URLSearchParams(window.location.search);
+                if (cat.query) {
+                  params.set("search", cat.query);
+                } else {
+                  params.delete("search");
+                }
+                params.set("page", "1");
+                window.location.href = `/community?${params.toString()}`;
+              }}
+              className={`px-3 py-1.5 rounded-full font-semibold border transition-all whitespace-nowrap ${
+                isActive
+                  ? "bg-black text-white border-black shadow-xs"
+                  : "bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50 hover:text-black"
+              }`}
+            >
+              {cat.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Posts List */}
