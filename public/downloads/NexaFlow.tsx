@@ -2,7 +2,58 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Zap, Shield, BarChart3, Menu, X, Check } from "lucide-react";
+
+/* Self-contained SVG Icons (No external package dependencies like lucide-react required) */
+function IconZap({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+    </svg>
+  );
+}
+
+function IconShield({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+  );
+}
+
+function IconBarChart({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 3v18h18" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M18 17V9" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13 17V5" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8 17v-3" />
+    </svg>
+  );
+}
+
+function IconMenu({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  );
+}
+
+function IconClose({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  );
+}
+
+function IconCheck({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+      <polyline points="20 6 9 17 4 12" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 export default function NexaFlowLanding() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -52,7 +103,7 @@ export default function NexaFlowLanding() {
             aria-label="Toggle Menu"
             className="md:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100"
           >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {mobileMenuOpen ? <IconClose className="w-6 h-6" /> : <IconMenu className="w-6 h-6" />}
           </button>
         </div>
 
@@ -143,7 +194,7 @@ export default function NexaFlowLanding() {
             {/* Feature 1 */}
             <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:border-indigo-300 transition">
               <div className="w-12 h-12 rounded-xl bg-indigo-600/10 text-indigo-600 flex items-center justify-center font-bold text-xl mb-4">
-                <Zap className="w-6 h-6 text-indigo-600" />
+                <IconZap className="w-6 h-6 text-indigo-600" />
               </div>
               <h3 className="text-xl font-semibold text-slate-900 mb-2">Instant Triggers</h3>
               <p className="text-slate-600 text-sm leading-relaxed">
@@ -154,7 +205,7 @@ export default function NexaFlowLanding() {
             {/* Feature 2 */}
             <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:border-indigo-300 transition">
               <div className="w-12 h-12 rounded-xl bg-indigo-600/10 text-indigo-600 flex items-center justify-center font-bold text-xl mb-4">
-                <Shield className="w-6 h-6 text-indigo-600" />
+                <IconShield className="w-6 h-6 text-indigo-600" />
               </div>
               <h3 className="text-xl font-semibold text-slate-900 mb-2">Enterprise Security</h3>
               <p className="text-slate-600 text-sm leading-relaxed">
@@ -165,7 +216,7 @@ export default function NexaFlowLanding() {
             {/* Feature 3 */}
             <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:border-indigo-300 transition">
               <div className="w-12 h-12 rounded-xl bg-indigo-600/10 text-indigo-600 flex items-center justify-center font-bold text-xl mb-4">
-                <BarChart3 className="w-6 h-6 text-indigo-600" />
+                <IconBarChart className="w-6 h-6 text-indigo-600" />
               </div>
               <h3 className="text-xl font-semibold text-slate-900 mb-2">Live Analytics</h3>
               <p className="text-slate-600 text-sm leading-relaxed">
@@ -195,15 +246,15 @@ export default function NexaFlowLanding() {
               </div>
               <ul className="space-y-3 text-sm text-slate-600 mb-8">
                 <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                  <IconCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                   <span>Up to 5 team members</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                  <IconCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                   <span>1,000 automated runs/mo</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                  <IconCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                   <span>Community support</span>
                 </li>
               </ul>
@@ -228,15 +279,15 @@ export default function NexaFlowLanding() {
               </div>
               <ul className="space-y-3 text-sm text-slate-300 mb-8">
                 <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                  <IconCheck className="w-4 h-4 text-indigo-400 flex-shrink-0" />
                   <span>Unlimited team members</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                  <IconCheck className="w-4 h-4 text-indigo-400 flex-shrink-0" />
                   <span>50,000 automated runs/mo</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                  <IconCheck className="w-4 h-4 text-indigo-400 flex-shrink-0" />
                   <span>Priority 24/7 support &amp; SSO</span>
                 </li>
               </ul>
@@ -279,4 +330,3 @@ export default function NexaFlowLanding() {
     </div>
   );
 }
-

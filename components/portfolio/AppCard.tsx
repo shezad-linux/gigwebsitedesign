@@ -40,13 +40,12 @@ export const AppCard: React.FC<AppCardProps> = ({ app, featured = false }) => {
 
   return (
     <div
-      className={`group relative flex flex-col justify-between rounded-2xl border bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md ${
-        app.isSuspended
+      className={`group relative flex flex-col justify-between rounded-2xl border bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md ${app.isSuspended
           ? "border-amber-200 bg-amber-50/20"
           : featured
-          ? "border-neutral-900 ring-1 ring-neutral-900"
-          : "border-neutral-200 hover:border-neutral-400"
-      }`}
+            ? "border-neutral-900 ring-1 ring-neutral-900"
+            : "border-neutral-200 hover:border-neutral-400"
+        }`}
     >
       <div>
         {/* Top Header: Icon + Category + Status */}
