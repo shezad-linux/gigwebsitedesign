@@ -46,6 +46,12 @@ export default function AppsPage() {
               >
                 Acquisition Marketplace
               </Link>
+              <Link
+                href="/apps/terms"
+                className="inline-flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-xs font-medium text-neutral-800 hover:bg-neutral-50 transition-colors"
+              >
+                Play Store Terms &amp; EULA
+              </Link>
             </div>
           </div>
         </div>

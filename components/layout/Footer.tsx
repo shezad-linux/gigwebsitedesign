@@ -56,6 +56,11 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
+                <Link href="/apps/terms" className="hover:text-black transition-colors font-medium">
+                  Mobile Apps Terms (EULA)
+                </Link>
+              </li>
+              <li>
                 <Link href="/about" className="hover:text-black transition-colors">
                   About Our Studio
                 </Link>
@@ -173,7 +178,10 @@ export const Footer: React.FC = () => {
               Privacy Policy
             </Link>
             <Link href="/terms" className="hover:text-slate-600 transition-colors">
-              Terms & Disclosures
+              Platform Terms
+            </Link>
+            <Link href="/apps/terms" className="hover:text-slate-600 transition-colors">
+              Play Store Apps Terms
             </Link>
             <Link href="/guides" className="hover:text-slate-600 transition-colors">
               Qualification Guides
